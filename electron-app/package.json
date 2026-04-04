@@ -1,0 +1,71 @@
+{
+  "name": "quantai-desktop",
+  "version": "1.0.0",
+  "description": "QuantAI 量化交易桌面端 - Windows & macOS",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "electron .",
+    "build:win": "electron-builder --win --x64",
+    "build:mac": "electron-builder --mac --x64 --arm64",
+    "build:all": "electron-builder --win --mac",
+    "pack": "electron-builder --dir"
+  },
+  "build": {
+    "appId": "com.quantai.desktop",
+    "productName": "QuantAI",
+    "copyright": "Copyright © 2026 QuantAI",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "renderer/**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}"
+    ],
+    "win": {
+      "target": [
+        {"target": "nsis", "arch": ["x64"]},
+        {"target": "portable", "arch": ["x64"]}
+      ],
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "mac": {
+      "target": [
+        {"target": "dmg", "arch": ["x64", "arm64"]},
+        {"target": "zip", "arch": ["x64", "arm64"]}
+      ],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.finance",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "QuantAI"
+    },
+    "dmg": {
+      "title": "QuantAI ${version}",
+      "background": "assets/dmg-bg.png",
+      "contents": [
+        {"x": 130, "y": 220},
+        {"x": 410, "y": 220, "type": "link", "path": "/Applications"}
+      ]
+    }
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.0"
+  },
+  "dependencies": {
+    "electron-updater": "^6.2.1",
+    "electron-store": "^8.2.0"
+  }
+}

@@ -1,16 +1,21 @@
-# Dependencies
-node_modules/
-vendor/
-venv/
-env/
-
-# Build outputs
-build-output/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
 dist/
+build/
+*.egg
+
+# Node
+node_modules/
+package-lock.json
 
 # IDE
-.idea/
 .vscode/
+.idea/
 *.swp
 *.swo
 
@@ -18,20 +23,17 @@ dist/
 .DS_Store
 Thumbs.db
 
+# Build outputs
+build-output/
+*.apk
+*.ipa
+
 # Logs
 *.log
-logs/
 
-# Temporary files
-*.tmp
+# Backup files
 *.bak
+*.bak2
 
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-
-# Backend specific (exclude large venv)
-backend/venv/
-electron-app/node_modules/
-mobile-app/node_modules/
+# Specific large files to exclude
+backend/*.pyc

@@ -1,0 +1,2961 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuantAI · 总控后台</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg-dark: #0a0e17;
+  --bg-card: #111827;
+  --bg-card2: #0d1117;
+  --bg-hover: #1f2937;
+  --border: #374151;
+  --text: #f9fafb;
+  --text-dim: #9ca3af;
+  --accent: #00c896;
+  --accent-dim: #059669;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+  --success: #10b981;
+}
+body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg-dark); color:var(--text); min-height:100vh; }
+
+/* 登录界面 */
+.login-overlay {
+  position:fixed; top:0; left:0; right:0; bottom:0;
+  background:var(--bg-dark); z-index:9999; display:flex; align-items:center; justify-content:center;
+}
+.login-box {
+  width:400px; background:var(--bg-card); border:1px solid var(--border); border-radius:16px;
+  padding:40px; text-align:center;
+}
+.login-box h1 { color:var(--accent); font-size:28px; margin-bottom:8px; }
+.login-box p { color:var(--text-dim); margin-bottom:30px; }
+.login-box input {
+  width:100%; padding:12px 16px; background:var(--bg-dark); border:1px solid var(--border);
+  border-radius:8px; color:var(--text); font-size:14px; margin-bottom:15px;
+}
+.login-box input:focus { outline:none; border-color:var(--accent); }
+.login-btn {
+  width:100%; padding:14px; background:var(--accent); border:none; border-radius:8px;
+  color:#000; font-size:16px; font-weight:600; cursor:pointer; margin-top:10px;
+}
+.login-btn:hover { background:var(--accent-dim); }
+.login-tabs { display:flex; gap:10px; margin-bottom:25px; }
+.login-tab {
+  flex:1; padding:10px; background:transparent; border:1px solid var(--border);
+  border-radius:8px; color:var(--text-dim); cursor:pointer; font-size:14px;
+}
+.login-tab.active { background:var(--accent); color:#000; border-color:var(--accent); }
+.login-divider { margin:20px 0; color:var(--text-dim); font-size:13px; }
+.login-hint { color:var(--text-dim); font-size:12px; margin-top:15px; }
+.login-error { color:var(--danger); font-size:13px; margin-top:10px; display:none; }
+.login-success { color:var(--accent); font-size:13px; margin-top:10px; display:none; }
+
+/* 顶部导航 */
+.topbar {
+  position:fixed; top:0; left:0; right:0; height:60px;
+  background:var(--bg-card); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; padding:0 20px; z-index:100;
+}
+.topbar-logo { font-size:20px; font-weight:700; color:var(--accent); margin-right:30px; }
+.topbar-logo span { color:var(--text); }
+.topbar-nav { display:flex; gap:5px; flex:1; }
+.topbar-nav button {
+  padding:8px 16px; background:transparent; border:none; color:var(--text-dim);
+  border-radius:6px; cursor:pointer; font-size:14px; transition:all 0.2s;
+}
+.topbar-nav button:hover { background:var(--bg-hover); color:var(--text); }
+.topbar-nav button.active { background:var(--accent); color:#000; font-weight:600; }
+.topbar-right { display:flex; align-items:center; gap:15px; }
+.topbar-status { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-dim); }
+.status-dot { width:8px; height:8px; border-radius:50%; background:var(--success); animation:pulse 2s infinite; }
+.status-dot.warning { background:var(--warning); }
+.status-dot.danger { background:var(--danger); }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+.topbar-time { font-size:13px; color:var(--text-dim); }
+.btn-logout { padding:8px 16px; background:var(--danger); border:none; color:#fff; border-radius:6px; cursor:pointer; font-size:13px; }
+
+/* 主布局 */
+.main-layout { display:flex; margin-top:60px; min-height:calc(100vh - 60px); }
+
+/* 左侧边栏 */
+.sidebar {
+  width:240px; background:var(--bg-card); border-right:1px solid var(--border);
+  padding:20px 0; position:fixed; top:60px; left:0; bottom:0; overflow-y:auto;
+}
+.sidebar-section { margin-bottom:20px; }
+.sidebar-title { padding:8px 20px; font-size:11px; text-transform:uppercase; color:var(--text-dim); letter-spacing:1px; }
+.sidebar-item {
+  display:flex; align-items:center; gap:10px; padding:10px 20px;
+  color:var(--text-dim); cursor:pointer; transition:all 0.2s; font-size:14px;
+}
+.sidebar-item:hover { background:var(--bg-hover); color:var(--text); }
+.sidebar-item.active { background:rgba(0,200,150,0.1); color:var(--accent); border-right:3px solid var(--accent); }
+.sidebar-item svg { width:18px; height:18px; }
+.sidebar-badge { margin-left:auto; background:var(--accent); color:#000; font-size:11px; padding:2px 6px; border-radius:10px; font-weight:600; }
+.sidebar-badge.danger { background:var(--danger); color:#fff; }
+.sidebar-badge.warning { background:var(--warning); color:#000; }
+
+/* 主内容区 */
+.content { flex:1; margin-left:240px; padding:20px; }
+
+/* 卡片通用 */
+.card { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px; }
+.card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
+.card-title { font-size:16px; font-weight:600; }
+.card-action { font-size:13px; color:var(--accent); cursor:pointer; }
+
+/* 统计卡片 */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-bottom:20px; }
+.stat-card {
+  background:var(--bg-card); border:1px solid var(--border); border-radius:12px;
+  padding:20px; position:relative; overflow:hidden;
+}
+.stat-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+}
+.stat-card.green::before { background:var(--accent); }
+.stat-card.blue::before { background:var(--info); }
+.stat-card.yellow::before { background:var(--warning); }
+.stat-card.red::before { background:var(--danger); }
+.stat-card.purple::before { background:#8b5cf6; }
+.stat-label { font-size:13px; color:var(--text-dim); margin-bottom:8px; }
+.stat-value { font-size:28px; font-weight:700; }
+.stat-change { font-size:12px; margin-top:5px; }
+.stat-change.up { color:var(--success); }
+.stat-change.down { color:var(--danger); }
+
+/* 健康状态卡片 */
+.health-card {
+  background:var(--bg-card); border:1px solid var(--border); border-radius:12px;
+  padding:15px; display:flex; align-items:center; gap:15px;
+}
+.health-icon { font-size:24px; }
+.health-info { flex:1; }
+.health-name { font-size:14px; font-weight:600; }
+.health-status { font-size:12px; color:var(--text-dim); }
+.health-indicator {
+  width:10px; height:10px; border-radius:50%;
+}
+.health-indicator.ok { background:var(--success); }
+.health-indicator.warning { background:var(--warning); }
+.health-indicator.error { background:var(--danger); }
+
+/* 数据表格 */
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th { text-align:left; padding:12px 15px; border-bottom:1px solid var(--border); color:var(--text-dim); font-size:12px; font-weight:600; text-transform:uppercase; }
+.data-table td { padding:12px 15px; border-bottom:1px solid var(--border); font-size:14px; }
+.data-table tr:hover { background:var(--bg-hover); }
+.data-table .tag { display:inline-block; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:500; }
+.tag-success { background:rgba(16,185,129,0.2); color:var(--success); }
+.tag-warning { background:rgba(245,158,11,0.2); color:var(--warning); }
+.tag-danger { background:rgba(239,68,68,0.2); color:var(--danger); }
+.tag-info { background:rgba(59,130,246,0.2); color:var(--info); }
+.tag-purple { background:rgba(139,92,246,0.2); color:#8b5cf6; }
+
+/* 图表区域 */
+.chart-grid { display:grid; grid-template-columns:2fr 1fr; gap:20px; }
+.chart-card { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:20px; }
+.chart-title { font-size:14px; font-weight:600; margin-bottom:15px; }
+.chart-placeholder { height:200px; background:linear-gradient(135deg,rgba(0,200,150,0.1) 0%,rgba(59,130,246,0.1) 100%); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--text-dim); font-size:14px; }
+
+/* 实时日志 */
+.log-container { max-height:400px; overflow-y:auto; font-family:'Consolas','Monaco',monospace; font-size:12px; }
+.log-entry { padding:6px 10px; border-bottom:1px solid rgba(55,65,81,0.5); display:flex; gap:10px; }
+.log-time { color:var(--text-dim); white-space:nowrap; }
+.log-type { width:60px; text-align:center; font-weight:600; }
+.log-type.info { color:var(--info); }
+.log-type.success { color:var(--success); }
+.log-type.warning { color:var(--warning); }
+.log-type.error { color:var(--danger); }
+.log-type.critical { color:var(--danger); font-weight:700; }
+.log-msg { flex:1; }
+
+/* 开关按钮 */
+.toggle { width:48px; height:26px; background:var(--border); border-radius:13px; cursor:pointer; position:relative; transition:all 0.3s; }
+.toggle.active { background:var(--accent); }
+.toggle::after { content:''; position:absolute; top:3px; left:3px; width:20px; height:20px; background:#fff; border-radius:50%; transition:all 0.3s; }
+.toggle.active::after { left:25px; }
+
+/* 操作按钮 */
+.btn { padding:8px 16px; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; transition:all 0.2s; }
+.btn-primary { background:var(--accent); color:#000; }
+.btn-primary:hover { background:var(--accent-dim); }
+.btn-secondary { background:var(--bg-hover); color:var(--text); border:1px solid var(--border); }
+.btn-secondary:hover { border-color:var(--accent); }
+.btn-danger { background:var(--danger); color:#fff; }
+.btn-warning { background:var(--warning); color:#000; }
+.btn-sm { padding:5px 10px; font-size:12px; }
+.btn-xs { padding:3px 8px; font-size:11px; }
+
+/* 搜索框 */
+.search-box { display:flex; align-items:center; gap:10px; background:var(--bg-dark); border:1px solid var(--border); border-radius:8px; padding:8px 12px; }
+.search-box input { background:transparent; border:none; outline:none; color:var(--text); font-size:14px; flex:1; }
+.search-box svg { width:16px; height:16px; color:var(--text-dim); }
+
+/* 筛选标签 */
+.filter-tags { display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap; }
+.filter-tag { padding:6px 12px; border-radius:20px; font-size:12px; cursor:pointer; background:var(--bg-hover); color:var(--text-dim); border:1px solid transparent; transition:all 0.2s; }
+.filter-tag:hover { border-color:var(--border); }
+.filter-tag.active { background:rgba(0,200,150,0.2); color:var(--accent); border-color:var(--accent); }
+
+/* 三栏布局 */
+.three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+
+/* 进度条 */
+.progress-bar { height:6px; background:var(--bg-dark); border-radius:3px; overflow:hidden; margin-top:8px; }
+.progress-fill { height:100%; background:var(--accent); border-radius:3px; transition:width 0.5s; }
+
+/* 实时数据动画 */
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+.live { animation:blink 1s infinite; color:var(--success); }
+
+/* 通知列表 */
+.notify-list { display:flex; flex-direction:column; gap:10px; }
+.notify-item { display:flex; align-items:center; gap:12px; padding:12px; background:var(--bg-hover); border-radius:8px; }
+.notify-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.notify-icon.green { background:rgba(0,200,150,0.2); }
+.notify-icon.blue { background:rgba(59,130,246,0.2); }
+.notify-icon.yellow { background:rgba(245,158,11,0.2); }
+.notify-icon.red { background:rgba(239,68,68,0.2); }
+.notify-content { flex:1; }
+.notify-title { font-size:13px; font-weight:500; }
+.notify-time { font-size:11px; color:var(--text-dim); }
+
+/* 告警卡片 */
+.alert-card {
+  background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3);
+  border-radius:8px; padding:15px; display:flex; align-items:center; gap:12px;
+}
+.alert-icon { font-size:20px; }
+.alert-content { flex:1; }
+.alert-title { font-size:14px; font-weight:600; color:var(--danger); }
+.alert-desc { font-size:12px; color:var(--text-dim); margin-top:2px; }
+
+/* 标签页 */
+.tabs { display:flex; gap:5px; border-bottom:1px solid var(--border); margin-bottom:20px; }
+.tab { padding:10px 20px; cursor:pointer; color:var(--text-dim); border-bottom:2px solid transparent; transition:all 0.2s; }
+.tab:hover { color:var(--text); }
+.tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+
+/* 模态框 */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; z-index:200; }
+.modal { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:25px; min-width:500px; max-width:90vw; max-height:90vh; overflow-y:auto; }
+.modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+.modal-title { font-size:18px; font-weight:600; }
+.modal-close { background:transparent; border:none; color:var(--text-dim); cursor:pointer; font-size:20px; }
+.modal-body { margin-bottom:20px; }
+.modal-footer { display:flex; gap:10px; justify-content:flex-end; }
+
+/* 表单 */
+.form-group { margin-bottom:15px; }
+.form-label { display:block; font-size:13px; color:var(--text-dim); margin-bottom:6px; }
+.form-label .required { color:var(--danger); }
+.form-input { width:100%; padding:10px 12px; background:var(--bg-dark); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:14px; outline:none; }
+.form-input:focus { border-color:var(--accent); }
+.form-input:read-only { opacity:0.7; cursor:not-allowed; }
+.form-hint { font-size:12px; color:var(--text-dim); margin-top:4px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+
+/* 输入组 */
+.input-group { display:flex; gap:10px; }
+.input-group .form-input { flex:1; }
+
+/* 安全提示框 */
+.security-box { margin-top:20px; padding:15px; background:rgba(245,158,11,0.1); border-radius:8px; border:1px solid rgba(245,158,11,0.3); }
+.security-box.success { background:rgba(0,200,150,0.1); border-color:rgba(0,200,150,0.3); }
+.security-box-title { font-size:13px; color:var(--warning); margin-bottom:5px; }
+.security-box.success .security-box-title { color:var(--accent); }
+.security-box-text { font-size:12px; color:var(--text-dim); line-height:1.6; }
+
+/* 信号源卡片 */
+.source-card {
+  background:var(--bg-card2); border:1px solid var(--border); border-radius:8px;
+  padding:15px; display:flex; align-items:center; gap:15px;
+}
+.source-card.disabled { opacity:0.5; }
+.source-avatar { width:40px; height:40px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; }
+.source-info { flex:1; }
+.source-name { font-size:14px; font-weight:600; }
+.source-stats { font-size:12px; color:var(--text-dim); margin-top:2px; }
+.source-toggle { margin-left:auto; }
+
+/* 策略性能卡片 */
+.perf-card {
+  background:var(--bg-card2); border:1px solid var(--border); border-radius:8px;
+  padding:15px; display:grid; grid-template-columns:repeat(4,1fr); gap:15px; text-align:center;
+}
+.perf-item-label { font-size:12px; color:var(--text-dim); margin-bottom:4px; }
+.perf-item-value { font-size:18px; font-weight:700; }
+.perf-item-value.green { color:var(--success); }
+.perf-item-value.red { color:var(--danger); }
+
+/* 用户类型标签 */
+.user-type { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:500; }
+.user-type.copy { background:rgba(0,200,150,0.2); color:var(--accent); }
+.user-type.manual { background:rgba(59,130,246,0.2); color:var(--info); }
+.user-type.ai { background:rgba(139,92,246,0.2); color:#8b5cf6; }
+
+/* 熔断状态 */
+.circuit-breaker {
+  background:linear-gradient(135deg,rgba(239,68,68,0.1) 0%,rgba(245,158,11,0.1) 100%);
+  border:1px solid var(--danger); border-radius:8px; padding:20px; margin-bottom:20px;
+}
+.circuit-breaker.active { border-color:var(--danger); }
+.circuit-breaker.inactive { border-color:var(--success); }
+.circuit-status { display:flex; align-items:center; gap:15px; margin-bottom:15px; }
+.circuit-icon { font-size:32px; }
+.circuit-info { flex:1; }
+.circuit-title { font-size:16px; font-weight:700; }
+.circuit-title.active { color:var(--danger); }
+.circuit-title.inactive { color:var(--success); }
+.circuit-desc { font-size:13px; color:var(--text-dim); }
+.circuit-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; }
+.circuit-stat { text-align:center; padding:10px; background:rgba(0,0,0,0.2); border-radius:6px; }
+.circuit-stat-label { font-size:11px; color:var(--text-dim); }
+.circuit-stat-value { font-size:18px; font-weight:700; margin-top:4px; }
+
+/* MT5账户显示 */
+.mt5-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 6px; background:var(--bg-hover); border-radius:4px; font-size:11px; }
+.mt5-badge.connected { background:rgba(16,185,129,0.2); color:var(--success); }
+
+/* 页面切换动画 */
+.page-section { display:none; }
+.page-section.active { display:block; animation:fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+/* 响应式 */
+@media (max-width:1200px) {
+  .chart-grid { grid-template-columns:1fr; }
+  .two-col { grid-template-columns:1fr; }
+  .three-col { grid-template-columns:1fr; }
+  .perf-card { grid-template-columns:repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- 登录界面 -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <h1>QuantAI</h1>
+    <p>智能量化交易平台 · 管理后台</p>
+    
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="switchLoginTab('login')">登录</button>
+      <button class="login-tab" onclick="switchLoginTab('register')">注册</button>
+    </div>
+    
+    <!-- 登录表单 -->
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <input type="email" id="loginEmail" placeholder="邮箱地址" required>
+      <input type="password" id="loginPassword" placeholder="密码" required>
+      <button type="submit" class="login-btn">登录</button>
+    </form>
+    
+    <!-- 注册表单 -->
+    <form id="registerForm" style="display:none;" onsubmit="handleRegister(event)">
+      <input type="text" id="regUsername" placeholder="用户名" required>
+      <input type="email" id="regEmail" placeholder="邮箱地址" required>
+      <input type="password" id="regPassword" placeholder="密码（至少6位）" required minlength="6">
+      <input type="text" id="regFullName" placeholder="姓名（选填）">
+      <button type="submit" class="login-btn">注册</button>
+    </form>
+    
+    <div class="login-error" id="loginError"></div>
+    <div class="login-success" id="loginSuccess"></div>
+    <div class="login-hint">演示账号: admin@quantai.app / admin123</div>
+  </div>
+</div>
+
+<!-- 主界面（登录后显示） -->
+<div id="mainApp" style="display:none;">
+
+<!-- 顶部导航 -->
+<header class="topbar">
+  <div class="topbar-logo">Quant<span>AI</span> 总控</div>
+  <nav class="topbar-nav">
+    <button class="active" onclick="switchPage('dashboard')">总览</button>
+    <button onclick="switchPage('strategies')">策略管理</button>
+    <button onclick="switchPage('signals')">信号监控</button>
+    <button onclick="switchPage('exchanges')">交易所</button>
+    <button onclick="switchPage('users')">用户管理</button>
+    <button onclick="switchPage('subaccounts')">子账户</button>
+    <button onclick="switchPage('trades')">交易记录</button>
+    <button onclick="switchPage('risk')">风控中心</button>
+    <button onclick="switchPage('operations')">运营中心</button>
+    <button onclick="switchPage('settings')">系统设置</button>
+  </nav>
+  <div class="topbar-right">
+    <div class="topbar-status">
+      <span class="status-dot" id="systemStatusDot"></span>
+      <span id="systemStatusText">系统运行中</span>
+    </div>
+    <span class="topbar-time" id="currentTime">--:--:--</span>
+    <button class="btn-logout" onclick="logout()">退出</button>
+  </div>
+</header>
+
+<!-- 主布局 -->
+<div class="main-layout">
+  <!-- 左侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">交易监控</div>
+      <div class="sidebar-item active" onclick="switchPage('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        仪表盘
+      </div>
+      <div class="sidebar-item" onclick="switchPage('signals')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        实时信号
+        <span class="sidebar-badge">12</span>
+      </div>
+      <div class="sidebar-item" onclick="switchPage('exchanges')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        交易所
+      </div>
+      <div class="sidebar-item" onclick="switchPage('strategies')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        策略列表
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">用户与风控</div>
+      <div class="sidebar-item" onclick="switchPage('users')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        用户管理
+        <span class="sidebar-badge danger">3</span>
+      </div>
+      <div class="sidebar-item" onclick="switchPage('subaccounts')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        子账户管理
+        <span class="sidebar-badge" id="subaccountBadge">0</span>
+      </div>
+      <div class="sidebar-item" onclick="switchPage('risk')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        风控中心
+        <span class="sidebar-badge warning">2</span>
+      </div>
+      <div class="sidebar-item" onclick="switchPage('operations')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        运营中心
+        <span class="sidebar-badge danger">New</span>
+      </div>
+      <div class="sidebar-item" onclick="switchPage('trades')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        交易记录
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">系统</div>
+      <div class="sidebar-item" onclick="switchPage('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        系统设置
+      </div>
+      <div class="sidebar-item" onclick="switchPage('logs')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        系统日志
+      </div>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="content">
+    <!-- 仪表盘 -->
+    <section id="page-dashboard" class="page-section active">
+      <!-- 核心指标 -->
+      <div class="stats-grid">
+        <div class="stat-card green">
+          <div class="stat-label">平台总资产管理</div>
+          <div class="stat-value">$2,847,291</div>
+          <div class="stat-change up">↑ 12.5% 本月</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">总用户数</div>
+          <div class="stat-value">1,247</div>
+          <div class="stat-change">活跃: 892</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">今日平台盈亏</div>
+          <div class="stat-value" style="color:var(--success);">+$48,237</div>
+          <div class="stat-change up">↑ 18.2% vs 昨日</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-label">活跃交易用户</div>
+          <div class="stat-value">156</div>
+          <div class="stat-change">跟单: 89 | 手动: 45 | AI: 22</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">待处理告警</div>
+          <div class="stat-value">3</div>
+          <div class="stat-change">2 高优先级</div>
+        </div>
+      </div>
+
+      <!-- 系统健康状态 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">系统健康状态</div>
+          <span class="live">● 实时监控</span>
+        </div>
+        <div class="health-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:15px;">
+          <div class="health-card">
+            <div class="health-icon">🔗</div>
+            <div class="health-info">
+              <div class="health-name">MetaApi</div>
+              <div class="health-status">已连接 · 15账户</div>
+            </div>
+            <div class="health-indicator ok"></div>
+          </div>
+          <div class="health-card">
+            <div class="health-icon">🌐</div>
+            <div class="health-info">
+              <div class="health-name">CCXT 通道</div>
+              <div class="health-status">已连接 · 12交易所</div>
+            </div>
+            <div class="health-indicator ok"></div>
+          </div>
+          <div class="health-card">
+            <div class="health-icon">🤖</div>
+            <div class="health-info">
+              <div class="health-name">Groq AI</div>
+              <div class="health-status">在线 · 响应 120ms</div>
+            </div>
+            <div class="health-indicator ok"></div>
+          </div>
+          <div class="health-card">
+            <div class="health-icon">📊</div>
+            <div class="health-info">
+              <div class="health-name">信号引擎</div>
+              <div class="health-status">运行中 · 47/日</div>
+            </div>
+            <div class="health-indicator ok"></div>
+          </div>
+          <div class="health-card">
+            <div class="health-icon">🛡️</div>
+            <div class="health-info">
+              <div class="health-name">风控系统</div>
+              <div class="health-status">正常 · 熔断待命</div>
+            </div>
+            <div class="health-indicator warning"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 告警区域 -->
+      <div id="alertContainer" style="margin-bottom:20px;">
+        <div class="alert-card">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            <div class="alert-title">KuCoin 交易所延迟过高</div>
+            <div class="alert-desc">当前延迟 312ms，超过阈值 200ms，建议检查网络或暂时切换通道</div>
+          </div>
+          <button class="btn btn-sm btn-warning" onclick="dismissAlert(this)">忽略</button>
+          <button class="btn btn-sm btn-secondary" onclick="switchToExchange()">切换通道</button>
+        </div>
+        <div class="alert-card" style="margin-top:10px;background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.3);">
+          <div class="alert-icon">🛡️</div>
+          <div class="alert-content">
+            <div class="alert-title">RSI 极限策略触发风控 80%</div>
+            <div class="alert-desc">该策略今日亏损已达阈值，请确认是否继续或暂停</div>
+          </div>
+          <button class="btn btn-sm btn-danger" onclick="pauseStrategy('RSI极限')">暂停策略</button>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-title">收益趋势 (7日)</div>
+          <div class="chart-placeholder">
+            <svg width="100%" height="200" viewBox="0 0 600 200" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#00c896;stop-opacity:0.3" />
+                  <stop offset="100%" style="stop-color:#00c896;stop-opacity:0" />
+                </linearGradient>
+              </defs>
+              <path d="M0,150 L100,120 L200,140 L300,80 L400,100 L500,60 L600,40 L600,200 L0,200 Z" fill="url(#chartGrad)"/>
+              <path d="M0,150 L100,120 L200,140 L300,80 L400,100 L500,60 L600,40" fill="none" stroke="#00c896" stroke-width="2"/>
+              <circle cx="600" cy="40" r="4" fill="#00c896"/>
+            </svg>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">订阅分布</div>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:10px;">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+                <span>Elite</span><span style="color:var(--accent);font-weight:600;">28%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" style="width:28%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+                <span>Pro</span><span style="color:var(--info);font-weight:600;">41%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" style="width:41%;background:var(--info);"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+                <span>Basic</span><span style="color:var(--warning);font-weight:600;">22%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" style="width:22%;background:var(--warning);"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+                <span>Free</span><span style="color:var(--text-dim);font-weight:600;">9%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" style="width:9%;background:var(--text-dim);"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">最近信号</div>
+            <span class="card-action" onclick="switchPage('signals')">查看全部 →</span>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>品种</th><th>方向</th><th>策略</th><th>时间</th><th>状态</th></tr></thead>
+            <tbody>
+              <tr><td>BTC/USDT</td><td><span class="tag tag-success">做多</span></td><td>MACD Pro</td><td>2分钟前</td><td><span class="live">● 执行中</span></td></tr>
+              <tr><td>ETH/USDT</td><td><span class="tag tag-danger">做空</span></td><td>RSI 极限</td><td>8分钟前</td><td>已完成</td></tr>
+              <tr><td>SOL/USDT</td><td><span class="tag tag-success">做多</span></td><td>布林带突破</td><td>15分钟前</td><td>已完成</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">系统通知</div>
+            <span class="card-action" onclick="switchPage('logs')">查看全部 →</span>
+          </div>
+          <div class="notify-list">
+            <div class="notify-item">
+              <div class="notify-icon green">✓</div>
+              <div class="notify-content">
+                <div class="notify-title">策略 "MACD Pro" 成功执行止盈</div>
+                <div class="notify-time">5 分钟前</div>
+              </div>
+            </div>
+            <div class="notify-item">
+              <div class="notify-icon blue">↑</div>
+              <div class="notify-content">
+                <div class="notify-title">新用户注册: john.trade@email.com</div>
+                <div class="notify-time">12 分钟前</div>
+              </div>
+            </div>
+            <div class="notify-item">
+              <div class="notify-icon yellow">⚠</div>
+              <div class="notify-content">
+                <div class="notify-title">策略 "RSI 极限" 触发风控阈值</div>
+                <div class="notify-time">18 分钟前</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 策略管理 -->
+    <section id="page-strategies" class="page-section">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">量化策略列表</div>
+          <div style="display:flex;gap:10px;">
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input type="text" placeholder="搜索策略..." id="strategySearch">
+            </div>
+            <button class="btn btn-primary" onclick="showModal('addStrategy')">+ 添加策略</button>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>策略名称</th><th>类型</th><th>夏普比率</th><th>最大回撤</th><th>订阅人数</th><th>胜率</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>MACD Pro</strong></td>
+              <td>趋势追踪</td>
+              <td style="color:var(--success);">2.34</td>
+              <td style="color:var(--danger);">-8.2%</td>
+              <td>89</td>
+              <td>73.2%</td>
+              <td><span class="tag tag-success">运行中</span></td>
+              <td>
+                <button class="btn btn-xs btn-secondary" onclick="viewStrategy('MACD Pro')">详情</button>
+                <button class="btn btn-xs btn-danger" onclick="toggleStrategy('MACD Pro')">暂停</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>RSI 极限</strong></td>
+              <td>均值回归</td>
+              <td style="color:var(--warning);">1.87</td>
+              <td style="color:var(--danger);">-12.5%</td>
+              <td>56</td>
+              <td>68.5%</td>
+              <td><span class="tag tag-warning">风控中</span></td>
+              <td>
+                <button class="btn btn-xs btn-secondary" onclick="viewStrategy('RSI 极限')">详情</button>
+                <button class="btn btn-xs btn-danger" onclick="toggleStrategy('RSI 极限')">暂停</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>布林带突破</strong></td>
+              <td>波动捕捉</td>
+              <td style="color:var(--success);">2.01</td>
+              <td style="color:var(--warning);">-6.8%</td>
+              <td>34</td>
+              <td>61.8%</td>
+              <td><span class="tag tag-success">运行中</span></td>
+              <td>
+                <button class="btn btn-xs btn-secondary" onclick="viewStrategy('布林带突破')">详情</button>
+                <button class="btn btn-xs btn-danger" onclick="toggleStrategy('布林带突破')">暂停</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>网格策略</strong></td>
+              <td>套利</td>
+              <td style="color:var(--success);">3.12</td>
+              <td style="color:var(--success);">-3.2%</td>
+              <td>22</td>
+              <td>82.1%</td>
+              <td><span class="tag tag-info">测试中</span></td>
+              <td>
+                <button class="btn btn-xs btn-secondary" onclick="viewStrategy('网格策略')">详情</button>
+                <button class="btn btn-xs btn-primary" onclick="toggleStrategy('网格策略')">启用</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- 策略详情卡片 -->
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:15px;">策略表现</div>
+          <div class="perf-card">
+            <div class="perf-item">
+              <div class="perf-item-label">7日收益率</div>
+              <div class="perf-item-value green">+18.5%</div>
+            </div>
+            <div class="perf-item">
+              <div class="perf-item-label">30日收益率</div>
+              <div class="perf-item-value green">+45.2%</div>
+            </div>
+            <div class="perf-item">
+              <div class="perf-item-label">总交易次数</div>
+              <div class="perf-item-value">1,247</div>
+            </div>
+            <div class="perf-item">
+              <div class="perf-item-label">平均持仓</div>
+              <div class="perf-item-value">4.2h</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:15px;">信号源管理</div>
+          <div class="source-card">
+            <div class="source-avatar">M</div>
+            <div class="source-info">
+              <div class="source-name">MACD Pro 主账户</div>
+              <div class="source-stats">订阅者 89 · 今日信号 12 · 胜率 73.2%</div>
+            </div>
+            <div class="source-toggle">
+              <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+            </div>
+          </div>
+          <div class="source-card" style="margin-top:10px;">
+            <div class="source-avatar" style="background:var(--info);">R</div>
+            <div class="source-info">
+              <div class="source-name">RSI 极限 主账户</div>
+              <div class="source-stats">订阅者 56 · 今日信号 8 · 胜率 68.5%</div>
+            </div>
+            <div class="source-toggle">
+              <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+            </div>
+          </div>
+          <div class="source-card disabled" style="margin-top:10px;">
+            <div class="source-avatar" style="background:var(--warning);">G</div>
+            <div class="source-info">
+              <div class="source-name">网格策略 主账户</div>
+              <div class="source-stats">订阅者 22 · 今日信号 3 · 胜率 82.1%</div>
+            </div>
+            <div class="source-toggle">
+              <div class="toggle" onclick="this.classList.toggle('active'); this.closest('.source-card').classList.toggle('disabled')"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 信号监控 -->
+    <section id="page-signals" class="page-section">
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
+        <div class="stat-card green">
+          <div class="stat-label">今日信号</div>
+          <div class="stat-value">47</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">执行中</div>
+          <div class="stat-value">12</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-label">成功率</div>
+          <div class="stat-value">68%</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">失败/取消</div>
+          <div class="stat-value">3</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">实时信号流</div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <div class="toggle active" id="autoRefresh" onclick="toggleAutoRefresh()"></div>
+            <span style="font-size:13px;color:var(--text-dim);">自动刷新 (5s)</span>
+          </div>
+        </div>
+        <div class="filter-tags">
+          <span class="filter-tag active" onclick="filterSignals('all')">全部</span>
+          <span class="filter-tag" onclick="filterSignals('buy')">做多</span>
+          <span class="filter-tag" onclick="filterSignals('sell')">做空</span>
+          <span class="filter-tag" onclick="filterSignals('pending')">待执行</span>
+          <span class="filter-tag" onclick="filterSignals('completed')">已完成</span>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>时间</th><th>品种</th><th>方向</th><th>策略</th><th>价格</th><th>数量</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="signalTable">
+            <tr><td>23:45:12</td><td>BTC/USDT</td><td><span class="tag tag-success">做多</span></td><td>MACD Pro</td><td>$67,842.50</td><td>0.15</td><td><span class="live">● 执行中</span></td><td><button class="btn btn-sm btn-secondary">详情</button></td></tr>
+            <tr><td>23:42:08</td><td>ETH/USDT</td><td><span class="tag tag-danger">做空</span></td><td>RSI 极限</td><td>$3,521.80</td><td>2.5</td><td>已完成</td><td><button class="btn btn-sm btn-secondary">详情</button></td></tr>
+            <tr><td>23:38:55</td><td>SOL/USDT</td><td><span class="tag tag-success">做多</span></td><td>布林带突破</td><td>$178.25</td><td>15</td><td>已完成</td><td><button class="btn btn-sm btn-secondary">详情</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 用户管理 -->
+    <section id="page-users" class="page-section">
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
+        <div class="stat-card blue">
+          <div class="stat-label">跟单订阅者</div>
+          <div class="stat-value">892</div>
+          <div class="stat-change">占活跃用户 71%</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">手动交易者</div>
+          <div class="stat-value">245</div>
+          <div class="stat-change">占活跃用户 20%</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">AI工具用户</div>
+          <div class="stat-value">110</div>
+          <div class="stat-change">占活跃用户 9%</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-label">MT5绑定数</div>
+          <div class="stat-value">567</div>
+          <div class="stat-change">活跃账户</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">用户列表</div>
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" placeholder="搜索用户/ID..." id="userSearch">
+          </div>
+        </div>
+        <div class="filter-tags">
+          <span class="filter-tag active" onclick="filterUsers('all')">全部用户</span>
+          <span class="filter-tag" onclick="filterUsers('copy')"><span class="user-type copy">跟单</span> 跟单订阅者</span>
+          <span class="filter-tag" onclick="filterUsers('manual')"><span class="user-type manual">手动</span> 手动交易者</span>
+          <span class="filter-tag" onclick="filterUsers('ai')"><span class="user-type ai">AI</span> AI工具用户</span>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>用户ID</th><th>类型</th><th>邮箱</th><th>MT5账户</th><th>订阅套餐</th><th>注册时间</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>#1001</td>
+              <td><span class="user-type copy">跟单</span></td>
+              <td>john.trade@email.com</td>
+              <td><span class="mt5-badge connected">✓ MT4-001</span></td>
+              <td><span class="tag tag-success">Elite</span></td>
+              <td>2026-03-28</td>
+              <td><span class="tag tag-success">活跃</span></td>
+              <td>
+                <button class="btn btn-xs btn-secondary" onclick="viewUser('#1001')">详情</button>
+                <button class="btn btn-xs btn-warning" onclick="manageUser('#1001')">管理</button>
+                <button class="btn btn-xs btn-danger" onclick="disableUser('#1001')">禁用</button>
+              </td>
+            </tr>
+            <tr>
+              <td>#1002</td>
+              <td><span class="user-type manual">手动</span></td>
+              <td>sarah.investor@gmail.com</td>
+              <td><span class="mt5-badge connected">✓ MT5-023</span></td>
+              <td><span class="tag tag-info">Pro</span></td>
+              <td>2026-03-25</td>
+              <td><span class="tag tag-success">活跃</span></td>
+              <td>
+                <button class="btn btn-xs btn-secondary" onclick="viewUser('#1002')">详情</button>
+                <button class="btn btn-xs btn-warning" onclick="manageUser('#1002')">管理</button>
+                <button class="btn btn-xs btn-danger" onclick="disableUser('#1002')">禁用</button>
+              </td>
+            </tr>
+            <tr>
+              <td>#1003</td>
+              <td><span class="user-type copy">跟单</span></td>
+              <td>mike.cryptp@outlook.com</td>
+              <td><span class="mt5-badge">未绑定</span></td>
+              <td><span class="tag tag-warning">Basic</span></td>
+              <td>2026-03-22</td>
+              <td><span class="tag tag-warning">待续费</span></td>
+              <td>
+                <button class="btn btn-xs btn-secondary" onclick="viewUser('#1003')">详情</button>
+                <button class="btn btn-xs btn-warning" onclick="manageUser('#1003')">管理</button>
+                <button class="btn btn-xs btn-danger" onclick="disableUser('#1003')">禁用</button>
+              </td>
+            </tr>
+            <tr>
+              <td>#1004</td>
+              <td><span class="user-type ai">AI</span></td>
+              <td>alex.ai@163.com</td>
+              <td><span class="mt5-badge connected">✓ MT5-089</span></td>
+              <td><span class="tag tag-info">Pro</span></td>
+              <td>2026-04-01</td>
+              <td><span class="tag tag-success">活跃</span></td>
+              <td>
+                <button class="btn btn-xs btn-secondary" onclick="viewUser('#1004')">详情</button>
+                <button class="btn btn-xs btn-warning" onclick="manageUser('#1004')">管理</button>
+                <button class="btn btn-xs btn-danger" onclick="disableUser('#1004')">禁用</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 子账户管理 -->
+    <section id="page-subaccounts" class="page-section">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">子账户管理</div>
+          <div style="display:flex;gap:10px;">
+            <span style="font-size:13px;color:var(--text-dim);line-height:36px;">
+              当前账户: <span id="currentUserName" style="color:var(--accent);">-</span>
+              <span class="tag tag-info" id="currentUserRole">-</span>
+            </span>
+            <button class="btn btn-primary" onclick="createSubaccount()">+ 添加子账户</button>
+            <button class="btn btn-secondary" onclick="loadSubaccounts()">🔄 刷新</button>
+          </div>
+        </div>
+        <div style="margin-bottom:20px;padding:15px;background:var(--bg-dark);border-radius:8px;">
+          <div style="display:flex;gap:30px;font-size:13px;">
+            <div>
+              <span style="color:var(--text-dim);">可创建子账户:</span>
+              <span style="color:var(--accent);font-weight:600;" id="subaccountLimit">无限制</span>
+            </div>
+            <div>
+              <span style="color:var(--text-dim);">已创建:</span>
+              <span style="color:var(--warning);font-weight:600;" id="subaccountCount">0</span>
+            </div>
+            <div>
+              <span style="color:var(--text-dim);">角色:</span>
+              <span style="color:var(--info);">管理员可管理所有子账户</span>
+            </div>
+          </div>
+        </div>
+        <div id="subaccountsList" class="user-list">
+          <div style="text-align:center;padding:40px;color:var(--text-dim);">点击"刷新"加载子账户列表</div>
+        </div>
+      </div>
+      
+      <div class="card" style="margin-top:20px;">
+        <div class="card-header">
+          <div class="card-title">子账户权限说明</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px;">
+          <div style="padding:15px;background:var(--bg-dark);border-radius:8px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:8px;">👑</div>
+            <div style="font-weight:600;color:var(--danger);">admin</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:5px;">完全控制，可管理所有功能</div>
+          </div>
+          <div style="padding:15px;background:var(--bg-dark);border-radius:8px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:8px;">📊</div>
+            <div style="font-weight:600;color:var(--warning);">manager</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:5px;">经理权限，可管理子账户</div>
+          </div>
+          <div style="padding:15px;background:var(--bg-dark);border-radius:8px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:8px;">📈</div>
+            <div style="font-weight:600;color:var(--success);">trader</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:5px;">交易员，可执行交易操作</div>
+          </div>
+          <div style="padding:15px;background:var(--bg-dark);border-radius:8px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:8px;">👁️</div>
+            <div style="font-weight:600;color:var(--info);">viewer</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:5px;">查看者，仅查看数据</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 交易记录 -->
+    <section id="page-trades" class="page-section">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">交易历史</div>
+          <div style="display:flex;gap:10px;">
+            <select style="padding:8px 12px;background:var(--bg-dark);border:1px solid var(--border);color:var(--text);border-radius:6px;">
+              <option>最近7天</option>
+              <option>最近30天</option>
+              <option>最近90天</option>
+            </select>
+            <button class="btn btn-secondary">导出 CSV</button>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>时间</th><th>用户</th><th>类型</th><th>品种</th><th>方向</th><th>数量</th><th>价格</th><th>金额</th><th>策略</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td>2026-04-03 23:45:12</td><td>#1001</td><td><span class="user-type copy">跟单</span></td><td>BTC/USDT</td><td><span class="tag tag-success">买入</span></td><td>0.15</td><td>$67,842.50</td><td>$10,176.38</td><td>MACD Pro</td><td><span class="tag tag-success">成功</span></td></tr>
+            <tr><td>2026-04-03 23:42:08</td><td>#1002</td><td><span class="user-type manual">手动</span></td><td>ETH/USDT</td><td><span class="tag tag-danger">卖出</span></td><td>2.5</td><td>$3,521.80</td><td>$8,804.50</td><td>-</td><td><span class="tag tag-success">成功</span></td></tr>
+            <tr><td>2026-04-03 23:38:55</td><td>#1001</td><td><span class="user-type copy">跟单</span></td><td>SOL/USDT</td><td><span class="tag tag-success">买入</span></td><td>15</td><td>$178.25</td><td>$2,673.75</td><td>布林带突破</td><td><span class="tag tag-success">成功</span></td></tr>
+            <tr><td>2026-04-03 23:35:21</td><td>#1003</td><td><span class="user-type copy">跟单</span></td><td>BNB/USDT</td><td><span class="tag tag-warning">取消</span></td><td>5</td><td>$412.60</td><td>$2,063.00</td><td>网格策略</td><td><span class="tag tag-warning">取消</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 风控中心 -->
+    <section id="page-risk" class="page-section">
+      <!-- 熔断机制状态 -->
+      <div class="circuit-breaker inactive" id="circuitBreaker">
+        <div class="circuit-status">
+          <div class="circuit-icon">🛡️</div>
+          <div class="circuit-info">
+            <div class="circuit-title inactive" id="circuitTitle">全局熔断机制 - 待命状态</div>
+            <div class="circuit-desc">当平台分钟级亏损超过阈值时，自动暂停所有自动交易</div>
+          </div>
+          <div class="toggle" id="circuitToggle" onclick="toggleCircuitBreaker()"></div>
+        </div>
+        <div class="circuit-stats">
+          <div class="circuit-stat">
+            <div class="circuit-stat-label">熔断阈值</div>
+            <div class="circuit-stat-value" style="color:var(--warning);">$5,000/分钟</div>
+          </div>
+          <div class="circuit-stat">
+            <div class="circuit-stat-label">暂停时长</div>
+            <div class="circuit-stat-value">15 分钟</div>
+          </div>
+          <div class="circuit-stat">
+            <div class="circuit-stat-label">触发次数 (今日)</div>
+            <div class="circuit-stat-value">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchRiskTab('global')">全局风控</div>
+        <div class="tab" onclick="switchRiskTab('copy')">智能跟单</div>
+        <div class="tab" onclick="switchRiskTab('user')">用户交易</div>
+      </div>
+
+      <!-- 全局风控 -->
+      <div id="risk-global" class="risk-tab active">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:20px;">全局风控参数</div>
+            <div class="form-group">
+              <label class="form-label">自动交易总开关</label>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="toggle active" id="globalTradeToggle" onclick="toggleSetting('globalTrade')"></div>
+                <span style="font-size:13px;color:var(--text-dim);">允许所有AI自动执行交易</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">单笔最大金额 (USD)</label>
+                <input type="number" class="form-input" value="5000">
+              </div>
+              <div class="form-group">
+                <label class="form-label">单日最大亏损 (USD)</label>
+                <input type="number" class="form-input" value="10000">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">最大同时持仓品种</label>
+                <input type="number" class="form-input" value="10">
+              </div>
+              <div class="form-group">
+                <label class="form-label">持仓比例限制</label>
+                <input type="number" class="form-input" value="30" style="width:100px;"> %
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">夜间保护模式</label>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="toggle active" id="nightModeToggle" onclick="toggleSetting('nightMode')"></div>
+                <span style="font-size:13px;color:var(--text-dim);">23:00 - 06:00 暂停交易</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">全局熔断阈值 (USD/分钟)</label>
+              <input type="number" class="form-input" value="5000" id="circuitThreshold">
+              <div class="form-hint">当平台分钟级亏损超过此值时，自动触发熔断暂停所有交易</div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:15px;">保存全局风控</button>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:20px;">实时风控状态</div>
+            <div style="display:flex;flex-direction:column;gap:15px;">
+              <div class="health-card">
+                <div class="health-icon">💰</div>
+                <div class="health-info">
+                  <div class="health-name">今日平台亏损</div>
+                  <div class="health-status" style="color:var(--success);">$0 (风控有效)</div>
+                </div>
+                <div class="health-indicator ok"></div>
+              </div>
+              <div class="health-card">
+                <div class="health-icon">📊</div>
+                <div class="health-info">
+                  <div class="health-name">当前持仓数</div>
+                  <div class="health-status">6 / 10 (安全)</div>
+                </div>
+                <div class="health-indicator ok"></div>
+              </div>
+              <div class="health-card">
+                <div class="health-icon">📈</div>
+                <div class="health-info">
+                  <div class="health-name">总持仓金额</div>
+                  <div class="health-status">$124,532 / $500,000 (25%)</div>
+                </div>
+                <div class="health-indicator ok"></div>
+              </div>
+              <div class="health-card">
+                <div class="health-icon">⏰</div>
+                <div class="health-info">
+                  <div class="health-name">夜间保护</div>
+                  <div class="health-status">交易时段 (06:00 - 23:00)</div>
+                </div>
+                <div class="health-indicator ok"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 智能跟单 -->
+      <div id="risk-copy" class="risk-tab" style="display:none;">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:20px;">跟单通用设置</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">默认跟单手数</label>
+              <select class="form-input">
+                <option>固定 0.1 手</option>
+                <option>固定 0.5 手</option>
+                <option selected>按本金 1% 计算</option>
+                <option>按本金 2% 计算</option>
+                <option>按信号源比例</option>
+              </select>
+              <div class="form-hint">新用户订阅时的默认跟单手数计算方式</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">最大点差限制</label>
+              <input type="number" class="form-input" value="2.0">
+              <div class="form-hint">超过此点差时暂停跟单，保护订阅者</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">跟单延迟上限</label>
+              <input type="number" class="form-input" value="500" style="width:150px;"> ms
+              <div class="form-hint">超过此延迟时暂停跟单</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">最大同时跟单品种</label>
+              <input type="number" class="form-input" value="5">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">允许反向跟单</label>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="toggle" id="reverseCopyToggle" onclick="toggleSetting('reverseCopy')"></div>
+              <span style="font-size:13px;color:var(--text-dim);">开启后订阅者可选择做空信号源的方向</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:15px;">保存跟单设置</button>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:20px;">信号源管理</div>
+          <div class="source-card">
+            <div class="source-avatar">M</div>
+            <div class="source-info">
+              <div class="source-name">MACD Pro 主账户</div>
+              <div class="source-stats">订阅者 89 · 今日信号 12 · 胜率 73.2%</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:12px;color:var(--text-dim);">启用</span>
+              <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+            </div>
+          </div>
+          <div class="source-card" style="margin-top:10px;">
+            <div class="source-avatar" style="background:var(--info);">R</div>
+            <div class="source-info">
+              <div class="source-name">RSI 极限 主账户</div>
+              <div class="source-stats">订阅者 56 · 今日信号 8 · 胜率 68.5%</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:12px;color:var(--text-dim);">风控中</span>
+              <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 用户交易 -->
+      <div id="risk-user" class="risk-tab" style="display:none;">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:20px;">用户端默认限制 (新用户)</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">单笔最大交易额 (USD)</label>
+              <input type="number" class="form-input" value="1000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">单日最大交易额</label>
+              <input type="number" class="form-input" value="5000">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">默认杠杆倍数</label>
+              <select class="form-input">
+                <option>1x (现货)</option>
+                <option selected>2x</option>
+                <option>5x</option>
+                <option>10x</option>
+                <option>20x</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">用户提额需审核</label>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="toggle active" onclick="toggleSetting('userLimitAudit')"></div>
+                <span style="font-size:13px;color:var(--text-dim);">用户申请提高限额需管理员审核</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:15px;">保存用户限制</button>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:20px;">AI工具管理</div>
+          <table class="data-table">
+            <thead><tr><th>AI模型</th><th>用途</th><th>API消耗/日</th><th>启用状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Groq Llama 3.3</strong></td>
+                <td>客服对话</td>
+                <td>~$2.50</td>
+                <td><span class="tag tag-success">启用</span></td>
+                <td><button class="btn btn-xs btn-warning">配置</button></td>
+              </tr>
+              <tr>
+                <td><strong>DeepSeek V3.2</strong></td>
+                <td>市场分析/信号</td>
+                <td>~$8.20</td>
+                <td><span class="tag tag-success">启用</span></td>
+                <td><button class="btn btn-xs btn-warning">配置</button></td>
+              </tr>
+              <tr>
+                <td><strong>Claude 3.5</strong></td>
+                <td>策略优化</td>
+                <td>~$12.00</td>
+                <td><span class="tag tag-info">试用中</span></td>
+                <td><button class="btn btn-xs btn-primary">启用</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 系统设置 -->
+    <section id="page-settings" class="page-section">
+      <div class="tabs">
+        <div class="tab active" onclick="switchSettingsTab('api')">API配置</div>
+        <div class="tab" onclick="switchSettingsTab('metaapi')">MetaApi</div>
+        <div class="tab" onclick="switchSettingsTab('exchange')">交易所直连</div>
+        <div class="tab" onclick="switchSettingsTab('security')">安全设置</div>
+      </div>
+
+      <!-- API配置 -->
+      <div id="settings-api" class="settings-tab active">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:20px;">AI 服务配置</div>
+            <div class="form-group">
+              <label class="form-label">Groq API (客服对话 - 免费)</label>
+              <div class="input-group">
+                <input type="password" class="form-input" value="gsk_xxxxxxxxxxxxx" readonly>
+                <button class="btn btn-secondary">更新</button>
+              </div>
+              <div class="form-hint">模型: llama-3.3-70b-versatile | 免费额度</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">OpenRouter API (分析/信号)</label>
+              <div class="input-group">
+                <input type="password" class="form-input" value="sk-or-v1-xxxxxxxxxxxxx" readonly>
+                <button class="btn btn-secondary">更新</button>
+              </div>
+              <div class="form-hint">模型: deepseek/deepseek-v3.2 | 按量计费</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:20px;">API 通道概览</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="health-card" style="background:var(--bg-card2);">
+                <div class="health-icon">🔗</div>
+                <div class="health-info">
+                  <div class="health-name">MetaApi</div>
+                  <div class="health-status">已配置 · 支持80+交易所</div>
+                </div>
+                <span class="tag tag-success">主通道</span>
+              </div>
+              <div class="health-card" style="background:var(--bg-card2);">
+                <div class="health-icon">📦</div>
+                <div class="health-info">
+                  <div class="health-name">CCXT</div>
+                  <div class="health-status">已配置 · 支持27交易所</div>
+                </div>
+                <span class="tag tag-info">备用</span>
+              </div>
+              <div class="health-card" style="background:var(--bg-card2);">
+                <div class="health-icon">🟡</div>
+                <div class="health-info">
+                  <div class="health-name">Binance Direct</div>
+                  <div class="health-status">未配置</div>
+                </div>
+                <span class="tag tag-warning">未配置</span>
+              </div>
+              <div class="health-card" style="background:var(--bg-card2);">
+                <div class="health-icon">⚪</div>
+                <div class="health-info">
+                  <div class="health-name">OKX Direct</div>
+                  <div class="health-status">未配置</div>
+                </div>
+                <span class="tag tag-warning">未配置</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MetaApi配置 -->
+      <div id="settings-metaapi" class="settings-tab" style="display:none;">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:20px;">MetaApi 连接配置</div>
+            <div class="form-group">
+              <label class="form-label">MetaApi Token <span class="required">*</span></label>
+              <div class="input-group">
+                <input type="password" class="form-input" placeholder="输入 MetaApi Token" id="metaApiToken" style="flex:1;">
+                <button class="btn btn-secondary" onclick="testMetaApi()">测试连接</button>
+              </div>
+              <div class="form-hint">从 MetaApi.io 获取您的 API Token</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">MT5 服务器/经纪商列表</label>
+              <select class="form-input" multiple style="height:120px;">
+                <option selected>MetaQuotes-Demo</option>
+                <option selected>IronFX-Demo</option>
+                <option selected>Alpari-Demo</option>
+                <option>ForexClub-Wallet</option>
+                <option>RoboForex-Demo</option>
+              </select>
+              <div class="form-hint">按住 Ctrl 多选，用户绑定MT5账户时将显示这些服务器</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">CopyFactory Provider ID <span class="required">*</span></label>
+              <input type="text" class="form-input" placeholder="CopyFactory 提供商账户ID" id="copyFactoryProvider">
+              <div class="form-hint">用于信号分发的 CopyFactory 账户 ID</div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:15px;" onclick="saveMetaApi()">保存 MetaApi 配置</button>
+            <button class="btn btn-secondary" style="margin-top:15px;margin-left:10px;" onclick="restartMetaApi()">🔄 重启 MetaApi 服务</button>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:20px;">MetaApi 状态</div>
+            <div class="health-card" style="margin-bottom:15px;background:var(--bg-card2);">
+              <div class="health-icon">✓</div>
+              <div class="health-info">
+                <div class="health-name">连接状态</div>
+                <div class="health-status" style="color:var(--success);">已连接 · 正常工作</div>
+              </div>
+              <div class="health-indicator ok"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+              <div class="health-card" style="background:var(--bg-card2);">
+                <div class="health-info">
+                  <div class="health-name" style="font-size:12px;">已连接账户</div>
+                  <div class="health-status" style="font-size:20px;font-weight:700;color:var(--accent);">15</div>
+                </div>
+              </div>
+              <div class="health-card" style="background:var(--bg-card2);">
+                <div class="health-info">
+                  <div class="health-name" style="font-size:12px;">活跃信号</div>
+                  <div class="health-status" style="font-size:20px;font-weight:700;color:var(--success);">12</div>
+                </div>
+              </div>
+            </div>
+            <div class="security-box success">
+              <div class="security-box-title">✓ 已连接交易所</div>
+              <div class="security-box-text">
+                🟡 Binance · 🟠 Bybit · ⚪ OKX · 🔵 Coinbase<br>
+                🟣 Kraken · 🟢 Gate.io · 🟢 KuCoin · 🔴 Huobi<br>
+                <span style="color:var(--text-dim);">+ 7 more...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 交易所直连 -->
+      <div id="settings-exchange" class="settings-tab" style="display:none;">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:20px;">交易所直连 API 配置</div>
+          <table class="data-table">
+            <thead><tr><th>交易所</th><th>API Key</th><th>Secret</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>🟡 Binance</strong></td>
+                <td><input type="password" class="form-input" style="width:200px;" placeholder="API Key"></td>
+                <td><input type="password" class="form-input" style="width:200px;" placeholder="Secret"></td>
+                <td><span class="tag tag-warning">未配置</span></td>
+                <td><button class="btn btn-xs btn-primary">保存</button></td>
+              </tr>
+              <tr>
+                <td><strong>🟠 Bybit</strong></td>
+                <td><input type="password" class="form-input" style="width:200px;" placeholder="API Key"></td>
+                <td><input type="password" class="form-input" style="width:200px;" placeholder="Secret"></td>
+                <td><span class="tag tag-warning">未配置</span></td>
+                <td><button class="btn btn-xs btn-primary">保存</button></td>
+              </tr>
+              <tr>
+                <td><strong>⚪ OKX</strong></td>
+                <td><input type="password" class="form-input" style="width:200px;" placeholder="API Key"></td>
+                <td><input type="password" class="form-input" style="width:200px;" placeholder="Secret"></td>
+                <td><span class="tag tag-warning">未配置</span></td>
+                <td><button class="btn btn-xs btn-primary">保存</button></td>
+              </tr>
+              <tr>
+                <td><strong>🔵 Coinbase</strong></td>
+                <td><input type="password" class="form-input" style="width:200px;" placeholder="API Key"></td>
+                <td><input type="password" class="form-input" style="width:200px;" placeholder="Secret"></td>
+                <td><span class="tag tag-warning">未配置</span></td>
+                <td><button class="btn btn-xs btn-primary">保存</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="security-box" style="margin-top:20px;">
+            <div class="security-box-title">⚠️ 安全提示</div>
+            <div class="security-box-text">
+              1. 请确保 API Key 开启了"允许现货交易"和"允许读取"权限<br>
+              2. <strong>请勿</strong>开启"允许提币"权限<br>
+              3. API 密钥已加密存储于数据库<br>
+              4. 如需轮换密钥，请在此更新并点击"重启相关服务"
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 安全设置 -->
+      <div id="settings-security" class="settings-tab" style="display:none;">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:20px;">密钥存储与安全</div>
+          <div class="security-box success">
+            <div class="security-box-title">✓ 当前密钥存储状态</div>
+            <div class="security-box-text">
+              • MetaApi Token: <span style="color:var(--accent);">已加密存储</span><br>
+              • OpenRouter API: <span style="color:var(--accent);">已加密存储</span><br>
+              • Groq API: <span style="color:var(--accent);">已加密存储</span><br>
+              • 交易所 API Keys: <span style="color:var(--warning);">未配置</span>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:20px;">
+            <label class="form-label">密钥轮换提醒</label>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <select class="form-input" style="width:200px;">
+                <option>30天</option>
+                <option selected>60天</option>
+                <option>90天</option>
+                <option>从不</option>
+              </select>
+              <span style="font-size:13px;color:var(--text-dim);">提醒更换 API 密钥</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">操作日志</label>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="toggle active" onclick="toggleSetting('opLog')"></div>
+              <span style="font-size:13px;color:var(--text-dim);">记录所有管理操作到日志</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:15px;">保存安全设置</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 系统日志 -->
+    <section id="page-logs" class="page-section">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">实时日志 <span class="live">● LIVE</span></div>
+          <div style="display:flex;gap:10px;">
+            <select id="logLevelFilter" onchange="filterLogs()" style="padding:8px 12px;background:var(--bg-dark);border:1px solid var(--border);color:var(--text);border-radius:6px;font-size:13px;">
+              <option value="all">全部日志</option>
+              <option value="info">信息</option>
+              <option value="success">成功</option>
+              <option value="warning">警告</option>
+              <option value="error">错误</option>
+              <option value="critical">严重</option>
+            </select>
+            <button class="btn btn-secondary" onclick="clearLogs()">清空</button>
+          </div>
+        </div>
+        <div class="log-container" id="logContainer">
+          <div class="log-entry"><span class="log-time">00:05:23.123</span><span class="log-type critical">CRIT</span><span class="log-msg">[CircuitBreaker] 全局熔断检查通过，当前亏损 $0 / $5000</span></div>
+          <div class="log-entry"><span class="log-time">00:05:22.456</span><span class="log-type success">INFO</span><span class="log-msg">[Signal] BTC/USDT 做多信号生成，策略: MACD Pro</span></div>
+          <div class="log-entry"><span class="log-time">00:05:22.234</span><span class="log-type success">INFO</span><span class="log-msg">[Trade] 订单执行成功 #T-10045，BTC/USDT @ 67842.50，数量: 0.15</span></div>
+          <div class="log-entry"><span class="log-time">00:05:20.789</span><span class="log-type warning">WARN</span><span class="log-msg">[Exchange] KuCoin 延迟过高 312ms，超过阈值 200ms</span></div>
+          <div class="log-entry"><span class="log-time">00:05:18.123</span><span class="log-type success">INFO</span><span class="log-msg">[MetaApi] 连接正常，已同步 15 个交易账户</span></div>
+          <div class="log-entry"><span class="log-time">00:05:15.456</span><span class="log-type warning">WARN</span><span class="log-msg">[Risk] 策略 RSI 极限 触发日亏损阈值 80%</span></div>
+          <div class="log-entry"><span class="log-time">00:05:12.234</span><span class="log-type info">INFO</span><span class="log-msg">[User] 新用户注册 #1247: alex.ai@163.com</span></div>
+          <div class="log-entry"><span class="log-time">00:05:10.890</span><span class="log-type info">INFO</span><span class="log-msg">[Copy] 用户 #1001 跟单成功，MACD Pro → BTC/USDT 做多</span></div>
+          <div class="log-entry"><span class="log-time">00:05:08.123</span><span class="log-type success">INFO</span><span class="log-msg">[AI] 市场分析完成，信号: BTC 看多 (置信度 87%), ETH 看空 (置信度 72%)</span></div>
+          <div class="log-entry"><span class="log-time">00:05:05.456</span><span class="log-type error">ERROR</span><span class="log-msg">[Exchange] BNB/USDT 订单取消，用户手动取消</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 交易所监控 -->
+    <section id="page-exchanges" class="page-section">
+      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr);">
+        <div class="stat-card green">
+          <div class="stat-label">已连接</div>
+          <div class="stat-value" id="exConnCount">15</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">可用通道</div>
+          <div class="stat-value">80+</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-label">交易对</div>
+          <div class="stat-value">5,000+</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">24h 交易量</div>
+          <div class="stat-value">$2.4B</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">延迟警告</div>
+          <div class="stat-value">2</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">交易所连接状态 <span class="live">● LIVE</span></div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <select style="padding:8px 12px;background:var(--bg-dark);border:1px solid var(--border);color:var(--text);border-radius:6px;font-size:13px;" onchange="filterExchangeRegion(this.value)">
+              <option value="all">全部地区</option>
+              <option value="global">全球主流</option>
+              <option value="korea">韩国</option>
+              <option value="japan">日本</option>
+              <option value="china">中国</option>
+            </select>
+            <div class="toggle active" id="exchangeAutoRefresh" onclick="toggleExchangeRefresh()"></div>
+            <span style="font-size:13px;color:var(--text-dim);">自动刷新</span>
+            <button class="btn btn-secondary" onclick="addExchange()">+ 添加交易所</button>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>交易所</th><th>地区</th><th>通道</th><th>连接状态</th><th>延迟</th><th>API余额</th><th>24h 交易量</th><th>最后同步</th><th>操作</th></tr></thead>
+          <tbody id="exchangeTableBody">
+            <tr>
+              <td><strong>🟡 Binance</strong></td>
+              <td>🌍 全球</td>
+              <td><span class="tag tag-success">MetaApi</span></td>
+              <td><span class="tag tag-success">已连接</span></td>
+              <td><span style="color:var(--success);">23ms</span></td>
+              <td>$124,532.00</td>
+              <td>$892.5M</td>
+              <td><span class="live">刚刚</span></td>
+              <td><button class="btn btn-sm btn-secondary">配置</button></td>
+            </tr>
+            <tr>
+              <td><strong>🟠 Bybit</strong></td>
+              <td>🌍 全球</td>
+              <td><span class="tag tag-success">MetaApi</span></td>
+              <td><span class="tag tag-success">已连接</span></td>
+              <td><span style="color:var(--success);">31ms</span></td>
+              <td>$45,231.50</td>
+              <td>$456.2M</td>
+              <td><span class="live">刚刚</span></td>
+              <td><button class="btn btn-sm btn-secondary">配置</button></td>
+            </tr>
+            <tr>
+              <td><strong>⚪ OKX</strong></td>
+              <td>🌍 全球</td>
+              <td><span class="tag tag-info">CCXT</span></td>
+              <td><span class="tag tag-success">已连接</span></td>
+              <td><span style="color:var(--success);">45ms</span></td>
+              <td>$67,890.25</td>
+              <td>$312.8M</td>
+              <td><span class="live">刚刚</span></td>
+              <td><button class="btn btn-sm btn-secondary">配置</button></td>
+            </tr>
+            <tr>
+              <td><strong>🟢 KuCoin</strong></td>
+              <td>🌍 全球</td>
+              <td><span class="tag tag-info">CCXT</span></td>
+              <td><span class="tag tag-warning">延迟中</span></td>
+              <td><span style="color:var(--danger);">312ms</span></td>
+              <td>$8,901.00</td>
+              <td>$98.5M</td>
+              <td>30秒前</td>
+              <td><button class="btn btn-sm btn-warning">切换通道</button></td>
+            </tr>
+            <tr>
+              <td><strong>🔴 Huobi</strong></td>
+              <td>🇨🇳 中国</td>
+              <td><span class="tag tag-info">CCXT</span></td>
+              <td><span class="tag tag-danger">离线</span></td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>5分钟前</td>
+              <td><button class="btn btn-sm btn-primary">重连</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:15px;">支持的交易所 (80+)</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:13px;color:var(--text-dim);">
+            <div>🟡 Binance</div><div>🟠 Bybit</div><div>⚪ OKX</div>
+            <div>🔵 Coinbase</div><div>🟣 Kraken</div><div>🟢 Gate.io</div>
+            <div>🟢 KuCoin</div><div>🟡 MEXC</div><div>🟢 Bitget</div>
+            <div>⚫ Bitfinex</div><div>🔴 HTX</div><div>🔵 Gemini</div>
+            <div>🇰🇷 Upbit</div><div>🇰🇷 Bithumb</div><div>🇯🇵 bitFlyer</div>
+            <div>+ 65 more...</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:15px;">通道配置优先级</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;justify-content:space-between;padding:10px;background:rgba(0,200,150,0.1);border-radius:6px;border:1px solid rgba(0,200,150,0.3);">
+              <span>1. MetaApi (主通道)</span>
+              <span class="tag tag-success">80+ 交易所</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:10px;background:var(--bg-hover);border-radius:6px;">
+              <span>2. CCXT (备用)</span>
+              <span class="tag tag-info">27 交易所</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:10px;background:var(--bg-hover);border-radius:6px;">
+              <span>3. Binance Direct</span>
+              <span class="tag tag-warning">未配置</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:10px;background:var(--bg-hover);border-radius:6px;">
+              <span>4. OKX Direct</span>
+              <span class="tag tag-warning">未配置</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 运营中心 -->
+    <section id="page-operations" class="page-section">
+      <h2 style="font-size:24px;font-weight:700;margin-bottom:20px;">💰 运营中心</h2>
+      
+      <!-- 收益概览 -->
+      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr);">
+        <div class="stat-card green">
+          <div class="stat-label">总收入 (USD)</div>
+          <div class="stat-value">$127,450</div>
+          <div class="stat-change up">↑ 18.2% 本月</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">订阅收入</div>
+          <div class="stat-value">$98,320</div>
+          <div class="stat-change up">↑ 15.6% 本月</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-label">总成本</div>
+          <div class="stat-value">$12,840</div>
+          <div class="stat-change down">↑ 8.3% 本月</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">净利润</div>
+          <div class="stat-value">$114,610</div>
+          <div class="stat-change up">↑ 20.1% 本月</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">毛利率</div>
+          <div class="stat-value">89.9%</div>
+          <div class="stat-change up">稳定</div>
+        </div>
+      </div>
+
+      <!-- 订阅分布 & 套餐管理 -->
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📊 订阅分布</div>
+            <span class="card-action" onclick="switchOpsTab('subscription-dist')">详情 →</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px;text-align:center;">
+            <div style="padding:15px;background:rgba(0,200,150,0.1);border-radius:8px;">
+              <div style="font-size:28px;font-weight:700;color:var(--accent);">892</div>
+              <div style="font-size:12px;color:var(--text-dim);">Free 用户</div>
+              <div style="font-size:11px;color:var(--success);">$0 收入</div>
+            </div>
+            <div style="padding:15px;background:rgba(59,130,246,0.1);border-radius:8px;">
+              <div style="font-size:28px;font-weight:700;color:var(--info);">245</div>
+              <div style="font-size:12px;color:var(--text-dim);">Basic 用户</div>
+              <div style="font-size:11px;color:var(--success);">$7,105/月</div>
+            </div>
+            <div style="padding:15px;background:rgba(245,158,11,0.1);border-radius:8px;">
+              <div style="font-size:28px;font-weight:700;color:var(--warning);">78</div>
+              <div style="font-size:12px;color:var(--text-dim);">Pro 用户</div>
+              <div style="font-size:11px;color:var(--success);">$6,162/月</div>
+            </div>
+            <div style="padding:15px;background:rgba(139,92,246,0.1);border-radius:8px;">
+              <div style="font-size:28px;font-weight:700;color:#8b5cf6;">32</div>
+              <div style="font-size:12px;color:var(--text-dim);">Elite 用户</div>
+              <div style="font-size:11px;color:var(--success);">$6,368/月</div>
+            </div>
+          </div>
+          <div style="margin-top:15px;display:flex;align-items:center;gap:8px;">
+            <div style="flex:1;height:8px;background:var(--bg-dark);border-radius:4px;overflow:hidden;">
+              <div style="height:100%;width:69%;background:var(--accent);"></div>
+            </div>
+            <span style="font-size:12px;color:var(--text-dim);">升级率 31%</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">💳 支付方式分布</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:20px;">💳</span> 信用卡 (Visa/MC)
+              </span>
+              <div style="text-align:right;">
+                <span style="font-weight:600;">62%</span>
+                <span style="color:var(--success);font-size:12px;"> $60,958</span>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:20px;">🅿️</span> PayPal
+              </span>
+              <div style="text-align:right;">
+                <span style="font-weight:600;">23%</span>
+                <span style="color:var(--success);font-size:12px;"> $22,614</span>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:20px;">₿</span> 加密货币
+              </span>
+              <div style="text-align:right;">
+                <span style="font-weight:600;">12%</span>
+                <span style="color:var(--success);font-size:12px;"> $11,798</span>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:20px;">🏦</span> 其他
+              </span>
+              <div style="text-align:right;">
+                <span style="font-weight:600;">3%</span>
+                <span style="color:var(--success);font-size:12px;"> $2,950</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI成本分析 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🤖 AI 模型调用成本</div>
+          <div style="display:flex;gap:10px;">
+            <select style="padding:6px 10px;background:var(--bg-dark);border:1px solid var(--border);color:var(--text);border-radius:6px;font-size:12px;">
+              <option>最近 7 天</option>
+              <option>最近 30 天</option>
+              <option>本月</option>
+            </select>
+            <button class="btn btn-sm btn-secondary">导出报表</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;">
+          <div style="padding:15px;background:var(--bg-dark);border-radius:8px;text-align:center;">
+            <div style="font-size:24px;margin-bottom:8px;">🟢</div>
+            <div style="font-size:14px;font-weight:600;">Groq Llama 3.3</div>
+            <div style="font-size:12px;color:var(--text-dim);">客服对话 · 免费</div>
+            <div style="margin-top:8px;">
+              <span style="font-size:20px;font-weight:700;color:var(--success);">$0.00</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">调用 45,892 次</div>
+          </div>
+          <div style="padding:15px;background:var(--bg-dark);border-radius:8px;text-align:center;">
+            <div style="font-size:24px;margin-bottom:8px;">🔵</div>
+            <div style="font-size:14px;font-weight:600;">DeepSeek V3.2</div>
+            <div style="font-size:12px;color:var(--text-dim);">市场分析</div>
+            <div style="margin-top:8px;">
+              <span style="font-size:20px;font-weight:700;color:var(--warning);">$847.50</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">调用 12,345 次</div>
+          </div>
+          <div style="padding:15px;background:var(--bg-dark);border-radius:8px;text-align:center;">
+            <div style="font-size:24px;margin-bottom:8px;">🟣</div>
+            <div style="font-size:14px;font-weight:600;">Claude 3.5</div>
+            <div style="font-size:12px;color:var(--text-dim);">策略生成</div>
+            <div style="margin-top:8px;">
+              <span style="font-size:20px;font-weight:700;color:var(--warning);">$2,340.00</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">调用 5,200 次</div>
+          </div>
+          <div style="padding:15px;background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.3);border-radius:8px;text-align:center;">
+            <div style="font-size:24px;margin-bottom:8px;">💚</div>
+            <div style="font-size:14px;font-weight:600;">AI 总成本</div>
+            <div style="font-size:12px;color:var(--text-dim);">月累计</div>
+            <div style="margin-top:8px;">
+              <span style="font-size:24px;font-weight:700;color:var(--accent);">$3,187.50</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:15px;padding:12px;background:rgba(245,158,11,0.1);border-radius:6px;border:1px solid rgba(245,158,11,0.3);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;">💡 成本优化建议</span>
+            <span style="font-size:12px;color:var(--text-dim);">DeepSeek V3 性价比最高，可增加使用比例</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MetaApi 成本 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🌐 MetaApi 调用成本</div>
+          <div>
+            <span class="tag tag-warning">月配额使用 67%</span>
+            <button class="btn btn-sm btn-secondary" style="margin-left:10px;">查看详细</button>
+          </div>
+        </div>
+        <div class="two-col" style="gap:30px;">
+          <div>
+            <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px;">连接数配额 (50/50)</div>
+            <div style="height:10px;background:var(--bg-dark);border-radius:5px;overflow:hidden;">
+              <div style="height:100%;width:85%;background:var(--warning);"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:12px;color:var(--text-dim);">
+              <span>已用 42 连接</span>
+              <span>剩余 8 连接</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px;">信号订阅配额 (100/100)</div>
+            <div style="height:10px;background:var(--bg-dark);border-radius:5px;overflow:hidden;">
+              <div style="height:100%;width:67%;background:var(--accent);"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:12px;color:var(--text-dim);">
+              <span>已用 67 订阅</span>
+              <span>剩余 33 订阅</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:15px;display:grid;grid-template-columns:repeat(4,1fr);gap:15px;">
+          <div style="padding:12px;background:var(--bg-dark);border-radius:6px;text-align:center;">
+            <div style="font-size:12px;color:var(--text-dim);">历史行情请求</div>
+            <div style="font-size:18px;font-weight:700;margin-top:4px;">1,234,567</div>
+          </div>
+          <div style="padding:12px;background:var(--bg-dark);border-radius:6px;text-align:center;">
+            <div style="font-size:12px;color:var(--text-dim);">实时行情请求</div>
+            <div style="font-size:18px;font-weight:700;margin-top:4px;">5,678,901</div>
+          </div>
+          <div style="padding:12px;background:var(--bg-dark);border-radius:6px;text-align:center;">
+            <div style="font-size:12px;color:var(--text-dim);">交易执行请求</div>
+            <div style="font-size:18px;font-weight:700;margin-top:4px;">45,678</div>
+          </div>
+          <div style="padding:12px;background:rgba(0,200,150,0.1);border-radius:6px;text-align:center;">
+            <div style="font-size:12px;color:var(--text-dim);">本月费用</div>
+            <div style="font-size:18px;font-weight:700;color:var(--accent);margin-top:4px;">$89.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 返点管理 & 升级记录 -->
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">💎 返利计划管理</div>
+            <button class="btn btn-sm btn-primary">+ 新建计划</button>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>计划名称</th><th>类型</th><th>返点比例</th><th>用户数</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>VIP 代理</td>
+                <td><span class="tag tag-purple">代理</span></td>
+                <td style="color:var(--success);">20%</td>
+                <td>15</td>
+                <td><span class="tag tag-success">生效中</span></td>
+                <td><button class="btn btn-xs btn-secondary">编辑</button></td>
+              </tr>
+              <tr>
+                <td>批量采购</td>
+                <td><span class="tag tag-info">企业</span></td>
+                <td style="color:var(--success);">15%</td>
+                <td>8</td>
+                <td><span class="tag tag-success">生效中</span></td>
+                <td><button class="btn btn-xs btn-secondary">编辑</button></td>
+              </tr>
+              <tr>
+                <td>新用户激励</td>
+                <td><span class="tag tag-warning">拉新</span></td>
+                <td style="color:var(--success);">$5/人</td>
+                <td>127</td>
+                <td><span class="tag tag-success">生效中</span></td>
+                <td><button class="btn btn-xs btn-secondary">编辑</button></td>
+              </tr>
+              <tr>
+                <td>年度订阅优惠</td>
+                <td><span class="tag tag-purple">年度</span></td>
+                <td style="color:var(--success);">10%</td>
+                <td>45</td>
+                <td><span class="tag tag-warning">即将到期</span></td>
+                <td><button class="btn btn-xs btn-secondary">编辑</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin-top:15px;padding:12px;background:var(--bg-dark);border-radius:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-size:13px;">本月返利支出</div>
+                <div style="font-size:20px;font-weight:700;color:var(--warning);margin-top:4px;">$2,847.50</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:13px;">待结算佣金</div>
+                <div style="font-size:20px;font-weight:700;margin-top:4px;">$1,234.00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📈 升级/续费记录</div>
+            <div class="filter-tags" style="margin:0;">
+              <span class="filter-tag active">全部</span>
+              <span class="filter-tag">升级</span>
+              <span class="filter-tag">续费</span>
+              <span class="filter-tag">退款</span>
+            </div>
+          </div>
+          <div style="max-height:350px;overflow-y:auto;">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-dark);border-radius:8px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,185,129,0.2);display:flex;align-items:center;justify-content:center;">⬆️</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:500;">alice@example.com</div>
+                  <div style="font-size:11px;color:var(--text-dim);">Basic → Pro</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="color:var(--success);font-weight:600;">+$50</div>
+                  <div style="font-size:11px;color:var(--text-dim);">刚刚</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-dark);border-radius:8px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,185,129,0.2);display:flex;align-items:center;justify-content:center;">🔄</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:500;">bob.trader@email.com</div>
+                  <div style="font-size:11px;color:var(--text-dim);">Pro 续费</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="color:var(--success);font-weight:600;">+$79</div>
+                  <div style="font-size:11px;color:var(--text-dim);">2分钟前</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-dark);border-radius:8px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(139,92,246,0.2);display:flex;align-items:center;justify-content:center;">⬆️</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:500;">crypto.vip@pro.com</div>
+                  <div style="font-size:11px;color:var(--text-dim);">Pro → Elite</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="color:var(--success);font-weight:600;">+$120</div>
+                  <div style="font-size:11px;color:var(--text-dim);">15分钟前</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-dark);border-radius:8px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,185,129,0.2);display:flex;align-items:center;justify-content:center;">🔄</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:500;">trader.chen@email.com</div>
+                  <div style="font-size:11px;color:var(--text-dim);">Basic 续费</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="color:var(--success);font-weight:600;">+$29</div>
+                  <div style="font-size:11px;color:var(--text-dim);">1小时前</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(239,68,68,0.1);border-radius:8px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(239,68,68,0.2);display:flex;align-items:center;justify-content:center;">↩️</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:500;">refund@test.com</div>
+                  <div style="font-size:11px;color:var(--text-dim);">Elite 退款</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="color:var(--danger);font-weight:600;">-$199</div>
+                  <div style="font-size:11px;color:var(--text-dim);">3小时前</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;padding:10px;background:var(--bg-hover);border-radius:6px;text-align:center;">
+            <span style="font-size:12px;color:var(--text-dim);">今日收入：</span>
+            <span style="font-size:14px;font-weight:700;color:var(--success);">$1,247</span>
+            <span style="font-size:12px;color:var(--text-dim);margin-left:15px;">订单：</span>
+            <span style="font-size:14px;font-weight:700;">23</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 支付流水 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 支付流水</div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <input type="text" class="form-input" placeholder="搜索订单号/邮箱..." style="width:200px;padding:6px 12px;">
+            <select style="padding:6px 10px;background:var(--bg-dark);border:1px solid var(--border);color:var(--text);border-radius:6px;font-size:12px;">
+              <option>全部状态</option>
+              <option>已支付</option>
+              <option>待处理</option>
+              <option>已退款</option>
+              <option>失败</option>
+            </select>
+            <button class="btn btn-sm btn-secondary">导出 CSV</button>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>订单号</th><th>用户</th><th>套餐</th><th>金额</th><th>支付方式</th><th>状态</th><th>时间</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code style="font-size:12px;color:var(--accent);">ORD-20260404-001</code></td>
+              <td>alice@example.com</td>
+              <td><span class="tag tag-warning">Pro</span></td>
+              <td style="font-weight:600;">$79.00</td>
+              <td>💳 Visa</td>
+              <td><span class="tag tag-success">已支付</span></td>
+              <td>2026-04-04 10:23</td>
+              <td><button class="btn btn-xs btn-secondary">详情</button></td>
+            </tr>
+            <tr>
+              <td><code style="font-size:12px;color:var(--accent);">ORD-20260404-002</code></td>
+              <td>bob@trader.com</td>
+              <td><span class="tag tag-info">Basic</span></td>
+              <td style="font-weight:600;">$29.00</td>
+              <td>🅿️ PayPal</td>
+              <td><span class="tag tag-success">已支付</span></td>
+              <td>2026-04-04 09:45</td>
+              <td><button class="btn btn-xs btn-secondary">详情</button></td>
+            </tr>
+            <tr>
+              <td><code style="font-size:12px;color:var(--accent);">ORD-20260404-003</code></td>
+              <td>crypto.vip@pro.com</td>
+              <td><span class="tag tag-purple">Elite</span></td>
+              <td style="font-weight:600;">$199.00</td>
+              <td>₿ USDT</td>
+              <td><span class="tag tag-success">已支付</td>
+              <td>2026-04-04 08:12</td>
+              <td><button class="btn btn-xs btn-secondary">详情</button></td>
+            </tr>
+            <tr>
+              <td><code style="font-size:12px;color:var(--accent);">ORD-20260403-087</code></td>
+              <td>new.user@mail.com</td>
+              <td><span class="tag tag-info">Basic</span></td>
+              <td style="font-weight:600;">$29.00</td>
+              <td>💳 Mastercard</td>
+              <td><span class="tag tag-warning">待处理</span></td>
+              <td>2026-04-03 22:30</td>
+              <td><button class="btn btn-xs btn-warning">处理</button></td>
+            </tr>
+            <tr>
+              <td><code style="font-size:12px;color:var(--accent);">ORD-20260403-045</code></td>
+              <td>refund@test.com</td>
+              <td><span class="tag tag-purple">Elite</span></td>
+              <td style="font-weight:600;color:var(--danger);">-$199.00</td>
+              <td>↩️ 退款</td>
+              <td><span class="tag tag-danger">已退款</span></td>
+              <td>2026-04-03 18:45</td>
+              <td><button class="btn btn-xs btn-secondary">详情</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top:15px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:13px;color:var(--text-dim);">显示 1-5 条，共 247 条</div>
+          <div style="display:flex;gap:5px;">
+            <button class="btn btn-sm btn-secondary">上一页</button>
+            <button class="btn btn-sm btn-secondary">1</button>
+            <button class="btn btn-sm btn-secondary">2</button>
+            <button class="btn btn-sm btn-secondary">3</button>
+            <span style="padding:5px 10px;color:var(--text-dim);">...</span>
+            <button class="btn btn-sm btn-secondary">50</button>
+            <button class="btn btn-sm btn-secondary">下一页</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 套餐定价管理 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">💰 套餐定价管理</div>
+          <button class="btn btn-sm btn-primary" onclick="showModal('planPricing')">编辑套餐</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;">
+          <div style="padding:20px;background:var(--bg-dark);border-radius:12px;text-align:center;border:2px solid transparent;">
+            <div style="font-size:18px;font-weight:700;margin-bottom:5px;">Free</div>
+            <div style="font-size:32px;font-weight:700;color:var(--text);">$0</div>
+            <div style="font-size:12px;color:var(--text-dim);">永久免费</div>
+            <div style="margin-top:15px;font-size:12px;color:var(--text-dim);">基础功能体验</div>
+          </div>
+          <div style="padding:20px;background:var(--bg-dark);border-radius:12px;text-align:center;border:2px solid var(--info);">
+            <div style="display:inline-block;padding:3px 8px;background:var(--info);color:#fff;font-size:10px;border-radius:4px;margin-bottom:8px;">推荐</div>
+            <div style="font-size:18px;font-weight:700;margin-bottom:5px;">Basic</div>
+            <div style="font-size:32px;font-weight:700;color:var(--info);">$29</div>
+            <div style="font-size:12px;color:var(--text-dim);">/月</div>
+            <div style="margin-top:15px;font-size:12px;color:var(--text-dim);">2,347 用户 · 71.2%</div>
+          </div>
+          <div style="padding:20px;background:rgba(245,158,11,0.05);border-radius:12px;text-align:center;border:2px solid var(--warning);">
+            <div style="display:inline-block;padding:3px 8px;background:var(--warning);color:#000;font-size:10px;border-radius:4px;margin-bottom:8px;">热门</div>
+            <div style="font-size:18px;font-weight:700;margin-bottom:5px;">Pro</div>
+            <div style="font-size:32px;font-weight:700;color:var(--warning);">$79</div>
+            <div style="font-size:12px;color:var(--text-dim);">/月</div>
+            <div style="margin-top:15px;font-size:12px;color:var(--text-dim);">1,892 用户 · 22.8%</div>
+          </div>
+          <div style="padding:20px;background:rgba(139,92,246,0.05);border-radius:12px;text-align:center;border:2px solid #8b5cf6;">
+            <div style="display:inline-block;padding:3px 8px;background:#8b5cf6;color:#fff;font-size:10px;border-radius:4px;margin-bottom:8px;">旗舰</div>
+            <div style="font-size:18px;font-weight:700;margin-bottom:5px;">Elite</div>
+            <div style="font-size:32px;font-weight:700;color:#8b5cf6;">$199</div>
+            <div style="font-size:12px;color:var(--text-dim);">/月</div>
+            <div style="margin-top:15px;font-size:12px;color:var(--text-dim);">445 用户 · 6.0%</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- 模态框: 用户管理 -->
+<div class="modal-overlay" id="modal-userManage">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">用户管理 - #1001</div>
+      <button class="modal-close" onclick="closeModal('userManage')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">用户类型</label>
+          <span class="user-type copy">跟单订阅者</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">MT5账户</label>
+          <span class="mt5-badge connected">✓ MT4-001</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">单笔限额 (USD)</label>
+          <input type="number" class="form-input" value="5000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">日限额 (USD)</label>
+          <input type="number" class="form-input" value="25000">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">杠杆倍数</label>
+          <select class="form-input">
+            <option>1x (现货)</option>
+            <option selected>2x</option>
+            <option>5x</option>
+            <option>10x</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">账户状态</label>
+          <select class="form-input">
+            <option>正常</option>
+            <option>只读</option>
+            <option>冻结</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">管理员备注</label>
+        <textarea class="form-input" rows="2" placeholder="添加管理备注..."></textarea>
+      </div>
+      <div style="padding:15px;background:rgba(239,68,68,0.1);border-radius:8px;border:1px solid rgba(239,68,68,0.3);margin-top:15px;">
+        <div style="font-size:13px;color:var(--danger);margin-bottom:10px;">⚠️ 危险操作</div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-danger btn-sm">强制平仓</button>
+          <button class="btn btn-warning btn-sm">禁止交易</button>
+          <button class="btn btn-secondary btn-sm">重置密码</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('userManage')">取消</button>
+      <button class="btn btn-primary" onclick="saveUserManage()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 套餐定价管理 -->
+<div class="modal-overlay" id="modal-planPricing">
+  <div class="modal" style="min-width:600px;">
+    <div class="modal-header">
+      <div class="modal-title">💰 编辑套餐定价</div>
+      <button class="modal-close" onclick="closeModal('planPricing')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;">
+        <div class="form-group">
+          <label class="form-label">Basic 月费 (USD)</label>
+          <input type="number" class="form-input" value="29">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Basic 年费 (USD)</label>
+          <input type="number" class="form-input" value="290" placeholder="年付折扣">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pro 月费 (USD)</label>
+          <input type="number" class="form-input" value="79">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pro 年费 (USD)</label>
+          <input type="number" class="form-input" value="790" placeholder="年付折扣">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Elite 月费 (USD)</label>
+          <input type="number" class="form-input" value="199">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Elite 年费 (USD)</label>
+          <input type="number" class="form-input" value="1990" placeholder="年付折扣">
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:15px;">
+        <label class="form-label">年付折扣比例 (%)</label>
+        <input type="number" class="form-input" value="10" style="width:150px;">
+        <div class="form-hint">设置为 0 则禁用年付选项</div>
+      </div>
+      <div style="margin-top:20px;padding:15px;background:rgba(245,158,11,0.1);border-radius:8px;border:1px solid rgba(245,158,11,0.3);">
+        <div style="font-size:13px;color:var(--warning);margin-bottom:10px;">⚠️ 价格变更提示</div>
+        <div style="font-size:12px;color:var(--text-dim);line-height:1.6;">
+          • 价格变更将在保存后立即生效<br>
+          • 已付费用户不受影响，按原价格续费<br>
+          • 建议在低峰期进行价格调整<br>
+          • 价格变更会同步到官网和应用程序
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('planPricing')">取消</button>
+      <button class="btn btn-primary" onclick="savePlanPricing()">保存定价</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框: 添加策略 -->
+<div class="modal-overlay" id="modal-addStrategy">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">添加新策略</div>
+      <button class="modal-close" onclick="closeModal('addStrategy')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">策略名称 <span class="required">*</span></label>
+        <input type="text" class="form-input" placeholder="例如: MACD Pro">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">策略类型</label>
+          <select class="form-input">
+            <option>趋势追踪</option>
+            <option>均值回归</option>
+            <option>波动捕捉</option>
+            <option>套利</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">核心指标</label>
+          <select class="form-input">
+            <option>MACD</option>
+            <option>RSI</option>
+            <option>布林带</option>
+            <option>EMA</option>
+            <option>自定义</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">主账户 MT4/MT5 ID</label>
+        <input type="text" class="form-input" placeholder="信号源主账户ID">
+      </div>
+      <div class="form-group">
+        <label class="form-label">描述</label>
+        <textarea class="form-input" rows="3" placeholder="策略描述..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addStrategy')">取消</button>
+      <button class="btn btn-primary" onclick="addStrategy()">创建策略</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== 核心函数 ====================
+
+// 页面切换
+function switchPage(page) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('page-' + page)?.classList.add('active');
+  
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.topbar-nav button').forEach(b => b.classList.remove('active'));
+  
+  document.querySelector(`.sidebar-item[onclick="switchPage('${page}')"]`)?.classList.add('active');
+  document.querySelector(`.topbar-nav button[onclick="switchPage('${page}')"]`)?.classList.add('active');
+}
+
+// 更新时钟
+function updateTime() {
+  const now = new Date();
+  document.getElementById('currentTime').textContent = now.toLocaleTimeString('zh-CN', {hour12: false});
+}
+setInterval(updateTime, 1000);
+updateTime();
+
+// ==================== 风控中心 ====================
+
+// 切换风控标签页
+function switchRiskTab(tab) {
+  document.querySelectorAll('.risk-tab').forEach(t => t.style.display = 'none');
+  document.getElementById('risk-' + tab).style.display = 'block';
+  document.querySelectorAll('#page-risk .tab').forEach((t, i) => {
+    const tabs = ['global', 'copy', 'user'];
+    t.classList.toggle('active', tabs[i] === tab);
+  });
+}
+
+// 切换熔断机制
+function toggleCircuitBreaker() {
+  const toggle = document.getElementById('circuitToggle');
+  const breaker = document.getElementById('circuitBreaker');
+  const title = document.getElementById('circuitTitle');
+  
+  toggle.classList.toggle('active');
+  breaker.classList.toggle('inactive');
+  breaker.classList.toggle('active');
+  
+  if (toggle.classList.contains('active')) {
+    title.textContent = '全局熔断机制 - 激活保护';
+    title.classList.remove('inactive');
+    title.classList.add('active');
+    breaker.style.borderColor = 'var(--success)';
+  } else {
+    title.textContent = '全局熔断机制 - 待命状态';
+    title.classList.remove('active');
+    title.classList.add('inactive');
+    breaker.style.borderColor = 'var(--danger)';
+  }
+}
+
+// ==================== 系统设置 ====================
+
+// 切换设置标签页
+function switchSettingsTab(tab) {
+  document.querySelectorAll('.settings-tab').forEach(t => t.style.display = 'none');
+  document.getElementById('settings-' + tab).style.display = 'block';
+  document.querySelectorAll('#page-settings .tab').forEach((t, i) => {
+    const tabs = ['api', 'metaapi', 'exchange', 'security'];
+    t.classList.toggle('active', tabs[i] === tab);
+  });
+}
+
+// 测试 MetaApi 连接
+function testMetaApi() {
+  const token = document.getElementById('metaApiToken').value;
+  const btn = event.target;
+  
+  if (!token) {
+    alert('请输入 MetaApi Token');
+    return;
+  }
+  
+  btn.textContent = '连接中...';
+  btn.disabled = true;
+  
+  setTimeout(() => {
+    btn.textContent = '测试连接';
+    btn.disabled = false;
+    alert('✓ MetaApi 连接成功！\n\n已识别:\n• 15 个交易账户\n• 8 个活跃交易所\n• 12 个信号源');
+  }, 1500);
+}
+
+// 保存 MetaApi 配置
+function saveMetaApi() {
+  alert('✓ MetaApi 配置已保存');
+}
+
+// 重启 MetaApi 服务
+function restartMetaApi() {
+  if (confirm('确定要重启 MetaApi 连接服务吗？\n\n这将中断所有正在执行的交易，建议在低峰期操作。')) {
+    const btn = event.target;
+    btn.textContent = '重启中...';
+    btn.disabled = true;
+    
+    setTimeout(() => {
+      btn.textContent = '🔄 重启 MetaApi 服务';
+      btn.disabled = false;
+      alert('✓ MetaApi 服务已重启\n\n所有交易通道已重新连接');
+    }, 3000);
+  }
+}
+
+// ==================== 模态框 ====================
+
+function showModal(id) {
+  document.getElementById('modal-' + id).style.display = 'flex';
+}
+function closeModal(id) {
+  document.getElementById('modal-' + id).style.display = 'none';
+}
+
+function addStrategy() {
+  alert('策略创建成功！');
+  closeModal('addStrategy');
+}
+
+// ==================== 设置切换 ====================
+
+function toggleSetting(setting) {
+  const el = document.getElementById(setting + 'Toggle');
+  if (el) el.classList.toggle('active');
+}
+
+// ==================== 用户管理 ====================
+
+function filterUsers(type) {
+  document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function viewUser(userId) {
+  alert(`查看用户详情: ${userId}`);
+}
+
+function manageUser(userId) {
+  showModal('userManage');
+}
+
+function disableUser(userId) {
+  if (confirm(`确定要禁用用户 ${userId} 吗？\n\n该用户将无法登录和进行任何交易操作。`)) {
+    alert(`用户 ${userId} 已禁用`);
+  }
+}
+
+function saveUserManage() {
+  alert('用户设置已保存');
+  closeModal('userManage');
+}
+
+// ==================== 策略管理 ====================
+
+function viewStrategy(name) {
+  alert(`查看策略详情: ${name}`);
+}
+
+function toggleStrategy(name) {
+  if (confirm(`确定要切换策略 "${name}" 的状态吗？`)) {
+    alert(`策略 ${name} 状态已切换`);
+  }
+}
+
+// ==================== 信号监控 ====================
+
+let autoRefreshEnabled = false;
+let refreshInterval;
+function toggleAutoRefresh() {
+  autoRefreshEnabled = !autoRefreshEnabled;
+  document.getElementById('autoRefresh').classList.toggle('active', autoRefreshEnabled);
+  if (autoRefreshEnabled) {
+    refreshInterval = setInterval(() => {
+      console.log('Refreshing signals...');
+    }, 5000);
+  } else {
+    clearInterval(refreshInterval);
+  }
+}
+
+function filterSignals(filter) {
+  document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// ==================== 运营中心 ====================
+
+function switchOpsTab(tab) {
+  // 切换运营中心子标签
+  console.log('切换运营标签:', tab);
+}
+
+// 保存套餐定价
+function savePlanPricing() {
+  alert('✓ 套餐定价已保存！\n\n变更将在官网和应用程序中立即生效。');
+  closeModal('planPricing');
+}
+
+// ==================== 交易所 ====================
+
+let exchangeRefreshEnabled = true;
+let exchangeRefreshInterval;
+function toggleExchangeRefresh() {
+  exchangeRefreshEnabled = !exchangeRefreshEnabled;
+  document.getElementById('exchangeAutoRefresh').classList.toggle('active', exchangeRefreshEnabled);
+  if (exchangeRefreshEnabled) {
+    startExchangeRefresh();
+  } else {
+    clearInterval(exchangeRefreshInterval);
+  }
+}
+
+function startExchangeRefresh() {
+  if (exchangeRefreshInterval) clearInterval(exchangeRefreshInterval);
+  exchangeRefreshInterval = setInterval(() => {
+    console.log('Refreshing exchange status...');
+  }, 5000);
+}
+startExchangeRefresh();
+
+function filterExchangeRegion(region) {
+  console.log('Filtering by region:', region);
+}
+
+function addExchange() {
+  alert('打开交易所配置向导...\n\n支持添加:\n• MetaApi (推荐 - 80+交易所)\n• CCXT (27个交易所)\n• 各大交易所直连');
+}
+
+// ==================== 告警处理 ====================
+
+function dismissAlert(btn) {
+  btn.closest('.alert-card').remove();
+}
+
+function switchToExchange() {
+  switchPage('exchanges');
+}
+
+function pauseStrategy(name) {
+  if (confirm(`确定要暂停策略 "${name}" 吗？\n\n所有订阅该策略的用户将停止跟单。`)) {
+    alert(`策略 ${name} 已暂停`);
+  }
+}
+
+// ==================== 日志 ====================
+
+function filterLogs() {
+  const level = document.getElementById('logLevelFilter').value;
+  console.log('Filtering by level:', level);
+}
+
+function clearLogs() {
+  document.getElementById('logContainer').innerHTML = '<div style="padding:20px;color:var(--text-dim);text-align:center;">日志已清空</div>';
+}
+
+function addLogEntry(type, msg) {
+  const container = document.getElementById('logContainer');
+  const now = new Date();
+  const time = now.toLocaleTimeString('zh-CN', {hour12: false}) + '.' + String(now.getMilliseconds()).padStart(3, '0');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">${time}</span><span class="log-type ${type}">${type.toUpperCase()}</span><span class="log-msg">${msg}</span>`;
+  container.insertBefore(entry, container.firstChild);
+}
+
+// 模拟实时信号
+function simulateSignal() {
+  const pairs = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'BNB/USDT', 'AVAX/USDT'];
+  const dirs = ['做多', '做空'];
+  const strategies = ['MACD Pro', 'RSI 极限', '布林带突破', '网格策略'];
+  const pair = pairs[Math.floor(Math.random() * pairs.length)];
+  const dir = dirs[Math.floor(Math.random() * dirs.length)];
+  const strat = strategies[Math.floor(Math.random() * strategies.length)];
+  addLogEntry('info', `[Signal] ${pair} ${dir}信号生成，策略: ${strat}`);
+}
+
+setInterval(simulateSignal, 30000);
+
+// 退出登录
+function logout() {
+  if (confirm('确定退出管理后台？')) {
+    localStorage.removeItem('quantai_token');
+    localStorage.removeItem('quantai_user');
+    location.reload();
+  }
+}
+
+// ==================== 初始化 ====================
+
+// 初始动画效果
+document.querySelectorAll('.stat-card, .health-card').forEach((card, i) => {
+  card.style.opacity = '0';
+  card.style.transform = 'translateY(20px)';
+  setTimeout(() => {
+    card.style.transition = 'all 0.5s ease';
+    card.style.opacity = '1';
+    card.style.transform = 'translateY(0)';
+  }, i * 50);
+});
+
+// 系统状态检查
+function checkSystemStatus() {
+  // 模拟检查各服务状态
+  const dot = document.getElementById('systemStatusDot');
+  const text = document.getElementById('systemStatusText');
+  
+  // 简单检查：只要没有严重告警就显示正常
+  const alerts = document.querySelectorAll('.alert-card').length;
+  if (alerts > 0) {
+    dot.classList.add('warning');
+    dot.classList.remove('danger');
+    text.textContent = `${alerts} 个告警`;
+  } else {
+    dot.classList.remove('warning', 'danger');
+    text.textContent = '系统运行中';
+  }
+}
+setInterval(checkSystemStatus, 5000);
+
+// ==================== 登录/注册系统 ====================
+
+const API_BASE = 'http://localhost:8001';
+let currentUser = null;
+let authToken = localStorage.getItem('quantai_token');
+
+// 页面加载时检查登录状态
+document.addEventListener('DOMContentLoaded', () => {
+  if (authToken) {
+    validateToken();
+  }
+});
+
+async function validateToken() {
+  try {
+    const res = await fetch(`${API_BASE}/api/user/me`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    if (res.ok) {
+      const user = await res.json();
+      currentUser = user;
+      showMainApp(user);
+    } else {
+      logout();
+    }
+  } catch (e) {
+    // 后端未运行，显示离线模式
+    showOfflineMode();
+  }
+}
+
+function showOfflineMode() {
+  document.getElementById('loginOverlay').innerHTML = `
+    <div class="login-box">
+      <h1>QuantAI</h1>
+      <p>智能量化交易平台 · 管理后台</p>
+      <div style="color:var(--warning); margin:20px 0;">
+        ⚠️ 后端服务未连接<br>
+        <small style="color:var(--text-dim)">请确保 QuantAI Backend 已启动</small>
+      </div>
+      <div style="color:var(--text-dim); font-size:13px;">
+        启动命令：<br>
+        <code style="background:var(--bg-dark); padding:5px 10px; border-radius:4px;">cd C:\\Users\\Administrator\\WorkBuddy\\Claw\\quantai-app\\backend && python start_server.py</code>
+      </div>
+      <button class="login-btn" onclick="location.reload()" style="margin-top:20px;">重试连接</button>
+    </div>
+  `;
+}
+
+function switchLoginTab(tab) {
+  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('loginSuccess').style.display = 'none';
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  const errorEl = document.getElementById('loginError');
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem('quantai_token', data.access_token);
+      localStorage.setItem('quantai_user', JSON.stringify(data.user));
+      authToken = data.access_token;
+      currentUser = data.user;
+      showMainApp(data.user);
+    } else {
+      errorEl.textContent = data.detail || '登录失败';
+      errorEl.style.display = 'block';
+    }
+  } catch (e) {
+    errorEl.textContent = '无法连接到服务器';
+    errorEl.style.display = 'block';
+  }
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+  const username = document.getElementById('regUsername').value;
+  const email = document.getElementById('regEmail').value;
+  const password = document.getElementById('regPassword').value;
+  const full_name = document.getElementById('regFullName').value;
+  const errorEl = document.getElementById('loginError');
+  const successEl = document.getElementById('loginSuccess');
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password, full_name })
+    });
+    
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem('quantai_token', data.access_token);
+      localStorage.setItem('quantai_user', JSON.stringify(data.user));
+      authToken = data.access_token;
+      currentUser = data.user;
+      successEl.textContent = '注册成功！正在登录...';
+      successEl.style.display = 'block';
+      setTimeout(() => showMainApp(data.user), 1000);
+    } else {
+      errorEl.textContent = data.detail || '注册失败';
+      errorEl.style.display = 'block';
+    }
+  } catch (e) {
+    errorEl.textContent = '无法连接到服务器';
+    errorEl.style.display = 'block';
+  }
+}
+
+function showMainApp(user) {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  
+  // 更新用户信息
+  const userName = document.getElementById('currentUserName');
+  const userRole = document.getElementById('currentUserRole');
+  if (userName) userName.textContent = user.full_name || user.username;
+  if (userRole) userRole.textContent = getRoleLabel(user.role);
+  
+  // 加载真实数据
+  loadDashboardData();
+}
+
+function logout() {
+  localStorage.removeItem('quantai_token');
+  localStorage.removeItem('quantai_user');
+  authToken = null;
+  currentUser = null;
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+}
+
+function getRoleLabel(role) {
+  const labels = { admin: '管理员', manager: '经理', trader: '交易员', viewer: '查看者' };
+  return labels[role] || role;
+}
+
+// API 调用辅助函数
+async function apiCall(endpoint, options = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+  const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || '请求失败');
+  }
+  return res.json();
+}
+
+// 加载仪表盘数据
+async function loadDashboardData() {
+  try {
+    // 加载用户统计
+    const stats = await apiCall('/api/admin/users/stats');
+    updateDashboardStats(stats);
+    
+    // 加载子账户列表
+    loadSubaccounts();
+  } catch (e) {
+    console.log('加载真实数据失败，使用模拟数据:', e.message);
+  }
+}
+
+function updateDashboardStats(stats) {
+  // 更新统计卡片
+  const totalEl = document.querySelector('.stat-card.green .stat-value');
+  const activeEl = document.querySelector('.stat-card.blue .stat-value');
+  if (totalEl) totalEl.textContent = stats.total || 0;
+  if (activeEl) activeEl.textContent = stats.active || 0;
+}
+
+// 子账户管理
+async function loadSubaccounts() {
+  try {
+    const subaccounts = await apiCall('/api/admin/subaccounts');
+    renderSubaccounts(subaccounts);
+  } catch (e) {
+    console.log('加载子账户失败:', e.message);
+  }
+}
+
+function renderSubaccounts(subaccounts) {
+  const container = document.getElementById('subaccountsList');
+  if (!container) return;
+  
+  if (!subaccounts || subaccounts.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim);">暂无子账户</div>';
+    return;
+  }
+  
+  container.innerHTML = subaccounts.map(sub => `
+    <div class="user-card">
+      <div class="user-avatar" style="background:var(--info);">${sub.username[0].toUpperCase()}</div>
+      <div class="user-info">
+        <div class="user-name">${sub.full_name || sub.username}</div>
+        <div class="user-email">${sub.email}</div>
+      </div>
+      <div class="user-role">
+        <span class="tag tag-${sub.role === 'admin' ? 'danger' : sub.role === 'manager' ? 'warning' : 'success'}">${getRoleLabel(sub.role)}</span>
+      </div>
+      <div class="user-status">
+        <span class="status ${sub.is_active ? 'active' : 'inactive'}">${sub.is_active ? '启用' : '禁用'}</span>
+      </div>
+      <div class="user-actions">
+        <button class="btn-icon" onclick="editSubaccount(${sub.id})" title="编辑">✏️</button>
+        <button class="btn-icon" onclick="toggleSubaccountStatus(${sub.id}, ${!sub.is_active})" title="${sub.is_active ? '禁用' : '启用'}">${sub.is_active ? '⏸️' : '▶️'}</button>
+        <button class="btn-icon" onclick="resetSubaccountPwd(${sub.id})" title="重置密码">🔑</button>
+        <button class="btn-icon" onclick="deleteSubaccount(${sub.id})" title="删除">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function createSubaccount() {
+  const username = prompt('子账户用户名:');
+  if (!username) return;
+  const email = prompt('子账户邮箱:');
+  if (!email) return;
+  const password = prompt('初始密码（至少6位）:');
+  if (!password || password.length < 6) {
+    alert('密码至少6位');
+    return;
+  }
+  const role = prompt('角色 (admin/manager/trader/viewer):') || 'trader';
+  
+  try {
+    await apiCall('/api/admin/subaccount', {
+      method: 'POST',
+      body: JSON.stringify({ username, email, password, role })
+    });
+    alert('✓ 子账户创建成功');
+    loadSubaccounts();
+  } catch (e) {
+    alert('创建失败: ' + e.message);
+  }
+}
+
+async function toggleSubaccountStatus(id, newStatus) {
+  if (!confirm(`确定要${newStatus ? '启用' : '禁用'}该子账户吗？`)) return;
+  try {
+    await apiCall(`/api/admin/subaccounts/${id}/status?is_active=${newStatus}`, { method: 'PATCH' });
+    loadSubaccounts();
+  } catch (e) {
+    alert('操作失败: ' + e.message);
+  }
+}
+
+async function resetSubaccountPwd(id) {
+  const newPwd = prompt('请输入新密码（至少6位）:');
+  if (!newPwd || newPwd.length < 6) {
+    alert('密码至少6位');
+    return;
+  }
+  try {
+    await apiCall(`/api/admin/subaccounts/${id}/reset-password?new_password=${newPwd}`, { method: 'POST' });
+    alert('✓ 密码已重置');
+  } catch (e) {
+    alert('重置失败: ' + e.message);
+  }
+}
+
+async function deleteSubaccount(id) {
+  if (!confirm('确定要删除该子账户吗？此操作不可撤销！')) return;
+  try {
+    await apiCall(`/api/admin/subaccounts/${id}`, { method: 'DELETE' });
+    alert('✓ 子账户已删除');
+    loadSubaccounts();
+  } catch (e) {
+    alert('删除失败: ' + e.message);
+  }
+}
+
+function editSubaccount(id) {
+  alert('编辑功能开发中...');
+}
+</script>
+
+</body>
+</html>
+
+</body>
+</html>

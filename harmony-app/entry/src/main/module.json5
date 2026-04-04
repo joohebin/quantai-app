@@ -1,0 +1,48 @@
+{
+  "module": {
+    "name": "entry",
+    "type": "entry",
+    "description": "QuantAI 主模块",
+    "mainElement": "EntryAbility",
+    "deviceTypes": ["phone", "tablet", "2in1"],
+    "deliveryWithInstall": true,
+    "installationFree": false,
+    "pages": "$profile:main_pages",
+    "abilities": [
+      {
+        "name": "EntryAbility",
+        "srcEntry": "./ets/entryability/EntryAbility.ets",
+        "description": "QuantAI 主 Ability",
+        "icon": "$media:icon",
+        "label": "QuantAI",
+        "startWindowIcon": "$media:startIcon",
+        "startWindowBackground": "$color:start_window_background",
+        "exported": true,
+        "skills": [
+          {
+            "entities": ["entity.system.home"],
+            "actions": ["action.system.home"]
+          }
+        ]
+      }
+    ],
+    "requestPermissions": [
+      {
+        "name": "ohos.permission.INTERNET",
+        "reason": "网络请求（获取行情数据/API通信）"
+      },
+      {
+        "name": "ohos.permission.GET_NETWORK_INFO",
+        "reason": "检测网络状态"
+      },
+      {
+        "name": "ohos.permission.VIBRATE",
+        "reason": "下单震动反馈"
+      },
+      {
+        "name": "ohos.permission.RECEIVE_NOTIFICATIONS",
+        "reason": "接收行情预警/止损提醒推送"
+      }
+    ]
+  }
+}

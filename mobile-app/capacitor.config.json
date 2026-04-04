@@ -1,0 +1,55 @@
+{
+  "appId": "com.quantai.app",
+  "appName": "QuantAI",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "file",
+    "iosScheme": "quantai",
+    "allowNavigation": [
+      "http://localhost:8000",
+      "https://api.quantai.app",
+      "https://*.binance.com",
+      "https://*.okx.com"
+    ]
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#0A1628",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "androidSpinnerStyle": "small",
+      "iosSpinnerStyle": "small",
+      "spinnerColor": "#00C896"
+    },
+    "StatusBar": {
+      "style": "Dark",
+      "backgroundColor": "#0A1628"
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    },
+    "Keyboard": {
+      "resize": "body",
+      "style": "dark",
+      "resizeOnFullScreen": true
+    }
+  },
+  "android": {
+    "buildOptions": {
+      "keystorePath": "quantai-release.keystore",
+      "keystoreAlias": "quantai",
+      "releaseType": "APK"
+    },
+    "minSdkVersion": 22,
+    "targetSdkVersion": 34
+  },
+  "ios": {
+    "contentInset": "always",
+    "scrollEnabled": false,
+    "limitsNavigationsToAppBoundDomains": true
+  }
+}

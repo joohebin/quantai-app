@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuantAI 中控台 - 内部运营管理</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+  <style>
+    :root {
+      --bg-dark: #0a0e17;
+      --bg-card: #111827;
+      --bg-card2: #1a2234;
+      --bg-hover: #252d3d;
+      --border: #2d3748;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --primary: #00f5ff;
+      --primary-dim: #00a5af;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --accent: #a000ff;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans SC', 'JetBrains Mono', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    /* 登录页面 */
+    .login-page {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #0f172a 100%);
+    }
+    .login-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .login-logo h1 {
+      font-size: 28px;
+      color: var(--primary);
+      text-shadow: 0 0 20px rgba(0,245,255,0.3);
+    }
+    .login-logo span {
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0,245,255,0.1);
+    }
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: var(--bg-dark);
+      width: 100%;
+    }
+    .btn-primary:hover {
+      background: var(--primary-dim);
+      box-shadow: 0 4px 20px rgba(0,245,255,0.3);
+    }
+    .login-tabs {
+      display: flex;
+      margin-bottom: 30px;
+      border-bottom: 1px solid var(--border);
+    }
+    .login-tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      color: var(--text-dim);
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .login-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .login-error {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      display: none;
+    }
+    /* 主界面 */
+    .app-layout { display: none; min-height: 100vh; }
+    .app-layout.active { display: flex; }
+    .sidebar {
+      width: 240px;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-logo {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .sidebar-logo h2 {
+      font-size: 20px;
+      color: var(--primary);
+    }
+    .sidebar-logo span {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .nav-item {
+      padding: 14px 20px;
+      cursor: pointer;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover {
+      background: var(--bg-hover);
+      color: var(--text);
+    }
+    .nav-item.active {
+      background: var(--bg-hover);
+      color: var(--primary);
+      border-left-color: var(--primary);
+    }
+    .nav-icon { font-size: 18px; }
+    .main-content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .page-title {
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--bg-dark);
+      font-weight: 600;
+    }
+    .user-name { font-size: 14px; }
+    .logout-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+    /* 统计卡片 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .stat-label { font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+    .stat-value { font-size: 28px; font-weight: 600; }
+    .stat-card.green .stat-value { color: var(--success); }
+    .stat-card.blue .stat-value { color: var(--primary); }
+    .stat-card.yellow .stat-value { color: var(--warning); }
+    .stat-card.red .stat-value { color: var(--danger); }
+    .stat-card.purple .stat-value { color: var(--accent); }
+    /* 卡片 */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .card-title { font-size: 16px; font-weight: 600; }
+    .card-action {
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 13px;
+    }
+    /* 表格 */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .data-table th {
+      text-align: left;
+      padding: 12px;
+      font-size: 12px;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+    .data-table td {
+      padding: 14px 12px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table tr:hover td { background: var(--bg-hover); }
+    /* 标签 */
+    .tag {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .tag-success { background: rgba(16,185,129,0.15); color: var(--success); }
+    .tag-warning { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .tag-danger { background: rgba(239,68,68,0.15); color: var(--danger); }
+    .tag-info { background: rgba(0,245,255,0.15); color: var(--primary); }
+    .tag-purple { background: rgba(160,0,255,0.15); color: var(--accent); }
+    /* 按钮 */
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-danger { background: var(--danger); color: white; border: none; }
+    /* 表单 */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-hint {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 6px;
+    }
+    /* 状态指示 */
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .status-dot.online { background: var(--success); }
+    .status-dot.offline { background: var(--danger); }
+    .status-dot.warning { background: var(--warning); }
+    .live { color: var(--success); font-size: 11px; }
+    /* 进度条 */
+    .progress-bar {
+      height: 6px;
+      background: var(--bg-card2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 3px;
+    }
+    /* 页脚 */
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+    /* 通知区域 */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+    }
+    .notification.success { background: var(--success); }
+    .notification.error { background: var(--danger); }
+    .notification.warning { background: var(--warning); }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    /* 模态框 */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-title { font-size: 18px; font-weight: 600; }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .modal-actions .btn { flex: 1; }
+  </style>
+</head>
+<body>
+  <!-- 登录页面 -->
+  <div class="login-page" id="loginPage">
+    <div class="login-card">
+      <div class="login-logo">
+        <h1>🧄 QuantAI</h1>
+        <span>内部运营中控台</span>
+      </div>
+      <div class="login-tabs">
+        <div class="login-tab active" onclick="switchTab('login')">登录</div>
+        <div class="login-tab" onclick="switchTab('register')">注册</div>
+      </div>
+      <div class="login-error" id="loginError"></div>
+      <!-- 登录表单 -->
+      <div id="loginForm">
+        <div class="form-group">
+          <label class="form-label">邮箱地址</label>
+          <input type="email" class="form-input" id="loginEmail" placeholder="admin@quantai.app">
+        </div>
+        <div class="form-group">
+          <label class="form-label">密码</label>
+          <input type="password" class="form-input" id="loginPassword" placeholder="输入密码">
+        </div>
+        <button class="btn btn-primary" onclick="doLogin()">登录系统</button>
+      </div>
+      <!-- 注册表单 -->
+      <div id="registerForm" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">用户名</label>
+          <input type="text" class="form-input" id="regUsername" placeholder="用户名">
+        </div>
+        <div class="form-group">
+          <label class="form-label">邮箱地址</label>
+          <input type="email" class="form-input" id="regEmail" placeholder="邮箱地址">
+        </div>
+        <div class="form-group">
+          <label class="form-label">密码</label>
+          <input type="password" class="form-input" id="regPassword" placeholder="至少6位">
+        </div>
+        <div class="form-group">
+          <label class="form-label">姓名（可选）</label>
+          <input type="text" class="form-input" id="regFullName" placeholder="真实姓名">
+        </div>
+        <button class="btn btn-primary" onclick="doRegister()">注册账号</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主界面 -->
+  <div class="app-layout" id="appLayout">
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <h2>🧄 QuantAI</h2>
+        <span>运营中控台 v1.0</span>
+      </div>
+      <div class="nav-item active" onclick="switchPage('dashboard')">
+        <span class="nav-icon">📊</span> 总览
+      </div>
+      <div class="nav-item" onclick="switchPage('users')">
+        <span class="nav-icon">👥</span> 用户管理
+      </div>
+      <div class="nav-item" onclick="switchPage('subaccounts')">
+        <span class="nav-icon">🔐</span> 子账户
+      </div>
+      <div class="nav-item" onclick="switchPage('trading')">
+        <span class="nav-icon">📈</span> 交易管理
+      </div>
+      <div class="nav-item" onclick="switchPage('strategies')">
+        <span class="nav-icon">🎯</span> 策略中心
+      </div>
+      <div class="nav-item" onclick="switchPage('signals')">
+        <span class="nav-icon">📡</span> 信号监控
+      </div>
+      <div class="nav-item" onclick="switchPage('exchanges')">
+        <span class="nav-icon">🏦</span> 交易所
+      </div>
+      <div class="nav-item" onclick="switchPage('api')">
+        <span class="nav-icon">🔌</span> API对接
+      </div>
+      <div class="nav-item" onclick="switchPage('ai')">
+        <span class="nav-icon">🤖</span> AI配置
+      </div>
+      <div class="nav-item" onclick="switchPage('risk')">
+        <span class="nav-icon">🛡️</span> 风控中心
+      </div>
+      <div class="nav-item" onclick="switchPage('settings')">
+        <span class="nav-icon">⚙️</span> 系统设置
+      </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <!-- 顶部栏 -->
+      <div class="page-header">
+        <div class="page-title" id="pageTitle">📊 总览</div>
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">A</div>
+          <span class="user-name" id="userName">Admin</span>
+          <button class="logout-btn" onclick="logout()">退出</button>
+        </div>
+      </div>
+
+      <!-- 总览页面 -->
+      <div class="page-section active" id="page-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card green">
+            <div class="stat-label">总用户数</div>
+            <div class="stat-value" id="statUsers">0</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">活跃用户</div>
+            <div class="stat-value" id="statActiveUsers">0</div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-label">子账户数</div>
+            <div class="stat-value" id="statSubaccounts">0</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-label">总交易额</div>
+            <div class="stat-value" id="statVolume">$0</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📈 系统状态</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>API服务</span>
+                <span><span class="status-dot online"></span><span class="live">在线</span></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>数据库</span>
+                <span><span class="status-dot online"></span><span class="live">正常</span></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>AI服务</span>
+                <span><span class="status-dot online"></span><span class="live">可用</span></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>交易所连接</span>
+                <span><span class="status-dot warning"></span><span class="live">3个待配置</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📊 今日数据</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>新增用户</span>
+                <span style="color:var(--success);">+5</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>交易笔数</span>
+                <span style="color:var(--primary);">128</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>信号生成</span>
+                <span style="color:var(--accent);">42</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>策略执行</span>
+                <span style="color:var(--warning);">8</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 最近操作日志</div>
+            <span class="card-action">导出</span>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>时间</th><th>操作人</th><th>操作类型</th><th>详情</th><th>状态</th></tr>
+            </thead>
+            <tbody id="logTable">
+              <tr><td>2026-04-05 01:30</td><td>admin</td><td>用户登录</td><td>joohebin220@gmail.com</td><td><span class="tag tag-success">成功</span></td></tr>
+              <tr><td>2026-04-05 01:25</td><td>system</td><td>数据同步</td><td>MetaApi账户同步完成</td><td><span class="tag tag-success">成功</span></td></tr>
+              <tr><td>2026-04-05 01:20</td><td>system</td><td>信号生成</td><td>BTC/USDT 多头信号</td><td><span class="tag tag-info">处理中</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 用户管理 -->
+      <div class="page-section" id="page-users">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">👥 用户列表</div>
+            <button class="btn btn-sm" onclick="refreshUsers()">🔄 刷新</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>ID</th><th>用户名</th><th>邮箱</th><th>注册时间</th><th>状态</th><th>操作</th></tr>
+            </thead>
+            <tbody id="usersTable">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-dim);">加载中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 子账户 -->
+      <div class="page-section" id="page-subaccounts">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔐 子账户管理</div>
+            <button class="btn btn-sm" onclick="openCreateSubaccount()">+ 创建子账户</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>ID</th><th>用户名</th><th>关联主账户</th><th>状态</th><th>创建时间</th><th>操作</th></tr>
+            </thead>
+            <tbody id="subaccountsTable">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-dim);">加载中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 交易管理 -->
+      <div class="page-section" id="page-trading">
+        <div class="stats-grid">
+          <div class="stat-card green">
+            <div class="stat-label">持仓数</div>
+            <div class="stat-value">12</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">今日订单</div>
+            <div class="stat-value">45</div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-label">待成交</div>
+            <div class="stat-value">3</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-label">异常订单</div>
+            <div class="stat-value">0</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📈 实时持仓</div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>交易对</th><th>方向</th><th>数量</th><th>开仓价</th><th>当前价</th><th>盈亏</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>BTC/USDT</td><td><span class="tag tag-success">做多</span></td><td>0.5</td><td>$42,150</td><td>$43,200</td><td style="color:var(--success);">+$525</td><td><button class="btn btn-sm">平仓</button></td></tr>
+              <tr><td>ETH/USDT</td><td><span class="tag tag-danger">做空</span></td><td>2.0</td><td>$2,180</td><td>$2,150</td><td style="color:var(--danger);">-$60</td><td><button class="btn btn-sm">平仓</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 策略中心 -->
+      <div class="page-section" id="page-strategies">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🎯 交易策略</div>
+            <button class="btn btn-sm" onclick="showNotification('功能开发中', 'warning')">+ 创建策略</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>策略名</th><th>类型</th><th>状态</th><th>收益率</th><th>创建时间</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>趋势跟踪策略</td><td><span class="tag tag-info">趋势</span></td><td><span class="tag tag-success">运行中</span></td><td style="color:var(--success);">+12.5%</td><td>2026-03-15</td><td><button class="btn btn-sm">编辑</button></td></tr>
+              <tr><td>网格交易</td><td><span class="tag tag-purple">网格</span></td><td><span class="tag tag-warning">暂停</span></td><td style="color:var(--success);">+5.2%</td><td>2026-03-20</td><td><button class="btn btn-sm">编辑</button></td></tr>
+              <tr><td>套利策略</td><td><span class="tag tag-info">套利</span></td><td><span class="tag tag-success">运行中</span></td><td style="color:var(--success);">+8.7%</td><td>2026-03-25</td><td><button class="btn btn-sm">编辑</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 信号监控 -->
+      <div class="page-section" id="page-signals">
+        <div class="stats-grid">
+          <div class="stat-card green">
+            <div class="stat-label">今日信号</div>
+            <div class="stat-value">42</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">多头信号</div>
+            <div class="stat-value">28</div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-label">空头信号</div>
+            <div class="stat-value">14</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-label">胜率</div>
+            <div class="stat-value">76%</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📡 最近交易信号</div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>时间</th><th>交易对</th><th>信号</th><th>强度</th><th>置信度</th><th>状态</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>01:35</td><td>BTC/USDT</td><td><span class="tag tag-success">买入</span></td><td>强</td><td>92%</td><td><span class="tag tag-success">已执行</span></td></tr>
+              <tr><td>01:28</td><td>ETH/USDT</td><td><span class="tag tag-danger">卖出</span></td><td>中</td><td>78%</td><td><span class="tag tag-success">已执行</span></td></tr>
+              <tr><td>01:15</td><td>SOL/USDT</td><td><span class="tag tag-success">买入</span></td><td>弱</td><td>65%</td><td><span class="tag tag-warning">待执行</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 交易所 -->
+      <div class="page-section" id="page-exchanges">
+        <div class="stats-grid">
+          <div class="stat-card green">
+            <div class="stat-label">已连接</div>
+            <div class="stat-value">5</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">可用通道</div>
+            <div class="stat-value">80+</div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-label">交易对</div>
+            <div class="stat-value">5,000+</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-label">延迟警告</div>
+            <div class="stat-value">2</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🏦 交易所连接状态</div>
+            <button class="btn btn-sm" onclick="showNotification('刷新中...', 'success')">🔄 刷新</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>交易所</th><th>通道</th><th>连接状态</th><th>延迟</th><th>余额</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>🟡 Binance</td><td><span class="tag tag-success">MetaApi</span></td><td><span class="tag tag-success">已连接</span></td><td style="color:var(--success);">23ms</td><td>$124,532</td><td><button class="btn btn-sm">配置</button></td></tr>
+              <tr><td>🟠 Bybit</td><td><span class="tag tag-success">MetaApi</span></td><td><span class="tag tag-success">已连接</span></td><td style="color:var(--success);">31ms</td><td>$45,231</td><td><button class="btn btn-sm">配置</button></td></tr>
+              <tr><td>⚪ OKX</td><td><span class="tag tag-info">CCXT</span></td><td><span class="tag tag-success">已连接</span></td><td style="color:var(--success);">45ms</td><td>$67,890</td><td><button class="btn btn-sm">配置</button></td></tr>
+              <tr><td>🟢 KuCoin</td><td><span class="tag tag-info">CCXT</span></td><td><span class="tag tag-warning">延迟中</span></td><td style="color:var(--warning);">380ms</td><td>$12,345</td><td><button class="btn btn-sm">配置</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- API对接 -->
+      <div class="page-section" id="page-api">
+        <div class="stats-grid">
+          <div class="stat-card green">
+            <div class="stat-label">MetaApi</div>
+            <div class="stat-value" style="font-size:16px;">已配置</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">CCXT</div>
+            <div class="stat-value" style="font-size:16px;">已配置</div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-label">Binance直连</div>
+            <div class="stat-value" style="font-size:16px;">待配置</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-label">OKX直连</div>
+            <div class="stat-value" style="font-size:16px;">待配置</div>
+          </div>
+        </div>
+
+        <!-- 【+α】高级API配置区域 -->
+        <div class="card" style="margin-bottom:24px;background:linear-gradient(135deg,rgba(0,245,255,0.1),rgba(160,0,255,0.1));border:1px solid var(--cyan);">
+          <div class="card-header" style="border-bottom:1px solid var(--cyan);">
+            <div class="card-title" style="color:var(--cyan);">🚀 【+α】API增强功能</div>
+            <span style="font-size:12px;color:var(--text-muted);">高级配置 · 自动容错 · 负载均衡</span>
+          </div>
+          <div class="form-row" style="margin-top:16px;">
+            <div class="card" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:14px;margin-bottom:12px;">⚡ 自动 failover</div>
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="autoFailover" checked> 启用主备切换
+                </label>
+                <div class="form-hint">主API失败时自动切换到备用通道</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">故障转移延迟 (ms)</label>
+                <input type="number" class="form-input" id="failoverDelay" value="500" min="100" max="5000">
+              <div class="form-hint">检测到故障后等待时间</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">最大重试次数</label>
+                <input type="number" class="form-input" id="maxRetries" value="3" min="1" max="10">
+              <div class="form-hint">失败后最大重试次数</div>
+              </div>
+            </div>
+            <div class="card" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:14px;margin-bottom:12px;">🔄 请求负载均衡</div>
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="loadBalance"> 启用负载均衡
+                </label>
+                <div class="form-hint">多个API时自动分配请求</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">负载策略</label>
+                <select class="form-input" id="balanceStrategy">
+                  <option value="round">轮询 (Round Robin)</option>
+                  <option value="least">最少连接</option>
+                  <option value="random">随机分配</option>
+                  <option value="priority">优先级权重</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">权重配置 (JSON)</label>
+                <textarea class="form-input" id="weightConfig" style="height:60px;font-family:monospace;font-size:12px;" placeholder='{"metaapi":60,"ccxt":30,"binance":10}'></textarea>
+              </div>
+            </div>
+            <div class="card" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:14px;margin-bottom:12px;">🛡️ 安全与限流</div>
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="rateLimit" checked> 启用限流保护
+                </label>
+                <div class="form-hint">防止API被限流</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">请求间隔 (ms)</label>
+                <input type="number" class="form-input" id="requestInterval" value="100" min="0" max="1000">
+              <div class="form-hint">每次请求间隔时间</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="sslVerify" checked> SSL证书验证
+                </label>
+                <div class="form-hint">HTTPS连接验证证书</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="ipWhitelist"> IP白名单绑定
+                </label>
+                <input type="text" class="form-input" id="ipWhitelistInput" placeholder="如: 1.2.3.4,5.6.7.8" style="margin-top:8px;">
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="card" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:14px;margin-bottom:12px;">📊 监控与日志</div>
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="enableLogging" checked> 启用API日志
+                </label>
+                <div class="form-hint">记录所有API请求与响应</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">日志级别</label>
+                <select class="form-input" id="logLevel">
+                  <option value="debug">DEBUG - 详细</option>
+                  <option value="info" selected>INFO - 一般</option>
+                  <option value="warning">WARNING - 警告</option>
+                  <option value="error">ERROR - 错误</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="healthCheck"> 定时健康检查
+                </label>
+                <input type="number" class="form-input" id="healthCheckInterval" value="60" min="10" max="3600" style="margin-top:8px;">
+                <div class="form-hint">检查间隔(秒)，0为禁用</div>
+              </div>
+            </div>
+            <div class="card" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:14px;margin-bottom:12px;">💾 缓存与性能</div>
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="enableCache"> 启用响应缓存
+                </label>
+                <div class="form-hint">减少重复API调用</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">缓存TTL (秒)</label>
+                <input type="number" class="form-input" id="cacheTTL" value="30" min="1" max="3600">
+              <div class="form-hint">缓存有效期</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">缓存键前缀</label>
+                <input type="text" class="form-input" id="cachePrefix" value="qa_api_cache_">
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="gzipCompression"> GZIP压缩
+                </label>
+                <div class="form-hint">减少传输数据量</div>
+              </div>
+            </div>
+            <div class="card" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:14px;margin-bottom:12px;">🔧 高级选项</div>
+              <div class="form-group">
+                <label class="form-label">自定义端点</label>
+                <input type="text" class="form-input" id="customEndpoint" placeholder="https://custom.api.com/v1">
+                <div class="form-hint">覆盖默认API地址</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">超时设置 (秒)</label>
+                <input type="number" class="form-input" id="apiTimeout" value="30" min="5" max="300">
+              </div>
+              <div class="form-group">
+                <label class="form-label">User-Agent</label>
+                <input type="text" class="form-input" id="customUserAgent" value="QuantAI/1.0">
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="proxyEnabled"> 启用代理
+                </label>
+                <input type="text" class="form-input" id="proxyUrl" placeholder="http://proxy:8080" style="margin-top:8px;">
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:16px;" onclick="saveAlphaConfig()">💾 保存【+α】配置</button>
+        </div>
+
+        <div class="form-row">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:20px;">🔌 MetaApi 连接配置</div>
+            <div class="form-group">
+              <label class="form-label">MetaApi Token <span class="required">*</span></label>
+              <input type="password" class="form-input" id="metaApiToken" placeholder="输入 MetaApi Token">
+              <div class="form-hint">从 metaapi.io 获取 API Token</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">MT5 账户 ID</label>
+              <input type="text" class="form-input" id="metaAccountId" placeholder="MetaApi 账户 ID">
+              <div class="form-hint">用于跟单交易的MT5账户</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">支持经纪商</label>
+              <select class="form-input" multiple style="height:100px;">
+                <option selected>MetaQuotes-Demo</option>
+                <option selected>IronFX-Demo</option>
+                <option selected>Alpari-Demo</option>
+                <option>ForexClub-Wallet</option>
+                <option>RoboForex-Demo</option>
+              </select>
+              <div class="form-hint">按住 Ctrl 多选</div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:16px;" onclick="saveMetaApiConfig()">保存配置</button>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:20px;">📦 CCXT 交易所配置</div>
+            <div class="form-group">
+              <label class="form-label">选择交易所</label>
+              <select class="form-input" id="ccxtExchange">
+                <option value="">请选择...</option>
+                <option value="binance">Binance</option>
+                <option value="bybit">Bybit</option>
+                <option value="okx">OKX</option>
+                <option value="kucoin">KuCoin</option>
+                <option value="gate">Gate.io</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">API Key</label>
+              <input type="text" class="form-input" id="ccxtApiKey" placeholder="交易所 API Key">
+            </div>
+            <div class="form-group">
+              <label class="form-label">API Secret</label>
+              <input type="password" class="form-input" id="ccxtApiSecret" placeholder="交易所 API Secret">
+            </div>
+            <div class="form-group">
+              <label class="form-label">
+                <input type="checkbox" id="ccxtTestnet" checked> 测试网模式
+              </label>
+            </div>
+            <button class="btn btn-primary" style="margin-top:16px;" onclick="saveCCXTConfig()">保存配置</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔗 已配置的 API 通道</div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>通道</th><th>交易所</th><th>状态</th><th>延迟</th><th>最后测试</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>MetaApi</td><td>Binance, Bybit, OKX</td><td><span class="tag tag-success">已连接</span></td><td style="color:var(--success);">23ms</td><td>刚刚</td><td><button class="btn btn-sm">测试</button></td></tr>
+              <tr><td>CCXT</td><td>OKX</td><td><span class="tag tag-success">已连接</span></td><td style="color:var(--success);">45ms</td><td>1分钟前</td><td><button class="btn btn-sm">测试</button></td></tr>
+              <tr><td>Binance直连</td><td>-</td><td><span class="tag tag-warning">未配置</span></td><td>-</td><td>-</td><td><button class="btn btn-sm">配置</button></td></tr>
+              <tr><td>OKX直连</td><td>-</td><td><span class="tag tag-warning">未配置</span></td><td>-</td><td>-</td><td><button class="btn btn-sm">配置</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AI配置 -->
+      <div class="page-section" id="page-ai">
+        <div class="form-row">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:20px;">🤖 AI 服务配置</div>
+            <div class="form-group">
+              <label class="form-label">Groq API Key（客服对话）</label>
+              <input type="password" class="form-input" id="groqApiKey" placeholder="gsk_xxxxx" value="">
+              <div class="form-hint">模型: llama-3.3-70b-versatile</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">OpenRouter API Key（分析/信号）</label>
+              <input type="password" class="form-input" id="openrouterApiKey" placeholder="sk-or-v1-xxxxx" value="">
+              <div class="form-hint">模型: deepseek/deepseek-v3.2</div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:16px;" onclick="saveAIConfig()">保存配置</button>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:20px;">📊 AI 服务状态</div>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>Groq API</span>
+                <span class="tag tag-success">已配置</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>OpenRouter API</span>
+                <span class="tag tag-success">已配置</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>AI 对话</span>
+                <span><span class="status-dot online"></span>可用</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>市场分析</span>
+                <span><span class="status-dot online"></span>可用</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>信号生成</span>
+                <span><span class="status-dot online"></span>可用</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 风控中心 -->
+      <div class="page-section" id="page-risk">
+        <div class="form-row">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:20px;">🛡️ 全局风控设置</div>
+            <div class="form-group">
+              <label class="form-label">最大持仓金额（USD）</label>
+              <input type="number" class="form-input" value="100000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">单笔最大交易额（USD）</label>
+              <input type="number" class="form-input" value="10000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">止损比例（%）</label>
+              <input type="number" class="form-input" value="5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">止盈比例（%）</label>
+              <input type="number" class="form-input" value="15">
+            </div>
+            <button class="btn btn-primary" style="margin-top:16px;" onclick="showNotification('风控设置已保存', 'success')">保存设置</button>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:20px;">⚡ 熔断机制</div>
+            <div style="display:flex;flex-direction:column;gap:20px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>全局熔断</span>
+                <div class="toggle active" style="width:48px;height:24px;background:var(--success);border-radius:12px;cursor:pointer;position:relative;">
+                  <div style="width:20px;height:20px;background:white;border-radius:50%;position:absolute;right:2px;top:2px;"></div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>单日亏损熔断</span>
+                <div class="toggle active" style="width:48px;height:24px;background:var(--success);border-radius:12px;cursor:pointer;position:relative;">
+                  <div style="width:20px;height:20px;background:white;border-radius:50%;position:absolute;right:2px;top:2px;"></div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>异常交易熔断</span>
+                <div class="toggle" style="width:48px;height:24px;background:var(--border);border-radius:12px;cursor:pointer;position:relative;">
+                  <div style="width:20px;height:20px;background:white;border-radius:50%;position:absolute;left:2px;top:2px;"></div>
+                </div>
+              </div>
+              <div class="form-group" style="margin-top:16px;">
+                <label class="form-label">熔断阈值（连续亏损次数）</label>
+                <input type="number" class="form-input" value="5">
+              </div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:16px;" onclick="showNotification('熔断配置已保存', 'success')">保存配置</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 系统设置 -->
+      <div class="page-section" id="page-settings">
+        <!-- 设置标签页导航 -->
+        <div style="display:flex;gap:8px;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:12px;">
+          <button class="btn" id="tab-core" onclick="switchSettingsTab('core')" style="background:var(--cyan);color:#000;">🔌 核心服务</button>
+          <button class="btn" id="tab-business" onclick="switchSettingsTab('business')">📊 业务参数</button>
+          <button class="btn" id="tab-system" onclick="switchSettingsTab('system')">⚙️ 系统设置</button>
+          <button class="btn" id="tab-security" onclick="switchSettingsTab('security')">🛡️ 安全与审计</button>
+        </div>
+
+        <!-- 【核心服务】标签页 -->
+        <div id="settings-core" class="settings-tab">
+          <div class="form-row">
+            <div class="card" style="border:1px solid var(--cyan);">
+              <div class="card-title" style="margin-bottom:20px;">🔌 MetaApi 配置</div>
+              <div class="form-group">
+                <label class="form-label">API Token <span class="required">*</span></label>
+                <input type="password" class="form-input" id="metaApiToken" placeholder="metaapi.io 的 API Token">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Account ID</label>
+                <input type="text" class="form-input" id="metaAccountId" placeholder="您的 MetaApi 账户 ID">
+              </div>
+              <div class="form-group">
+                <label class="form-label">服务器地址</label>
+                <input type="text" class="form-input" value="aggr.v2.1.metaapi.cloud" readonly>
+              </div>
+              <button class="btn btn-primary" style="margin-top:16px;" onclick="showNotification('MetaApi 配置已保存', 'success')">保存 MetaApi 配置</button>
+            </div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:20px;">🤖 AI模型配置</div>
+              <div class="form-group">
+                <label class="form-label">DeepSeek API Key</label>
+                <input type="password" class="form-input" id="deepseekApiKey" placeholder="sk-xxxxx">
+              </div>
+              <div class="form-group">
+                <label class="form-label">API Base URL</label>
+                <select class="form-input" id="deepseekBaseUrl">
+                  <option value="https://api.deepseek.com">官方 (api.deepseek.com)</option>
+                  <option value="https://ark.cn-beijing.volces.com/api/v3">火山引擎 (国内加速)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">模型选择</label>
+                <select class="form-input" id="deepseekModel">
+                  <option value="deepseek-chat">DeepSeek Chat (推荐)</option>
+                  <option value="deepseek-coder">DeepSeek Coder (编程)</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" style="margin-top:16px;" onclick="showNotification('AI模型配置已保存', 'success')">保存 AI 配置</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:20px;">📡 行情源配置</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">默认行情源</label>
+                <select class="form-input" id="defaultMarketSource">
+                  <option value="binance">Binance</option>
+                  <option value="okx">OKX</option>
+                  <option value="bybit">Bybit</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">备用行情源</label>
+                <select class="form-input" id="backupMarketSource">
+                  <option value="">无</option>
+                  <option value="binance">Binance</option>
+                  <option value="okx">OKX</option>
+                  <option value="bybit">Bybit</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">行情刷新间隔(秒)</label>
+                <input type="number" class="form-input" id="marketRefreshInterval" value="5" min="1" max="60">
+              </div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:16px;" onclick="showNotification('行情源配置已保存', 'success')">保存行情源配置</button>
+          </div>
+        </div>
+
+        <!-- 【业务参数】标签页 -->
+        <div id="settings-business" class="settings-tab" style="display:none;">
+          <div class="form-row">
+            <div class="card" style="border:1px solid var(--warning);">
+              <div class="card-title" style="margin-bottom:20px;">🛡️ 全局风控参数</div>
+              <div class="form-group">
+                <label class="form-label">单日最大亏损额 (USD)</label>
+                <input type="number" class="form-input" id="maxDailyLoss" value="1000" min="0">
+              </div>
+              <div class="form-group">
+                <label class="form-label">单笔最大交易额 (USD)</label>
+                <input type="number" class="form-input" id="maxTradeAmount" value="500" min="0">
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="globalTradingSwitch" checked> 全局交易开关
+                </label>
+                <div class="form-hint">关闭后所有交易策略暂停执行</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">最大并发订单数</label>
+                <input type="number" class="form-input" id="maxConcurrentOrders" value="10" min="1" max="100">
+              </div>
+              <button class="btn btn-primary" style="margin-top:16px;" onclick="showNotification('风控参数已保存', 'success')">保存风控参数</button>
+            </div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:20px;">📋 CopyFactory 跟单设置</div>
+              <div class="form-group">
+                <label class="form-label">信号同步延迟容限 (毫秒)</label>
+                <input type="number" class="form-input" id="copyDelayLimit" value="500" min="0" max="5000">
+              </div>
+              <div class="form-group">
+                <label class="form-label">默认订阅费率 (USD/月)</label>
+                <input type="number" class="form-input" id="copyMonthlyFee" value="49" min="0">
+              </div>
+              <div class="form-group">
+                <label class="form-label">跟单分成比例 (%)</label>
+                <input type="number" class="form-input" id="copyShareRatio" value="20" min="0" max="100">
+              </div>
+              <button class="btn btn-primary" style="margin-top:16px;" onclick="showNotification('跟单设置已保存', 'success')">保存跟单设置</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 【系统设置】标签页 -->
+        <div id="settings-system" class="settings-tab" style="display:none;">
+          <div class="form-row">
+            <div class="card">
+              <div class="card-title" style="margin-bottom:20px;">🔧 系统配置</div>
+              <div class="form-group">
+                <label class="form-label">服务端口</label>
+                <input type="number" class="form-input" id="servicePort" value="8001">
+              </div>
+              <div class="form-group">
+                <label class="form-label">数据库路径</label>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <input type="text" class="form-input" id="dbPath" value="/data/quantai/quantai.db" style="flex:1;">
+                  <span class="tag tag-success">状态: 正常</span>
+                </div>
+                <div class="form-hint">数据库大小: 2.4 MB</div>
+              </div>
+              <button class="btn btn-secondary" style="margin-top:8px;" onclick="showNotification('数据库备份创建中...', 'info')">📦 立即备份</button>
+            </div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:20px;">🌐 部署信息</div>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+                <div style="background:var(--bg-card2);padding:16px;border-radius:8px;">
+                  <div style="color:var(--text-dim);font-size:12px;margin-bottom:8px;">部署环境</div>
+                  <div style="font-size:16px;font-weight:500;">生产环境 (Production)</div>
+                </div>
+                <div style="background:var(--bg-card2);padding:16px;border-radius:8px;">
+                  <div style="color:var(--text-dim);font-size:12px;margin-bottom:8px;">服务器地址</div>
+                  <div style="font-size:16px;font-weight:500;">localhost:8001</div>
+                </div>
+                <div style="background:var(--bg-card2);padding:16px;border-radius:8px;">
+                  <div style="color:var(--text-dim);font-size:12px;margin-bottom:8px;">API版本</div>
+                  <div style="font-size:16px;font-weight:500;">v1.0.0</div>
+                </div>
+                <div style="background:var(--bg-card2);padding:16px;border-radius:8px;">
+                  <div style="color:var(--text-dim);font-size:12px;margin-bottom:8px;">最后更新</div>
+                  <div style="font-size:16px;font-weight:500;">2026-04-05 01:45</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 【安全与审计】标签页 -->
+        <div id="settings-security" class="settings-tab" style="display:none;">
+          <div class="form-row">
+            <div class="card">
+              <div class="card-title" style="margin-bottom:20px;">🔐 修改密码</div>
+              <div class="form-group">
+                <label class="form-label">当前密码</label>
+                <input type="password" class="form-input" id="currentPassword" placeholder="输入当前密码">
+              </div>
+              <div class="form-group">
+                <label class="form-label">新密码</label>
+                <input type="password" class="form-input" id="newPassword" placeholder="输入新密码">
+              </div>
+              <div class="form-group">
+                <label class="form-label">确认新密码</label>
+                <input type="password" class="form-input" id="confirmPassword" placeholder="再次输入新密码">
+              </div>
+              <button class="btn btn-primary" style="margin-top:16px;" onclick="showNotification('密码已更新', 'success')">修改密码</button>
+            </div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:20px;">🔒 安全增强</div>
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="enable2FA"> 双因素认证 (2FA)
+                </label>
+                <div class="form-hint">启用后登录需输入验证码</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">会话管理</label>
+                <div style="background:var(--bg-card2);padding:12px;border-radius:8px;margin-top:8px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span>💻 当前设备 (Chrome/Windows)</span>
+                    <span class="tag tag-success">在线</span>
+                  </div>
+                </div>
+                <button class="btn btn-sm" style="margin-top:8px;" onclick="showNotification('其他设备已下线', 'success')">强制下线其他设备</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:20px;">📋 最近操作日志</div>
+            <table class="data-table">
+              <thead>
+                <tr><th>时间</th><th>操作人</th><th>操作内容</th><th>IP地址</th></tr>
+              </thead>
+              <tbody id="logTableBody">
+                <tr><td>2026-04-05 01:45:22</td><td>管理员</td><td>修改了风控参数</td><td>127.0.0.1</td></tr>
+                <tr><td>2026-04-05 01:30:10</td><td>管理员</td><td>登录成功</td><td>127.0.0.1</td></tr>
+                <tr><td>2026-04-05 00:15:33</td><td>系统</td><td>自动备份数据库</td><td>-</td></tr>
+                <tr><td>2026-04-04 23:00:00</td><td>管理员</td><td>修改了API配置</td><td>127.0.0.1</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 创建子账户模态框 -->
+  <div class="modal-overlay" id="subaccountModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">创建子账户</div>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">用户名 *</label>
+        <input type="text" class="form-input" id="subUsername" placeholder="子账户用户名">
+      </div>
+      <div class="form-group">
+        <label class="form-label">邮箱 *</label>
+        <input type="email" class="form-input" id="subEmail" placeholder="子账户邮箱">
+      </div>
+      <div class="form-group">
+        <label class="form-label">密码 *</label>
+        <input type="password" class="form-input" id="subPassword" placeholder="至少6位">
+      </div>
+      <div class="form-group">
+        <label class="form-label">关联主账户</label>
+        <select class="form-input" id="subParentUser">
+          <option value="">选择主账户</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="createSubaccount()">创建</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:8001';
+    let authToken = localStorage.getItem('quantai_token');
+    let currentUser = JSON.parse(localStorage.getItem('quantai_user') || '{}');
+
+    // 检查登录状态
+    if (authToken) {
+      showApp();
+      loadDashboard();
+    }
+
+    // 切换登录/注册标签
+    function switchTab(tab) {
+      document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+    }
+
+    // 登录
+    async function doLogin() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const errorEl = document.getElementById('loginError');
+
+      if (!email || !password) {
+        errorEl.textContent = '请填写邮箱和密码';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          localStorage.setItem('quantai_token', data.access_token);
+          localStorage.setItem('quantai_user', JSON.stringify(data.user));
+          currentUser = data.user;
+          showApp();
+          loadDashboard();
+        } else {
+          errorEl.textContent = data.detail || '登录失败';
+          errorEl.style.display = 'block';
+        }
+      } catch (e) {
+        errorEl.textContent = '无法连接到服务器，请确保后端已启动';
+        errorEl.style.display = 'block';
+      }
+    }
+
+    // 注册
+    async function doRegister() {
+      const username = document.getElementById('regUsername').value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+      const full_name = document.getElementById('regFullName').value;
+
+      if (!username || !email || !password) {
+        showNotification('请填写必填项', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password, full_name })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem('quantai_token', data.access_token);
+          localStorage.setItem('quantai_user', JSON.stringify(data.user));
+          currentUser = data.user;
+          showApp();
+          loadDashboard();
+          showNotification('注册成功', 'success');
+        } else {
+          showNotification(data.detail || '注册失败', 'error');
+        }
+      } catch (e) {
+        showNotification('无法连接到服务器', 'error');
+      }
+    }
+
+    // 显示主界面
+    function showApp() {
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('appLayout').classList.add('active');
+      document.getElementById('userName').textContent = currentUser.username || 'Admin';
+      document.getElementById('userAvatar').textContent = (currentUser.username || 'A').charAt(0).toUpperCase();
+    }
+
+    // 退出登录
+    function logout() {
+      localStorage.removeItem('quantai_token');
+      localStorage.removeItem('quantai_user');
+      location.reload();
+    }
+
+    // 切换页面
+    function switchPage(page) {
+      document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const titles = {
+        dashboard: '📊 总览',
+        users: '👥 用户管理',
+        subaccounts: '🔐 子账户',
+        trading: '📈 交易管理',
+        strategies: '🎯 策略中心',
+        signals: '📡 信号监控',
+        exchanges: '🏦 交易所',
+        api: '🔌 API对接',
+        ai: '🤖 AI配置',
+        risk: '🛡️ 风控中心',
+        settings: '⚙️ 系统设置'
+      };
+      document.getElementById('pageTitle').textContent = titles[page] || page;
+    }
+
+    // 加载仪表盘数据
+    async function loadDashboard() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/users/stats`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const stats = await res.json();
+          document.getElementById('statUsers').textContent = stats.total_users || '0';
+          document.getElementById('statActiveUsers').textContent = stats.active_users || '0';
+          document.getElementById('statSubaccounts').textContent = stats.total_subaccounts || '0';
+        }
+      } catch (e) {
+        console.log('无法获取统计数据');
+      }
+    }
+
+    // 刷新用户列表
+    async function refreshUsers() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/users`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const users = await res.json();
+          const tbody = document.getElementById('usersTable');
+          if (users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);">暂无用户</td></tr>';
+          } else {
+            tbody.innerHTML = users.map(u => `
+              <tr>
+                <td>${u.id}</td>
+                <td>${u.username}</td>
+                <td>${u.email}</td>
+                <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'}</td>
+                <td><span class="tag tag-success">正常</span></td>
+                <td><button class="btn btn-sm">详情</button></td>
+              </tr>
+            `).join('');
+          }
+        }
+      } catch (e) {
+        document.getElementById('usersTable').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);">加载失败</td></tr>';
+      }
+    }
+
+    // 打开创建子账户模态框
+    function openCreateSubaccount() {
+      document.getElementById('subaccountModal').classList.add('active');
+    }
+
+    // 关闭模态框
+    function closeModal() {
+      document.getElementById('subaccountModal').classList.remove('active');
+    }
+
+    // 创建子账户
+    async function createSubaccount() {
+      const username = document.getElementById('subUsername').value;
+      const email = document.getElementById('subEmail').value;
+      const password = document.getElementById('subPassword').value;
+
+      if (!username || !email || !password) {
+        showNotification('请填写必填项', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/subaccount`, {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, email, password })
+        });
+        
+        if (res.ok) {
+          showNotification('子账户创建成功', 'success');
+          closeModal();
+        } else {
+          const data = await res.json();
+          showNotification(data.detail || '创建失败', 'error');
+        }
+      } catch (e) {
+        showNotification('创建失败', 'error');
+      }
+    }
+
+    // 保存AI配置
+    function saveAIConfig() {
+      const groqKey = document.getElementById('groqApiKey').value;
+      const openrouterKey = document.getElementById('openrouterApiKey').value;
+      
+      if (groqKey) localStorage.setItem('groq_api_key', groqKey);
+      if (openrouterKey) localStorage.setItem('openrouter_api_key', openrouterKey);
+      
+      showNotification('AI配置已保存（需重启服务生效）', 'success');
+    }
+
+    // 保存MetaApi配置
+    function saveMetaApiConfig() {
+      const token = document.getElementById('metaApiToken').value;
+      const accountId = document.getElementById('metaAccountId').value;
+      
+      if (!token) {
+        showNotification('请输入 MetaApi Token', 'error');
+        return;
+      }
+      
+      localStorage.setItem('metaapi_token', token);
+      if (accountId) localStorage.setItem('metaapi_account_id', accountId);
+      
+      showNotification('MetaApi 配置已保存', 'success');
+    }
+
+    // 保存CCXT配置
+    function saveCCXTConfig() {
+      const exchange = document.getElementById('ccxtExchange').value;
+      const apiKey = document.getElementById('ccxtApiKey').value;
+      const apiSecret = document.getElementById('ccxtApiSecret').value;
+      const testnet = document.getElementById('ccxtTestnet').checked;
+      
+      if (!exchange || !apiKey || !apiSecret) {
+        showNotification('请填写完整信息', 'error');
+        return;
+      }
+      
+      localStorage.setItem('ccxt_exchange', exchange);
+      localStorage.setItem('ccxt_api_key', apiKey);
+      localStorage.setItem('ccxt_api_secret', apiSecret);
+      localStorage.setItem('ccxt_testnet', testnet);
+      
+      showNotification(`${exchange} CCXT 配置已保存`, 'success');
+    }
+
+    // 保存【+α】高级API配置
+    function saveAlphaConfig() {
+      const config = {
+        autoFailover: document.getElementById('autoFailover').checked,
+        failoverDelay: parseInt(document.getElementById('failoverDelay').value) || 500,
+        maxRetries: parseInt(document.getElementById('maxRetries').value) || 3,
+        loadBalance: document.getElementById('loadBalance').checked,
+        balanceStrategy: document.getElementById('balanceStrategy').value,
+        weightConfig: document.getElementById('weightConfig').value,
+        rateLimit: document.getElementById('rateLimit').checked,
+        requestInterval: parseInt(document.getElementById('requestInterval').value) || 100,
+        sslVerify: document.getElementById('sslVerify').checked,
+        ipWhitelist: document.getElementById('ipWhitelist').checked,
+        ipWhitelistInput: document.getElementById('ipWhitelistInput').value,
+        enableLogging: document.getElementById('enableLogging').checked,
+        logLevel: document.getElementById('logLevel').value,
+        healthCheck: document.getElementById('healthCheck').checked,
+        healthCheckInterval: parseInt(document.getElementById('healthCheckInterval').value) || 60,
+        enableCache: document.getElementById('enableCache').checked,
+        cacheTTL: parseInt(document.getElementById('cacheTTL').value) || 30,
+        cachePrefix: document.getElementById('cachePrefix').value,
+        gzipCompression: document.getElementById('gzipCompression')?.checked || false,
+        customEndpoint: document.getElementById('customEndpoint').value,
+        apiTimeout: parseInt(document.getElementById('apiTimeout').value) || 30,
+        customUserAgent: document.getElementById('customUserAgent').value,
+        proxyEnabled: document.getElementById('proxyEnabled').checked,
+        proxyUrl: document.getElementById('proxyUrl').value
+      };
+      
+      localStorage.setItem('alpha_api_config', JSON.stringify(config));
+      showNotification('【+α】高级API配置已保存', 'success');
+    }
+
+    // 页面加载时恢复【+α】配置
+    window.addEventListener('DOMContentLoaded', function() {
+      const savedConfig = localStorage.getItem('alpha_api_config');
+      if (savedConfig) {
+        try {
+          const config = JSON.parse(savedConfig);
+          document.getElementById('autoFailover').checked = config.autoFailover ?? true;
+          document.getElementById('failoverDelay').value = config.failoverDelay ?? 500;
+          document.getElementById('maxRetries').value = config.maxRetries ?? 3;
+          document.getElementById('loadBalance').checked = config.loadBalance ?? false;
+          document.getElementById('balanceStrategy').value = config.balanceStrategy ?? 'round';
+          document.getElementById('weightConfig').value = config.weightConfig ?? '';
+          document.getElementById('rateLimit').checked = config.rateLimit ?? true;
+          document.getElementById('requestInterval').value = config.requestInterval ?? 100;
+          document.getElementById('sslVerify').checked = config.sslVerify ?? true;
+          document.getElementById('ipWhitelist').checked = config.ipWhitelist ?? false;
+          document.getElementById('ipWhitelistInput').value = config.ipWhitelistInput ?? '';
+          document.getElementById('enableLogging').checked = config.enableLogging ?? true;
+          document.getElementById('logLevel').value = config.logLevel ?? 'info';
+          document.getElementById('healthCheck').checked = config.healthCheck ?? false;
+          document.getElementById('healthCheckInterval').value = config.healthCheckInterval ?? 60;
+          document.getElementById('enableCache').checked = config.enableCache ?? false;
+          document.getElementById('cacheTTL').value = config.cacheTTL ?? 30;
+          document.getElementById('cachePrefix').value = config.cachePrefix ?? 'qa_api_cache_';
+          if (document.getElementById('gzipCompression')) {
+            document.getElementById('gzipCompression').checked = config.gzipCompression ?? false;
+          }
+          document.getElementById('customEndpoint').value = config.customEndpoint ?? '';
+          document.getElementById('apiTimeout').value = config.apiTimeout ?? 30;
+          document.getElementById('customUserAgent').value = config.customUserAgent ?? 'QuantAI/1.0';
+          document.getElementById('proxyEnabled').checked = config.proxyEnabled ?? false;
+          document.getElementById('proxyUrl').value = config.proxyUrl ?? '';
+        } catch(e) {
+          console.error('恢复【+α】配置失败:', e);
+        }
+      }
+    });
+
+    // 切换设置标签页
+    function switchSettingsTab(tab) {
+      const tabs = ['core', 'business', 'system', 'security'];
+      tabs.forEach(t => {
+        document.getElementById('tab-' + t).style.background = '';
+        document.getElementById('tab-' + t).style.color = '';
+        document.getElementById('settings-' + t).style.display = 'none';
+      });
+      document.getElementById('tab-' + tab).style.background = 'var(--cyan)';
+      document.getElementById('tab-' + tab).style.color = '#000';
+      document.getElementById('settings-' + tab).style.display = 'block';
+    }
+
+    // 显示通知
+    function showNotification(message, type = 'success') {
+      const existing = document.querySelector('.notification');
+      if (existing) existing.remove();
+
+      const notif = document.createElement('div');
+      notif.className = `notification ${type}`;
+      notif.textContent = message;
+      document.body.appendChild(notif);
+
+      setTimeout(() => notif.remove(), 3000);
+    }
+
+    // 回车登录
+    document.getElementById('loginPassword').addEventListener('keypress', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+  </script>
+</body>
+</html>

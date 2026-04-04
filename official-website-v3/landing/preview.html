@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuantAI — Style Preview</title>
+<style>
+  :root {
+    --bg: #030712;
+    --bg2: #0a0f1e;
+    --bg3: #0d1530;
+    --cyan: #00f5ff;
+    --cyan2: #00c8ff;
+    --purple: #a000ff;
+    --purple2: #7000cc;
+    --gold: #ffd700;
+    --green: #00ff88;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --border: rgba(0,245,255,0.15);
+    --glow-cyan: 0 0 20px rgba(0,245,255,0.4);
+    --glow-purple: 0 0 20px rgba(160,0,255,0.4);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',Arial,sans-serif; overflow-x:hidden; }
+
+  /* ── 扫描线背景 ── */
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,245,255,0.015) 2px, rgba(0,245,255,0.015) 4px);
+  }
+
+  /* ── NAV ── */
+  nav {
+    position:sticky; top:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 40px; height:64px;
+    background:rgba(3,7,18,0.85); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-logo { font-size:22px; font-weight:900; letter-spacing:2px;
+    background:linear-gradient(135deg,var(--cyan),var(--purple));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .nav-links { display:flex; gap:28px; }
+  .nav-links a { color:var(--muted); text-decoration:none; font-size:14px; transition:.2s; letter-spacing:.5px; }
+  .nav-links a:hover { color:var(--cyan); }
+  .nav-right { display:flex; align-items:center; gap:12px; }
+  .sister-badge {
+    font-size:11px; padding:4px 10px; border-radius:20px;
+    background:rgba(160,0,255,0.15); border:1px solid rgba(160,0,255,0.4);
+    color:#c084fc; cursor:pointer; transition:.2s; text-decoration:none;
+  }
+  .sister-badge:hover { background:rgba(160,0,255,0.3); color:#e0aaff; }
+  .lang-btn {
+    font-size:12px; padding:5px 12px; border-radius:6px;
+    background:rgba(0,245,255,0.08); border:1px solid var(--border);
+    color:var(--cyan2); cursor:pointer;
+  }
+  .btn-nav {
+    font-size:13px; padding:7px 18px; border-radius:8px;
+    background:linear-gradient(135deg,var(--cyan),var(--purple));
+    border:none; color:#000; font-weight:700; cursor:pointer; transition:.2s;
+  }
+  .btn-nav:hover { opacity:.85; transform:translateY(-1px); }
+
+  /* ── Language Switch ── */
+  .lang-switch { position:relative; }
+  .lang-dropdown {
+    display:none; position:absolute; top:calc(100% + 8px); right:0; z-index:200;
+    background:var(--bg2); border:1px solid var(--border); border-radius:12px;
+    padding:8px 0; min-width:200px; max-height:380px; overflow-y:auto;
+    box-shadow:0 8px 32px rgba(0,0,0,0.6);
+  }
+  .lang-dropdown.open { display:block; animation:fadeSlide .2s ease; }
+  @keyframes fadeSlide { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+  .lang-option {
+    display:flex; align-items:center; gap:8px;
+    padding:9px 16px; font-size:13px; color:var(--text);
+    text-decoration:none; transition:.15s; white-space:nowrap;
+  }
+  .lang-option:hover { background:rgba(0,245,255,0.08); color:var(--cyan); }
+  .lang-option.active { color:var(--cyan); background:rgba(0,245,255,0.06); }
+
+  /* ── HERO ── */
+  .hero {
+    position:relative; min-height:92vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:60px 20px;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,245,255,0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(160,0,255,0.08) 0%, transparent 60%),
+                var(--bg);
+  }
+  /* 网格背景 */
+  .hero::after {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(0,245,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,255,0.04) 1px, transparent 1px);
+    background-size:60px 60px;
+  }
+  .hero-tag {
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:12px; letter-spacing:2px; text-transform:uppercase;
+    padding:6px 16px; border-radius:20px;
+    border:1px solid rgba(0,245,255,0.3); color:var(--cyan2);
+    background:rgba(0,245,255,0.05); margin-bottom:28px; position:relative; z-index:1;
+  }
+  .hero-tag span { width:6px; height:6px; border-radius:50%; background:var(--cyan); animation:pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.4)} }
+  h1 {
+    font-size:clamp(36px,6vw,80px); font-weight:900; line-height:1.1;
+    letter-spacing:-1px; margin-bottom:20px; position:relative; z-index:1;
+  }
+  h1 em {
+    font-style:normal;
+    background:linear-gradient(135deg,var(--cyan) 0%,var(--cyan2) 40%,var(--purple) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 0 30px rgba(0,245,255,0.5));
+  }
+  .hero-sub {
+    font-size:clamp(14px,2vw,20px); color:var(--muted); max-width:640px;
+    line-height:1.7; margin-bottom:44px; position:relative; z-index:1;
+  }
+  .hero-btns { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; position:relative; z-index:1; }
+  .btn-primary {
+    display:flex; align-items:center; gap:10px;
+    padding:14px 28px; border-radius:10px;
+    background:linear-gradient(135deg,var(--cyan),var(--cyan2));
+    color:#000; font-weight:800; font-size:15px; border:none; cursor:pointer;
+    box-shadow:var(--glow-cyan); transition:.25s;
+  }
+  .btn-primary:hover { transform:translateY(-3px); box-shadow:0 0 40px rgba(0,245,255,0.6); }
+  .btn-secondary {
+    display:flex; align-items:center; gap:10px;
+    padding:14px 28px; border-radius:10px;
+    background:transparent; color:var(--text); font-weight:700; font-size:15px;
+    border:1px solid var(--border); cursor:pointer; transition:.25s;
+  }
+  .btn-secondary:hover { border-color:var(--cyan); color:var(--cyan); transform:translateY(-3px); }
+  .btn-web {
+    display:flex; align-items:center; gap:10px;
+    padding:14px 28px; border-radius:10px;
+    background:linear-gradient(135deg,rgba(160,0,255,0.3),rgba(160,0,255,0.1));
+    color:#c084fc; font-weight:700; font-size:15px;
+    border:1px solid rgba(160,0,255,0.4); cursor:pointer; transition:.25s;
+  }
+  .btn-web:hover { transform:translateY(-3px); box-shadow:var(--glow-purple); }
+  .hero-stats {
+    display:flex; gap:40px; margin-top:60px; position:relative; z-index:1;
+    flex-wrap:wrap; justify-content:center;
+  }
+  .stat { text-align:center; }
+  .stat-num { font-size:32px; font-weight:900;
+    background:linear-gradient(135deg,var(--cyan),var(--purple));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .stat-label { font-size:12px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-top:4px; }
+
+  /* ── TICKER ── */
+  .ticker {
+    background:rgba(0,245,255,0.04); border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+    padding:12px 0; overflow:hidden; white-space:nowrap;
+  }
+  .ticker-inner { display:inline-flex; gap:48px; animation:scroll 20s linear infinite; }
+  @keyframes scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .tick-item { display:inline-flex; align-items:center; gap:8px; font-size:13px; }
+  .tick-sym { color:var(--cyan); font-weight:700; }
+  .tick-price { color:var(--text); }
+  .tick-up { color:var(--green); font-size:11px; }
+  .tick-dn { color:#ff4d4d; font-size:11px; }
+
+  /* ── FEATURES ── */
+  .section { padding:80px 40px; max-width:1200px; margin:0 auto; }
+  .sec-label { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--cyan); margin-bottom:12px; }
+  .sec-title { font-size:clamp(28px,4vw,46px); font-weight:900; margin-bottom:48px; }
+  .sec-title span { background:linear-gradient(135deg,var(--cyan),var(--purple));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .features-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px; }
+  .feat-card {
+    background:var(--bg2); border:1px solid var(--border); border-radius:16px;
+    padding:28px; transition:.3s; cursor:default;
+    position:relative; overflow:hidden;
+  }
+  .feat-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+    opacity:0; transition:.3s;
+  }
+  .feat-card:hover { border-color:rgba(0,245,255,0.35); transform:translateY(-4px); box-shadow:var(--glow-cyan); }
+  .feat-card:hover::before { opacity:1; }
+  .feat-icon { font-size:32px; margin-bottom:16px; }
+  .feat-card h3 { font-size:17px; font-weight:700; margin-bottom:10px; color:var(--cyan2); }
+  .feat-card p { font-size:14px; color:var(--muted); line-height:1.7; }
+
+  /* ── PRICING ── */
+  .pricing-wrap { background:var(--bg2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .pricing-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:24px; }
+  .price-card {
+    background:var(--bg3); border:1px solid var(--border); border-radius:20px;
+    padding:36px 28px; text-align:center; transition:.3s; position:relative;
+  }
+  .price-card.popular {
+    border-color:var(--cyan); box-shadow:var(--glow-cyan);
+    background:linear-gradient(135deg,rgba(0,245,255,0.06),rgba(160,0,255,0.06));
+  }
+  .popular-badge {
+    position:absolute; top:-14px; left:50%; transform:translateX(-50%);
+    background:linear-gradient(135deg,var(--cyan),var(--purple));
+    color:#000; font-size:11px; font-weight:800; padding:4px 16px; border-radius:20px;
+    letter-spacing:1px; text-transform:uppercase;
+  }
+  .price-name { font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+  .price-num { font-size:52px; font-weight:900; line-height:1;
+    background:linear-gradient(135deg,var(--cyan),var(--purple));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .price-period { font-size:13px; color:var(--muted); margin-bottom:28px; }
+  .price-features { list-style:none; text-align:left; margin-bottom:28px; }
+  .price-features li { font-size:14px; color:var(--text); padding:7px 0;
+    border-bottom:1px solid rgba(255,255,255,0.05); display:flex; gap:8px; align-items:center; }
+  .price-features li::before { content:'✦'; color:var(--cyan); font-size:10px; flex-shrink:0; }
+  .btn-plan {
+    width:100%; padding:13px; border-radius:10px; font-weight:700; font-size:14px;
+    cursor:pointer; transition:.25s; border:none;
+  }
+  .btn-plan-outline {
+    background:transparent; border:1px solid var(--border); color:var(--text);
+  }
+  .btn-plan-outline:hover { border-color:var(--cyan); color:var(--cyan); }
+  .btn-plan-solid {
+    background:linear-gradient(135deg,var(--cyan),var(--purple));
+    color:#000; box-shadow:var(--glow-cyan);
+  }
+  .btn-plan-solid:hover { transform:translateY(-2px); box-shadow:0 0 40px rgba(0,245,255,0.6); }
+
+  /* ── SISTER BRAND ── */
+  .sister-section {
+    background:linear-gradient(135deg,rgba(160,0,255,0.08),rgba(0,245,255,0.08));
+    border:1px solid var(--border); border-radius:24px;
+    padding:56px 40px; margin:60px 0; display:flex; align-items:center; gap:48px;
+    flex-wrap:wrap;
+  }
+  .sister-content { flex:1; min-width:280px; }
+  .sister-content h2 { font-size:32px; font-weight:900; margin-bottom:12px; }
+  .sister-content p { color:var(--muted); line-height:1.8; max-width:480px; margin-bottom:24px; }
+  .btn-sister {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:13px 28px; border-radius:10px;
+    background:linear-gradient(135deg,var(--purple),var(--purple2));
+    color:#fff; font-weight:700; font-size:14px; border:none; cursor:pointer;
+    box-shadow:var(--glow-purple); transition:.25s; text-decoration:none;
+  }
+  .btn-sister:hover { transform:translateY(-2px); }
+  .sister-visual {
+    flex:1; min-width:260px;
+    background:var(--bg3); border:1px solid rgba(160,0,255,0.3);
+    border-radius:16px; padding:32px; text-align:center;
+  }
+  .sister-logo { font-size:36px; font-weight:900; letter-spacing:3px;
+    background:linear-gradient(135deg,#ff6b6b,#ffd700,#00ff88);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .sister-tagline { font-size:13px; color:var(--muted); margin-top:8px; margin-bottom:20px; }
+  .sister-tags { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .s-tag { font-size:11px; padding:4px 10px; border-radius:12px;
+    background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.3); color:var(--gold); }
+
+  /* ── FOOTER ── */
+  footer {
+    background:var(--bg2); border-top:1px solid var(--border);
+    padding:48px 40px 28px; text-align:center;
+  }
+  .footer-logos { display:flex; justify-content:center; align-items:center; gap:32px; flex-wrap:wrap; margin-bottom:32px; }
+  .f-logo-q { font-size:22px; font-weight:900; letter-spacing:2px;
+    background:linear-gradient(135deg,var(--cyan),var(--purple));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .f-divider { width:1px; height:32px; background:var(--border); }
+  .f-logo-k { font-size:18px; font-weight:900; letter-spacing:2px;
+    background:linear-gradient(135deg,#ff6b6b,#ffd700);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .footer-links { display:flex; justify-content:center; gap:24px; flex-wrap:wrap; margin-bottom:24px; }
+  .footer-links a { font-size:13px; color:var(--muted); text-decoration:none; }
+  .footer-links a:hover { color:var(--cyan); }
+  .footer-copy { font-size:12px; color:var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">⚡ QuantAI</div>
+  <div class="nav-links">
+    <a href="#features" data-i18n="nav_features">Features</a>
+    <a href="#pricing" data-i18n="nav_pricing">Pricing</a>
+    <a href="#hero" data-i18n="nav_download">Download</a>
+    <a href="#" data-i18n="nav_docs">Docs</a>
+  </div>
+  <div class="nav-right">
+    <a href="https://kitokito-eth.com" class="sister-badge">🎮 KITOKITO Store</a>
+    <div class="lang-switch" id="langSwitch">
+      <div class="lang-btn" onclick="toggleLangMenu()" id="langBtn">🌐 EN ▾</div>
+      <div class="lang-dropdown" id="langDropdown">
+        <a href="#" class="lang-option active" data-lang="en" onclick="switchLang(event,'en')">🇬🇧 English</a>
+        <a href="#" class="lang-option" data-lang="zh" onclick="switchLang(event,'zh')">🇨🇳 简体中文</a>
+        <a href="#" class="lang-option" data-lang="zh-tw" onclick="switchLang(event,'zh-tw')">🇹🇼 繁體中文</a>
+        <a href="#" class="lang-option" data-lang="ja" onclick="switchLang(event,'ja')">🇯🇵 日本語</a>
+        <a href="#" class="lang-option" data-lang="ko" onclick="switchLang(event,'ko')">🇰🇷 한국어</a>
+        <a href="#" class="lang-option" data-lang="yue" onclick="switchLang(event,'yue')">🇭🇰 粵語</a>
+        <a href="#" class="lang-option" data-lang="de" onclick="switchLang(event,'de')">🇩🇪 Deutsch</a>
+        <a href="#" class="lang-option" data-lang="fr" onclick="switchLang(event,'fr')">🇫🇷 Français</a>
+        <a href="#" class="lang-option" data-lang="es" onclick="switchLang(event,'es')">🇪🇸 Español</a>
+        <a href="#" class="lang-option" data-lang="pt" onclick="switchLang(event,'pt')">🇧🇷 Português</a>
+        <a href="#" class="lang-option" data-lang="ru" onclick="switchLang(event,'ru')">🇷🇺 Русский</a>
+        <a href="#" class="lang-option" data-lang="ar" onclick="switchLang(event,'ar')">🇸🇦 العربية</a>
+        <a href="#" class="lang-option" data-lang="hi" onclick="switchLang(event,'hi')">🇮🇳 हिन्दी</a>
+        <a href="#" class="lang-option" data-lang="ms" onclick="switchLang(event,'ms')">🇲🇾 Bahasa Melayu</a>
+        <a href="#" class="lang-option" data-lang="id" onclick="switchLang(event,'id')">🇮🇩 Bahasa Indonesia</a>
+        <a href="#" class="lang-option" data-lang="vi" onclick="switchLang(event,'vi')">🇻🇳 Tiếng Việt</a>
+        <a href="#" class="lang-option" data-lang="th" onclick="switchLang(event,'th')">🇹🇭 ไทย</a>
+        <a href="#" class="lang-option" data-lang="tr" onclick="switchLang(event,'tr')">🇹🇷 Türkçe</a>
+        <a href="#" class="lang-option" data-lang="it" onclick="switchLang(event,'it')">🇮🇹 Italiano</a>
+      </div>
+    </div>
+    <button class="btn-nav" data-i18n="nav_get_started">Get Started</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-tag"><span></span> <span data-i18n="hero_tag">AI-Powered Trading Platform</span></div>
+  <h1 data-i18n="hero_title">Trade Smarter,<br><em>Not Harder.</em></h1>
+  <p class="hero-sub" data-i18n="hero_sub">
+    QuantAI uses real-time AI signals, automated strategies, and copy trading to help you profit across Crypto, Gold, Nasdaq, HSI & Oil — 24/7.
+  </p>
+  <div class="hero-btns">
+    <button class="btn-primary" data-i18n="btn_download_win">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download for Windows
+    </button>
+    <button class="btn-secondary" data-i18n="btn_download_mac">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download for Mac
+    </button>
+    <button class="btn-web" data-i18n="btn_web_app">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Launch Web App
+    </button>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">50K+</div><div class="stat-label" data-i18n="stat_traders">Active Traders</div></div>
+    <div class="stat"><div class="stat-num">$2.4B</div><div class="stat-label" data-i18n="stat_volume">Volume Traded</div></div>
+    <div class="stat"><div class="stat-num">98.6%</div><div class="stat-label" data-i18n="stat_uptime">Uptime SLA</div></div>
+    <div class="stat"><div class="stat-num">17</div><div class="stat-label" data-i18n="stat_languages">Languages</div></div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span class="tick-item"><span class="tick-sym">BTC/USDT</span><span class="tick-price">$83,421</span><span class="tick-up">▲ +2.14%</span></span>
+    <span class="tick-item"><span class="tick-sym">ETH/USDT</span><span class="tick-price">$3,198</span><span class="tick-up">▲ +1.87%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-price">$2,318</span><span class="tick-up">▲ +0.43%</span></span>
+    <span class="tick-item"><span class="tick-sym">NQ100</span><span class="tick-price">17,842</span><span class="tick-dn">▼ -0.21%</span></span>
+    <span class="tick-item"><span class="tick-sym">HSI</span><span class="tick-price">18,104</span><span class="tick-up">▲ +0.78%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-price">$77.40</span><span class="tick-dn">▼ -0.55%</span></span>
+    <span class="tick-item"><span class="tick-sym">SOL/USDT</span><span class="tick-price">$142.3</span><span class="tick-up">▲ +3.22%</span></span>
+    <!-- 重复一遍实现无缝循环 -->
+    <span class="tick-item"><span class="tick-sym">BTC/USDT</span><span class="tick-price">$83,421</span><span class="tick-up">▲ +2.14%</span></span>
+    <span class="tick-item"><span class="tick-sym">ETH/USDT</span><span class="tick-price">$3,198</span><span class="tick-up">▲ +1.87%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-price">$2,318</span><span class="tick-up">▲ +0.43%</span></span>
+    <span class="tick-item"><span class="tick-sym">NQ100</span><span class="tick-price">17,842</span><span class="tick-dn">▼ -0.21%</span></span>
+    <span class="tick-item"><span class="tick-sym">HSI</span><span class="tick-price">18,104</span><span class="tick-up">▲ +0.78%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-price">$77.40</span><span class="tick-dn">▼ -0.55%</span></span>
+    <span class="tick-item"><span class="tick-sym">SOL/USDT</span><span class="tick-price">$142.3</span><span class="tick-up">▲ +3.22%</span></span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="section" id="features">
+  <div class="sec-label" data-i18n="feat_label">Why QuantAI</div>
+  <div class="sec-title" data-i18n="feat_title">Everything You Need to <span>Win the Market</span></div>
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon">🤖</div>
+      <h3 data-i18n="feat_ai_title">AI Trading Advisor</h3>
+      <p data-i18n="feat_ai_desc">Chat with your personal AI advisor 24/7. Get trade recommendations, market analysis, and strategy suggestions in plain language.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📡</div>
+      <h3 data-i18n="feat_signal_title">Live Signal Broadcast</h3>
+      <p data-i18n="feat_signal_desc">Real-time buy/sell signals across 50+ instruments. AI-generated entry, SL, and TP levels with confidence scores.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📋</div>
+      <h3 data-i18n="feat_strategy_title">Strategy Marketplace</h3>
+      <p data-i18n="feat_strategy_desc">Browse, backtest, and copy proven strategies from top traders. One-click deployment to your live account.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">👥</div>
+      <h3 data-i18n="feat_copy_title">Copy Trading</h3>
+      <p data-i18n="feat_copy_desc">Automatically mirror elite traders in real time. Set risk limits, pause anytime, track performance transparently.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">⚡</div>
+      <h3 data-i18n="feat_auto_title">Auto Position Builder</h3>
+      <p data-i18n="feat_auto_desc">DCA, grid, and momentum auto-entry bots. Set it and let the algorithm handle execution 24/7.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📊</div>
+      <h3 data-i18n="feat_analytics_title">Advanced Analytics</h3>
+      <p data-i18n="feat_analytics_desc">Portfolio heat maps, drawdown analysis, correlation matrix, and AI-powered performance reports.</p>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<div class="pricing-wrap" id="pricing">
+  <div class="section">
+    <div class="sec-label" data-i18n="pricing_label">Pricing</div>
+    <div class="sec-title" data-i18n="pricing_title">Pick Your <span>Edge</span></div>
+    <div class="pricing-grid">
+      <!-- Basic -->
+      <div class="price-card">
+        <div class="price-name" data-i18n="plan_basic">Basic</div>
+        <div class="price-num" data-i18n="price_basic">$29</div>
+        <div class="price-period" data-i18n="price_period">/month</div>
+        <ul class="price-features">
+          <li data-i18n="basic_f1">AI Advisor (20 queries/day)</li>
+          <li data-i18n="basic_f2">Live signals — 10 instruments</li>
+          <li data-i18n="basic_f3">Basic analytics dashboard</li>
+          <li data-i18n="basic_f4">Web app access</li>
+          <li data-i18n="basic_f5">Email support</li>
+        </ul>
+        <button class="btn-plan btn-plan-outline" data-i18n="btn_basic">Get Started</button>
+      </div>
+      <!-- Pro -->
+      <div class="price-card popular">
+        <div class="popular-badge" data-i18n="badge_popular">Most Popular</div>
+        <div class="price-name" data-i18n="plan_pro">Pro</div>
+        <div class="price-num" data-i18n="price_pro">$79</div>
+        <div class="price-period" data-i18n="price_period">/month</div>
+        <ul class="price-features">
+          <li data-i18n="pro_f1">AI Advisor (unlimited)</li>
+          <li data-i18n="pro_f2">Live signals — all instruments</li>
+          <li data-i18n="pro_f3">Strategy marketplace access</li>
+          <li data-i18n="pro_f4">Copy trading (3 traders)</li>
+          <li data-i18n="pro_f5">Auto position builder</li>
+          <li data-i18n="pro_f6">Desktop app (Win + Mac)</li>
+        </ul>
+        <button class="btn-plan btn-plan-solid" data-i18n="btn_pro">Start Pro</button>
+      </div>
+      <!-- Elite -->
+      <div class="price-card">
+        <div class="price-name" data-i18n="plan_elite">Elite</div>
+        <div class="price-num" data-i18n="price_elite">$199</div>
+        <div class="price-period" data-i18n="price_period">/month</div>
+        <ul class="price-features">
+          <li data-i18n="elite_f1">Everything in Pro</li>
+          <li data-i18n="elite_f2">Copy trading (unlimited)</li>
+          <li data-i18n="elite_f3">Auto-build portfolio bots</li>
+          <li data-i18n="elite_f4">API access + webhooks</li>
+          <li data-i18n="elite_f5">Dedicated account manager</li>
+          <li data-i18n="elite_f6">Early access to new features</li>
+        </ul>
+        <button class="btn-plan btn-plan-outline" data-i18n="btn_elite">Go Elite</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SISTER BRAND -->
+<div class="section">
+  <div class="sister-section">
+    <div class="sister-content">
+      <div class="sec-label">Sister Brand</div>
+      <h2>Meet <span style="background:linear-gradient(135deg,#ff6b6b,#ffd700,#00ff88);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">KITOKITO</span></h2>
+      <p>The cyberpunk lifestyle store from the same team. 3D custom figurines, anime-inspired collectibles, and exclusive drops — for traders who have taste.</p>
+      <a href="https://kitokito-eth.com" class="btn-sister">🎮 Visit KITOKITO Store →</a>
+    </div>
+    <div class="sister-visual">
+      <div class="sister-logo">KITOKITO</div>
+      <div class="sister-tagline">Cyberpunk Lifestyle · Custom 3D Figurines</div>
+      <div class="sister-tags">
+        <span class="s-tag">3D Figurines</span>
+        <span class="s-tag">Custom Orders</span>
+        <span class="s-tag">Anime Merch</span>
+        <span class="s-tag">Limited Drops</span>
+        <span class="s-tag">Worldwide Ship</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logos">
+    <div class="f-logo-q">⚡ QuantAI</div>
+    <div class="f-divider"></div>
+    <div class="f-logo-k">🎮 KITOKITO</div>
+  </div>
+  <div class="footer-links">
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#hero">Download</a>
+    <a href="privacy-policy.html">Privacy Policy</a>
+    <a href="terms-of-service.html">Terms of Service</a>
+    <a href="cookie-policy.html">Cookie Policy</a>
+    <a href="community-guidelines.html">Community Guidelines</a>
+    <a href="https://kitokito-eth.com">KITOKITO Store</a>
+  </div>
+  <div class="footer-copy">© 2026 QuantAI · quantai.app · All rights reserved. · Powered by AI</div>
+</footer>
+
+</body>
+<script>
+// 翻译核心函数
+function applyLang(lang) {
+  const dict = I18N[lang] || I18N['en'];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key]) el.innerHTML = dict[key];
+  });
+  localStorage.setItem('quantai_lang', lang);
+}
+function toggleLangMenu() {
+  document.getElementById('langDropdown').classList.toggle('open');
+}
+function switchLang(e, lang) {
+  e.preventDefault();
+  e.stopPropagation();
+  const labels = {en:'EN',zh:'中',zh_tw:'繁',ja:'日',ko:'한',yue:'粵',de:'DE',fr:'FR',es:'ES',pt:'PT',ru:'RU',ar:'AR',hi:'HI',ms:'MS',id:'ID',vi:'VI',th:'TH'};
+  document.querySelector('.lang-btn').textContent = '🌐 ' + (labels[lang]||lang.toUpperCase()) + ' ▾';
+  document.querySelectorAll('.lang-option').forEach(o => o.classList.toggle('active', o.dataset.lang === lang));
+  document.getElementById('langDropdown').classList.remove('open');
+  applyLang(lang);
+}
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('langSwitch').contains(e.target)) {
+    document.getElementById('langDropdown').classList.remove('open');
+  }
+});
+// 页面加载时应用保存的语言
+(function(){
+  const saved = localStorage.getItem('quantai_lang') || 'en';
+  applyLang(saved);
+  const btn = document.querySelector('.lang-btn');
+  const labels = {en:'EN',zh:'中',zh_tw:'繁',ja:'日',ko:'한',yue:'粵',de:'DE',fr:'FR',es:'ES',pt:'PT',ru:'RU',ar:'AR',hi:'HI',ms:'MS',id:'ID',vi:'VI',th:'TH'};
+  btn.textContent = '🌐 ' + (labels[saved]||saved.toUpperCase()) + ' ▾';
+  document.querySelectorAll('.lang-option').forEach(o => o.classList.toggle('active', o.dataset.lang === saved));
+})();
+</script>
+<script>
+// I18N 翻译数据
+const I18N = {
+  en: {
+    nav_features:'Features', nav_pricing:'Pricing', nav_download:'Download', nav_docs:'Docs', nav_get_started:'Get Started',
+    hero_tag:'AI-Powered Trading Platform', hero_title:'Trade Smarter,<br><em>Not Harder.</em>',
+    hero_sub:'QuantAI uses real-time AI signals, automated strategies, and copy trading to help you profit across Crypto, Gold, Nasdaq, HSI & Oil — 24/7.',
+    btn_download_win:'Download for Windows', btn_download_mac:'Download for Mac', btn_web_app:'Launch Web App',
+    stat_traders:'Active Traders', stat_volume:'Volume Traded', stat_uptime:'Uptime SLA', stat_languages:'Languages',
+    feat_label:'Why QuantAI', feat_title:'Everything You Need to <span>Win the Market</span>',
+    feat_ai_title:'AI Trading Advisor', feat_ai_desc:'Chat with your personal AI advisor 24/7. Get trade recommendations, market analysis, and strategy suggestions in plain language.',
+    feat_signal_title:'Live Signal Broadcast', feat_signal_desc:'Real-time buy/sell signals across 50+ instruments. AI-generated entry, SL, and TP levels with confidence scores.',
+    feat_strategy_title:'Strategy Marketplace', feat_strategy_desc:'Browse, backtest, and copy proven strategies from top traders. One-click deployment to your live account.',
+    feat_copy_title:'Copy Trading', feat_copy_desc:'Automatically mirror elite traders in real time. Set risk limits, pause anytime, track performance transparently.',
+    feat_auto_title:'Auto Position Builder', feat_auto_desc:'DCA, grid, and momentum auto-entry bots. Set it and let the algorithm handle execution 24/7.',
+    feat_analytics_title:'Advanced Analytics', feat_analytics_desc:'Portfolio heat maps, drawdown analysis, correlation matrix, and AI-powered performance reports.',
+    pricing_label:'Pricing', pricing_title:'Pick Your <span>Edge</span>',
+    plan_basic:'Basic', price_basic:'$29', plan_pro:'Pro', price_pro:'$79', plan_elite:'Elite', price_elite:'$199', price_period:'/month',
+    badge_popular:'Most Popular',
+    basic_f1:'AI Advisor (20 queries/day)', basic_f2:'Live signals — 10 instruments', basic_f3:'Basic analytics dashboard', basic_f4:'Web app access', basic_f5:'Email support',
+    pro_f1:'AI Advisor (unlimited)', pro_f2:'Live signals — all instruments', pro_f3:'Strategy marketplace access', pro_f4:'Copy trading (3 traders)', pro_f5:'Auto position builder', pro_f6:'Desktop app (Win + Mac)',
+    elite_f1:'Everything in Pro', elite_f2:'Copy trading (unlimited)', elite_f3:'Auto-build portfolio bots', elite_f4:'API access + webhooks', elite_f5:'Dedicated account manager', elite_f6:'Early access to new features',
+    btn_basic:'Get Started', btn_pro:'Start Pro', btn_elite:'Go Elite'
+  },
+  zh: {
+    nav_features:'功能', nav_pricing:'价格', nav_download:'下载', nav_docs:'文档', nav_get_started:'开始使用',
+    hero_tag:'AI驱动交易平台', hero_title:'智能交易，<br><em>轻松获利。</em>',
+    hero_sub:'QuantAI 利用实时AI信号、自动化策略和跟单交易，帮助您在全球加密货币、黄金、纳斯达克、恒指和原油市场上获利——全天候24/7。',
+    btn_download_win:'下载 Windows 版', btn_download_mac:'下载 Mac 版', btn_web_app:'打开网页版',
+    stat_traders:'活跃交易者', stat_volume:'交易量', stat_uptime:'运行时间保障', stat_languages:'支持语言',
+    feat_label:'为什么选择 QuantAI', feat_title:'您赢得市场所需的一切 <span>尽在这里</span>',
+    feat_ai_title:'AI 交易顾问', feat_ai_desc:'全天候与您的私人AI顾问对话，获取交易建议、市场分析和策略建议，用通俗易懂的语言解释。',
+    feat_signal_title:'实时信号广播', feat_signal_desc:'覆盖50+交易品种的实时买卖信号，AI生成入场点、止损和止盈位及置信度评分。',
+    feat_strategy_title:'策略市场', feat_strategy_desc:'浏览、回测并复制顶级交易者的成熟策略，一键部署到您的实盘账户。',
+    feat_copy_title:'跟单交易', feat_copy_desc:'实时自动镜像精英交易者，可设置风险限额，随时暂停，透明跟踪表现。',
+    feat_auto_title:'自动建仓', feat_auto_desc:'DCA、网格和动量自动入场机器人，设置后算法24/7自动执行。',
+    feat_analytics_title:'高级分析', feat_analytics_desc:'投资组合热力图、回撤分析、相关性矩阵和AI驱动的表现报告。',
+    pricing_label:'价格方案', pricing_title:'选择您的 <span>优势</span>',
+    plan_basic:'基础版', price_basic:'$29', plan_pro:'专业版', price_pro:'$79', plan_elite:'尊享版', price_elite:'$199', price_period:'/月',
+    badge_popular:'最受欢迎',
+    basic_f1:'AI顾问（每天20次）', basic_f2:'实时信号 — 10个品种', basic_f3:'基础分析面板', basic_f4:'网页应用', basic_f5:'邮件支持',
+    pro_f1:'AI顾问（无限次）', pro_f2:'实时信号 — 全品种', pro_f3:'策略市场访问', pro_f4:'跟单交易（3位交易者）', pro_f5:'自动建仓机器人', pro_f6:'桌面应用（Win+Mac）',
+    elite_f1:'专业版全部功能', elite_f2:'跟单交易（无限）', elite_f3:'自动构建投资组合机器人', elite_f4:'API访问 + Webhooks', elite_f5:'专属客户经理', elite_f6:'新功能优先体验',
+    btn_basic:'立即开始', btn_pro:'升级专业版', btn_elite:'开通尊享版'
+  },
+  'zh-tw': {
+    nav_features:'功能', nav_pricing:'價格', nav_download:'下載', nav_docs:'文件', nav_get_started:'開始使用',
+    hero_tag:'AI驅動交易平台', hero_title:'智能交易，<br><em>輕鬆獲利。</em>',
+    hero_sub:'QuantAI 利用即時AI信號、自動化策略和跟單交易，幫助您在加密貨幣、黃金、納斯達克、恆指和原油市場上獲利——全天候24/7。',
+    btn_download_win:'下載 Windows 版', btn_download_mac:'下載 Mac 版', btn_web_app:'開啟網頁版',
+    stat_traders:'活躍交易者', stat_volume:'交易量', stat_uptime:'運行時間保障', stat_languages:'支援語言',
+    feat_label:'為什麼選擇 QuantAI', feat_title:'您贏得市場所需的一切 <span>盡在這裡</span>',
+    feat_ai_title:'AI 交易顧問', feat_ai_desc:'全天候與您的私人AI顧問對話，獲取交易建議、市場分析和策略建議，用通俗易懂的語言解釋。',
+    feat_signal_title:'即時信號廣播', feat_signal_desc:'覆蓋50+交易品種的即時買賣信號，AI生成入場點、止損和止盈位及置信度評分。',
+    feat_strategy_title:'策略市場', feat_strategy_desc:'瀏覽、回測並複製頂級交易者的成熟策略，一鍵部署到您的實盤帳戶。',
+    feat_copy_title:'跟單交易', feat_copy_desc:'即時自動鏡像精英交易者，可設定風險限額，隨時暫停，透明追蹤表現。',
+    feat_auto_title:'自動建倉', feat_auto_desc:'DCA、網格和動量自動入場機器人，設定後演算法24/7自動執行。',
+    feat_analytics_title:'進階分析', feat_analytics_desc:'投資組合熱力圖、回撤分析、相關性矩陣和AI驅動的表現報告。',
+    pricing_label:'價格方案', pricing_title:'選擇您的 <span>優勢</span>',
+    plan_basic:'基礎版', price_basic:'$29', plan_pro:'專業版', price_pro:'$79', plan_elite:'尊享版', price_elite:'$199', price_period:'/月',
+    badge_popular:'最受歡迎',
+    basic_f1:'AI顧問（每天20次）', basic_f2:'即時信號 — 10個品種', basic_f3:'基礎分析面板', basic_f4:'網頁應用', basic_f5:'郵件支援',
+    pro_f1:'AI顧問（無限次）', pro_f2:'即時信號 — 全品種', pro_f3:'策略市場存取', pro_f4:'跟單交易（3位交易者）', pro_f5:'自動建倉機器人', pro_f6:'桌面應用（Win+Mac）',
+    elite_f1:'專業版全部功能', elite_f2:'跟單交易（無限）', elite_f3:'自動構建投資組合機器人', elite_f4:'API存取 + Webhooks', elite_f5:'專屬客戶經理', elite_f6:'新功能優先體驗',
+    btn_basic:'立即開始', btn_pro:'升級專業版', btn_elite:'開通尊享版'
+  },
+  ja: {
+    nav_features:'機能', nav_pricing:'料金', nav_download:'ダウンロード', nav_docs:'ドキュメント', nav_get_started:'始める',
+    hero_tag:'AI搭載取引プラットフォーム', hero_title:'もっとスマートに、<br><em>取引しよう。</em>',
+    hero_sub:'QuantAIはリアルタイムAIシグナル、自動戦略、コピー取引を活用して、暗号通貨、金、NASDAQ、HIS、唐辛子市場で利益を出すのを24時間365日支援します。',
+    btn_download_win:'Windows版をダウンロード', btn_download_mac:'Mac版をダウンロード', btn_web_app:'Webアプリを開く',
+    stat_traders:'アクティブトレーダー', stat_volume:'取引量', stat_uptime:'稼働率', stat_languages:'対応言語',
+    feat_label:'QuantAIの強み', feat_title:'市場で勝つために<span>必要なすべて</span>',
+    feat_ai_title:'AI取引アドバイザー', feat_ai_desc:'24時間365日、個人のAIアドバイザーとチャット。取引推奨、市場分析、戦略提案を平易な言葉で取得。',
+    feat_signal_title:'ライブシグナル配信', feat_signal_desc:'50以上の銘柄でリアルタイム買いシグナルと売りシグナル。AIがエントリー、損切り、利確レベルと信頼度スコアを生成。',
+    feat_strategy_title:'戦略マーケットプレイス', feat_strategy_desc:'トップトレーダーの実証済み戦略を閲覧、バックテスト、コピー。ワンクリックでライブ口座にデプロイ。',
+    feat_copy_title:'コピー取引', feat_copy_desc:'精英トレーダーをリアルタイムで自動ミラーリング。危険上限を設定でき十一月いつでも一時停止十一月成績を透明に追跡。',
+    feat_auto_title:'自動ポジションビルダー', feat_auto_desc:'DCA十一月グリッド十一月モメンタム自動エントリー.bot十一月設定すればアルゴリズムが24時間365日執行。',
+    feat_analytics_title:'高度な分析', feat_analytics_desc:'ポートフォリオヒートマップ十一月ドroe十一月相関行列十一月AI駆動の成績レポート。',
+    pricing_label:'料金', pricing_title:'あなたの <span>優位性</span> を選ぶ',
+    plan_basic:' 베이식', price_basic:'$29', plan_pro:'プロ', price_pro:'$79', plan_elite:'エリート', price_elite:'$199', price_period:'/月',
+    badge_popular:'最も人気',
+    basic_f1:'AIアドバイザー（1日20回）', basic_f2:'ライブシグナル — 10銘柄', basic_f3:'基本分析ダッシュボード', basic_f4:'Webアプリアクセス', basic_f5:'メールサポート',
+    pro_f1:'AIアドバイザー（無制限）', pro_f2:'ライブシグナル — 全銘柄', pro_f3:'戦略マーケットプレイス利用可', pro_f4:'コピー取引（3トレーダー）', pro_f5:'自動ポジションビルダー', pro_f6:'デスクトップアプリ（Win+Mac）',
+    elite_f1:'プロ版の全機能', elite_f2:'コピー取引（無制限）', elite_f3:'オ一博トポートフォリオbot構築', elite_f4:'APIアクセス + ウェブフック', elite_f5:'専任アカウントマネージャー', elite_f6:'新規能への早期アクセス',
+    btn_basic:'始める', btn_pro:'プロ版を開始', btn_elite:'エリート版へ'
+  },
+  ko: {
+    nav_features:'기능', nav_pricing:'가격', nav_download:'다운로드', nav_docs:'문서', nav_get_started:'시작하기',
+    hero_tag:'AI 기반 거래 플랫폼', hero_title:'더 똑똑하게,<br><em>거래하세요.</em>',
+    hero_sub:'QuantAI는 실시간 AI 신호, 자동화된 전략 및 카피 트레이딩을 활용하여 암호화폐, 금, 나스닥, HSI 및 유가 시장에서 24시간 수익을 창출하도록 도와줍니다.',
+    btn_download_win:'Windows용 다운로드', btn_download_mac:'Mac용 다운로드', btn_web_app:'웹 앱 실행',
+    stat_traders:'활성 트레이더', stat_volume:'거래량', stat_uptime:'가동률 SLA', stat_languages:'지원 언어',
+    feat_label:'QuantAI가 특별한 이유', feat_title:'시장에서 승리하기 위한 <span>필요한 모든 것</span>',
+    feat_ai_title:'AI 트레이딩 어드바이저', feat_ai_desc:'24시간 개인 AI 어드바이저와 대화하세요. 거래 추천, 시장 분석 및 전략 제안을 평범한 언어로 받으세요.',
+    feat_signal_title:'실시간 신호 방송', feat_signal_desc:'50개 이상의 금융상품에 대한 실시간 매수/매도 신호. AI가 진입, 손절, 利確 레벨과 신뢰도 점수를 생성합니다.',
+    feat_strategy_title:'전략 마켓플레이스', feat_strategy_desc:'상위 트레이더의 입증된 전략을 검색, 백테스트 및 복사하세요. 원클릭으로 실계좌에 배포.',
+    feat_copy_title:'카피 트레이딩', feat_copy_desc:'엘리트 트레이더를 실시간으로 자동 미러링. 위험 한도를 설정하고 언제든지 일시 중지하며 성과를 투명하게 추적.',
+    feat_auto_title:'오토 포지션 빌더', feat_auto_desc:'DCA, 그리드 및 모멘텀 오토 진입 봇. 설정하면 알고리즘이 24시간 실행.',
+    feat_analytics_title:'고급 분석', feat_analytics_desc:'포트폴리오 히트맵, 드로우다운 분석, 상관 행렬 및 AI 기반 성과 보고서.',
+    pricing_label:'가격', pricing_title:'당신의 <span>우위</span> 를 선택하세요',
+    plan_basic:'베이직', price_basic:'$29', plan_pro:'프로', price_pro:'$79', plan_elite:'엘리트', price_elite:'$199', price_period:'/월',
+    badge_popular:'가장 인기',
+    basic_f1:'AI 어드바이저 (일일 20회)', basic_f2:'실시간 신호 — 10개 상품', basic_f3:'기본 분석 대시보드', basic_f4:'웹 앱 액세스', basic_f5:'이메일 지원',
+    pro_f1:'AI 어드바이저 (무제한)', pro_f2:'실시간 신호 — 전 상품', pro_f3:'전략 마켓플레이스 액세스', pro_f4:'카피 트레이딩 (3트레이더)', pro_f5:'오토 포지션 빌더', pro_f6:'데스크톱 앱 (Win + Mac)',
+    elite_f1:'프로 버전 전체 기능', elite_f2:'카피 트레이딩 (무제한)', elite_f3:'오토 빌드 포트폴리오 봇', elite_f4:'API 액세스 + 웹훅', elite_f5:'전담 계정 매니저', elite_f6:'신규 기능 조기 액세스',
+    btn_basic:'시작하기', btn_pro:'프로 시작', btn_elite:'엘리트 전환'
+  },
+  yue: {
+    nav_features:'功能', nav_pricing:'價格', nav_download:'下載', nav_docs:'文件', nav_get_started:'開始使用',
+    hero_tag:'AI驅動交易平台', hero_title:'智能交易，<br><em>輕鬆獲利。</em>',
+    hero_sub:'QuantAI 利用即時AI信號、自動化策略同跟單交易，幫您喺加密貨幣、黃金、納斯達克、恆指同原油市場上獲利——全天候24/7。',
+    btn_download_win:'下載 Windows 版', btn_download_mac:'下載 Mac 版', btn_web_app:'開啟網頁版',
+    stat_traders:'活躍交易者', stat_volume:'交易量', stat_uptime:'運行時間保障', stat_languages:'支援語言',
+    feat_label:'點解揀 QuantAI', feat_title:'喺市場贏所需嘅<span>一切</span>',
+    feat_ai_title:'AI 交易顧問', feat_ai_desc:'全天候同您嘅私人AI顧問傾偈，獲取交易建議、市場分析同策略建議，用通俗易明嘅語言解釋。',
+    feat_signal_title:'即時信號廣播', feat_signal_desc:'覆蓋50+交易品種嘅即時買賣信號，AI生成入場點、止損同止盈位及置信度評分。',
+    feat_strategy_title:'策略市場', feat_strategy_desc:'瀏覽、回測並複製頂級交易者嘅成熟策略，一鍵部署到您嘅實盤帳戶。',
+    feat_copy_title:'跟單交易', feat_copy_desc:'即時自動鏡像精英交易者，可設定風險限額，隨時暫停，透明追蹤表現。',
+    feat_auto_title:'自動建倉', feat_auto_desc:'DCA、網格同動量自動入場機器人，設定後演算法24/7自動執行。',
+    feat_analytics_title:'進階分析', feat_analytics_desc:'投資組合熱力圖、回撤分析、相關性矩陣同AI驅動嘅表現報告。',
+    pricing_label:'價格方案', pricing_title:'選擇您嘅 <span>優勢</span>',
+    plan_basic:'基礎版', price_basic:'$29', plan_pro:'專業版', price_pro:'$79', plan_elite:'尊享版', price_elite:'$199', price_period:'/月',
+    badge_popular:'最受歡迎',
+    basic_f1:'AI顧問（每日20次）', basic_f2:'即時信號 — 10個品種', basic_f3:'基礎分析面板', basic_f4:'網頁應用', basic_f5:'郵件支援',
+    pro_f1:'AI顧問（無限次）', pro_f2:'即時信號 — 全品種', pro_f3:'策略市場存取', pro_f4:'跟單交易（3位交易者）', pro_f5:'自動建倉機器人', pro_f6:'桌面應用（Win+Mac）',
+    elite_f1:'專業版全部功能', elite_f2:'跟單交易（無限）', elite_f3:'自動構建投資組合機器人', elite_f4:'API存取 + Webhooks', elite_f5:'專屬客戶經理', elite_f6:'新功能優先體驗',
+    btn_basic:'立即開始', btn_pro:'升級專業版', btn_elite:'開通尊享版'
+  },
+  de: {
+    nav_features:'Funktionen', nav_pricing:'Preise', nav_download:'Download', nav_docs:'Dokumente', nav_get_started:'Loslegen',
+    hero_tag:'KI-gestützte Handelsplattform', hero_title:'Cleverer handeln,<br><em>nicht härter.</em>',
+    hero_sub:'QuantAI nutzt Echtzeit-KI-Signale, automatisierte Strategien und Copy-Trading, um Ihnen beim Profitieren in Krypto, Gold, Nasdaq, HSI und Öl zu helfen – 24/7.',
+    btn_download_win:'Für Windows herunterladen', btn_download_mac:'Für Mac herunterladen', btn_web_app:'Web-App starten',
+    stat_traders:'Aktive Händler', stat_volume:'Gehandeltes Volumen', stat_uptime:'Verfügbarkeit', stat_languages:'Sprachen',
+    feat_label:'Warum QuantAI', feat_title:'Alles was Sie brauchen um <span>den Markt zu schlagen</span>',
+    feat_ai_title:'KI-Handelsberater', feat_ai_desc:'Chatten Sie 24/7 mit Ihrem persönlichen KI-Berater. Erhalten Sie Handlungsempfehlungen, Marktanalysen und Strategievorschläge in einfacher Sprache.',
+    feat_signal_title:'Live-Signalübertragung', feat_signal_desc:'Echtzeit-Kauf/Verkauf-Signale für über 50 Instrumente. KI-generierte Einstiegs-, Stop-Loss- und Take-Profit-Level mit Konfidenzwerten.',
+    feat_strategy_title:'Strategie-Marktplatz', feat_strategy_desc:'Durchsuchen, backtesten und kopieren Sie bewährte Strategien von Top-Händlern. Mit einem Klick in Ihr Live-Konto deployen.',
+    feat_copy_title:'Copy-Trading', feat_copy_desc:'Spiegeln Sie automatisch Top-Händler in Echtzeit. Setzen Sie Risikolimits, pausieren Sie jederzeit, verfolgen Sie transparent die Performance.',
+    feat_auto_title:'Auto-Positions-Builder', feat_auto_desc:'DCA-, Grid- und Momentum-Auto-Entry-Bots. Einmal einrichten und der Algorithmus übernimmt 24/7.',
+    feat_analytics_title:'Erweiterte Analysen', feat_analytics_desc:'Portfolio-Heatmaps, Drawdown-Analyse, Korrelationsmatrix und KI-gestützte Performanceberichte.',
+    pricing_label:'Preise', pricing_title:'Wählen Sie Ihren <span>Vorteil</span>',
+    plan_basic:'Basic', price_basic:'$29', plan_pro:'Pro', price_pro:'$79', plan_elite:'Elite', price_elite:'$199', price_period:'/Monat',
+    badge_popular:'Am beliebtesten',
+    basic_f1:'KI-Berater (20 Anfragen/Tag)', basic_f2:'Live-Signale — 10 Instrumente', basic_f3:'Basis-Analytics-Dashboard', basic_f4:'Web-App-Zugang', basic_f5:'E-Mail-Support',
+    pro_f1:'KI-Berater (unbegrenzt)', pro_f2:'Live-Signale — alle Instrumente', pro_f3:'Strategie-Marktplatz-Zugang', pro_f4:'Copy-Trading (3 Händler)', pro_f5:'Auto-Positions-Builder', pro_f6:'Desktop-App (Win + Mac)',
+    elite_f1:'Alle Pro-Funktionen', elite_f2:'Copy-Trading (unbegrenzt)', elite_f3:'Auto-Build Portfolio-Bots', elite_f4:'API-Zugang + Webhooks', elite_f5:'Dedizierter Account Manager', elite_f6:'Frühzeitiger Zugang zu neuen Features',
+    btn_basic:'Loslegen', btn_pro:'Pro starten', btn_elite:'Elite wählen'
+  },
+  fr: {
+    nav_features:'Fonctionnalités', nav_pricing:'Tarifs', nav_download:'Télécharger', nav_docs:'Docs', nav_get_started:'Commencer',
+    hero_tag:'Plateforme de Trading IA', hero_title:'Tradez plus malin,<br><em>pas plus dur.</em>',
+    hero_sub:'QuantAI utilise des signaux IA en temps réel, des stratégies automatisées et le copy trading pour vous aider à profiter sur Crypto, Or, Nasdaq, HSI et Pétrole — 24/7.',
+    btn_download_win:'Télécharger pour Windows', btn_download_mac:'Télécharger pour Mac', btn_web_app:'Lancer Web App',
+    stat_traders:'Traders Actifs', stat_volume:'Volume échangé', stat_uptime:'Disponibilité', stat_languages:'Langues',
+    feat_label:'Pourquoi QuantAI', feat_title:'Tout ce dont vous avez besoin pour <span>gagner sur le marché</span>',
+    feat_ai_title:'Conseiller Trading IA', feat_ai_desc:'Discutez avec votre conseiller IA personnel 24/7. Obtenez des recommandations de trading, analyses de marché et suggestions de stratégie en langage simple.',
+    feat_signal_title:'Diffusion de Signaux Live', feat_signal_desc:'Signaux achat/vente en temps réel sur 50+ instruments. Niveaux d\'entrée, SL et TP générés par IA avec scores de confiance.',
+    feat_strategy_title:'Marketplace de Stratégies', feat_strategy_desc:'Parcourez, backtestez et copiez les stratégies éprouvées des meilleurs traders. Déploiement en un clic sur votre compte live.',
+    feat_copy_title:'Copy Trading', feat_copy_desc:'Miroir automatique des traders d\'élite en temps réel. Définissez des limites de risque, pausez à tout moment, suivez la performance de manière transparente.',
+    feat_auto_title:'Constructeur Auto de Positions', feat_auto_desc:'Bots d\'entrée automatique DCA, grid et momentum. Configurez et laissez l\'algorithme exécuter 24/7.',
+    feat_analytics_title:'Analyses Avancées', feat_analytics_desc:'Cartes thermiques du portefeuille, analyse des drawdowns, matrice de corrélation et rapports de performance alimentés par IA.',
+    pricing_label:'Tarifs', pricing_title:'Choisissez votre <span>avantage</span>',
+    plan_basic:'Basic', price_basic:'$29', plan_pro:'Pro', price_pro:'$79', plan_elite:'Elite', price_elite:'$199', price_period:'/mois',
+    badge_popular:'Le plus populaire',
+    basic_f1:'IA Advisor (20 requêtes/jour)', basic_f2:'Signaux live — 10 instruments', basic_f3:'Tableau de bord analytics basique', basic_f4:'Accès Web app', basic_f5:'Support email',
+    pro_f1:'IA Advisor (illimité)', pro_f2:'Signaux live — tous instruments', pro_f3:'Accès marketplace de stratégies', pro_f4:'Copy trading (3 traders)', pro_f5:'Constructeur auto de positions', pro_f6:'App desktop (Win + Mac)',
+    elite_f1:'Toutes les fonctionnalités Pro', elite_f2:'Copy trading (illimité)', elite_f3:'Bots portfolio auto', elite_f4:'Accès API + webhooks', elite_f5:'Account manager dédié', elite_f6:'Accès anticipé aux nouveautés',
+    btn_basic:'Commencer', btn_pro:'Démarrer Pro', btn_elite:'Choisir Elite'
+  },
+  es: {
+    nav_features:'Características', nav_pricing:'Precios', nav_download:'Descargar', nav_docs:'Docs', nav_get_started:'Empezar',
+    hero_tag:'Plataforma de Trading con IA', hero_title:'Opera más inteligente,<br><em>no más difícil.</em>',
+    hero_sub:'QuantAI utiliza señales de IA en tiempo real, estrategias automatizadas y copy trading para ayudarte a obtener beneficios en Cripto, Oro, Nasdaq, HSI y Petróleo — 24/7.',
+    btn_download_win:'Descargar para Windows', btn_download_mac:'Descargar para Mac', btn_web_app:'Abrir Web App',
+    stat_traders:'Traders Activos', stat_volume:'Volumen Operado', stat_uptime:'Disponibilidad', stat_languages:'Idiomas',
+    feat_label:'Por qué QuantAI', feat_title:'Todo lo que necesitas para <span>ganar en el mercado</span>',
+    feat_ai_title:'Asesor de Trading IA', feat_ai_desc:'Chatea con tu asesor IA personal 24/7. Obtén recomendaciones de trading, análisis de mercado y sugerencias de estrategia en lenguaje claro.',
+    feat_signal_title:'Señales en Vivo', feat_signal_desc:'Señales de compra/venta en tiempo real en más de 50 instrumentos. Niveles de entrada, SL y TP generados por IA con puntuaciones de confianza.',
+    feat_strategy_title:'Mercado de Estrategias', feat_strategy_desc:'Navega, backtestea y copia estrategias probadas de traders top. Despliegue con un clic a tu cuenta real.',
+    feat_copy_title:'Copy Trading', feat_copy_desc:'Espejo automático de traders de élite en tiempo real. Establece límites de riesgo, pausa cuando quieras, rastrea el rendimiento de forma transparente.',
+    feat_auto_title:'Constructor Auto de Posiciones', feat_auto_desc:'Bots de entrada automática DCA, grid y momentum. Configúralo y deja que el algoritmo ejecute 24/7.',
+    feat_analytics_title:'Analíticas Avanzadas', feat_analytics_desc:'Mapas de calor del portafolio, análisis de drawdown, matriz de correlación e informes de rendimiento impulsados por IA.',
+    pricing_label:'Precios', pricing_title:'Elige tu <span>ventaja</span>',
+    plan_basic:'Basic', price_basic:'$29', plan_pro:'Pro', price_pro:'$79', plan_elite:'Elite', price_elite:'$199', price_period:'/mes',
+    badge_popular:'Más popular',
+    basic_f1:'IA Advisor (20 consultas/día)', basic_f2:'Señales live — 10 instrumentos', basic_f3:'Dashboard analytics básico', basic_f4:'Acceso Web app', basic_f5:'Soporte email',
+    pro_f1:'IA Advisor (ilimitado)', pro_f2:'Señales live — todos instrumentos', pro_f3:'Acceso marketplace de estrategias', pro_f4:'Copy trading (3 traders)', pro_f5:'Constructor auto de posiciones', pro_f6:'App desktop (Win + Mac)',
+    elite_f1:'Todas las funciones Pro', elite_f2:'Copy trading (ilimitado)', elite_f3:'Bots portfolio auto', elite_f4:'Acceso API + webhooks', elite_f5:'Account manager dedicado', elite_f6:'Acceso anticipado a novedades',
+    btn_basic:'Empezar', btn_pro:'Iniciar Pro', btn_elite:'Elegir Elite'
+  },
+  pt: {
+    nav_features:'Recursos', nav_pricing:'Preços', nav_download:'Baixar', nav_docs:'Docs', nav_get_started:'Começar',
+    hero_tag:'Plataforma de Trading com IA', hero_title:'Negocie mais inteligente,<br><em>não mais difícil.</em>',
+    hero_sub:'QuantAI usa sinais de IA em tempo real, estratégias automatizadas e copy trading para ajudá-lo a lucrar em Cripto, Ouro, Nasdaq, HSI e Petróleo — 24/7.',
+    btn_download_win:'Baixar para Windows', btn_download_mac:'Baixar para Mac', btn_web_app:'Abrir Web App',
+    stat_traders:'Traders Ativos', stat_volume:'Volume Negociado', stat_uptime:'Disponibilidade', stat_languages:'Idiomas',
+    feat_label:'Por que QuantAI', feat_title:'Tudo que você precisa para <span>vencer o mercado</span>',
+    feat_ai_title:'Assistente de Trading IA', feat_ai_desc:'Converse com seu assistente IA pessoal 24/7. Obtenha recomendações de trading, análises de mercado e sugestões de estratégia em linguagem simples.',
+    feat_signal_title:'Sinais em Tempo Real', feat_signal_desc:'Sinais de compra/venda em tempo real em mais de 50 instrumentos. Níveis de entrada, SL e TP gerados por IA com pontuações de confiança.',
+    feat_strategy_title:'Mercado de Estratégias', feat_strategy_desc:'Navegue, backteste e copie estratégias comprovadas de traders top. Deploy com um clique na sua conta real.',
+    feat_copy_title:'Copy Trading', feat_copy_desc:'Espelho automático de traders de elite em tempo real. Defina limites de risco, pause quando quiser, acompanhe o desempenho de forma transparente.',
+    feat_auto_title:'Construtor Auto de Posições', feat_auto_desc:'Bots de entrada automática DCA, grid e momentum. Configure e deixe o algoritmo executar 24/7.',
+    feat_analytics_title:'Análises Avançadas', feat_analytics_desc:'Mapas de calor do portfólio, análise de drawdown, matriz de correlação e relatórios de desempenho impulsionados por IA.',
+    pricing_label:'Preços', pricing_title:'Escolha sua <span>vantagem</span>',
+    plan_basic:'Basic', price_basic:'$29', plan_pro:'Pro', price_pro:'$79', plan_elite:'Elite', price_elite:'$199', price_period:'/mês',
+    badge_popular:'Mais popular',
+    basic_f1:'Assistente IA (20 consultas/dia)', basic_f2:'Sinais live — 10 instrumentos', basic_f3:'Dashboard analytics básico', basic_f4:'Acesso Web app', basic_f5:'Suporte email',
+    pro_f1:'Assistente IA (ilimitado)', pro_f2:'Sinais live — todos instrumentos', pro_f3:'Acesso marketplace de estratégias', pro_f4:'Copy trading (3 traders)', pro_f5:'Construtor auto de posições', pro_f6:'App desktop (Win + Mac)',
+    elite_f1:'Todas as funções Pro', elite_f2:'Copy trading (ilimitado)', elite_f3:'Bots portfólio auto', elite_f4:'Acesso API + webhooks', elite_f5:'Account manager dedicado', elite_f6:'Acesso antecipado a novidades',
+    btn_basic:'Começar', btn_pro:'Iniciar Pro', btn_elite:'Escolher Elite'
+  },
+  ru: {
+    nav_features:'Функции', nav_pricing:'Цены', nav_download:'Скачать', nav_docs:'Документы', nav_get_started:'Начать',
+    hero_tag:'Торговая платформа с ИИ', hero_title:'Торгуйте умнее,<br><em>не усерднее.</em>',
+    hero_sub:'QuantAI использует сигналы ИИ в реальном времени, автоматизированные стратегии и копи-трейдинг, чтобы помочь вам зарабатывать на Крипто, Золоте, Nasdaq, HSI и Нефти — 24/7.',
+    btn_download_win:'Скачать для Windows', btn_download_mac:'Скачать для Mac', btn_web_app:'Открыть веб-приложение',
+    stat_traders:'Активных трейдеров', stat_volume:'Торговый объем', stat_uptime:'Доступность', stat_languages:'Языков',
+    feat_label:'Почему QuantAI', feat_title:'Все что нужно для <span>победы на рынке</span>',
+    feat_ai_title:'ИИ-консультант по торговле', feat_ai_desc:'Общайтесь с персональным ИИ-консультантом 24/7. Получайте торговые рекомендации, рыночные анализы и стратегические предложения простым языком.',
+    feat_signal_title:'Живая трансляция сигналов', feat_signal_desc:'Сигналы покупки/продажи в реальном времени для 50+ инструментов. Уровни входа, SL и TP от ИИ с показателями уверенности.',
+    feat_strategy_title:'Маркетплейс стратегий', feat_strategy_desc:'Просматривайте, тестируйте и копируйте проверенные стратегии от топ-трейдеров. Один клик для развертывания на реальном счете.',
+    feat_copy_title:'Копи-трейдинг', feat_copy_desc:'Автоматическое зеркалирование элитных трейдеров в реальном времени. Устанавливайте лимиты риска, ставьте на паузу, отслеживайте результаты прозрачно.',
+    feat_auto_title:'Авто-конструктор позиций', feat_auto_desc:'Боты автоматического входа DCA, Grid и Momentum. Настройте и позвольте алгоритму выполнять работу 24/7.',
+    feat_analytics_title:'Продвинутая аналитика', feat_analytics_desc:'Тепловые карты портфеля, анализ просадок, корреляционная матрица и отчеты о производительности на основе ИИ.',
+    pricing_label:'Цены', pricing_title:'Выберите свое <span>преимущество</span>',
+    plan_basic:'Basic', price_basic:'$29', plan_pro:'Pro', price_pro:'$79', plan_elite:'Elite', price_elite:'$199', price_period:'/мес',
+    badge_popular:'Самый популярный',
+    basic_f1:'ИИ-консультант (20 запросов/день)', basic_f2:'Живые сигналы — 10 инструментов', basic_f3:'Базовая аналитика', basic_f4:'Доступ к веб-приложению', basic_f5:'Поддержка по email',
+    pro_f1:'ИИ-консультант (безлимит)', pro_f2:'Живые сигналы — все инструменты', pro_f3:'Доступ к маркетплейсу стратегий', pro_f4:'Копи-трейдинг (3 трейдера)', pro_f5:'Авто-конструктор позиций', pro_f6:'Десктопное приложение (Win + Mac)',
+    elite_f1:'Все функции Pro', elite_f2:'Копи-трейдинг (безлимит)', elite_f3:'Авто-боты для портфеля', elite_f4:'API доступ + вебхуки', elite_f5:'Выделенный менеджер', elite_f6:'Ранний доступ к новинкам',
+    btn_basic:'Начать', btn_pro:'Начать Pro', btn_elite:'Выбрать Elite'
+  },
+  ar: {
+    nav_features:'الميزات', nav_pricing:'الأسعار', nav_download:'تحميل', nav_docs:'الوثائق', nav_get_started:'ابدأ الآن',
+    hero_tag:'منصة تداول مدعومة بالذكاء الاصطناعي', hero_title:'تداول بذكاء،<br><em>ليس بجهد أكبر.</em>',
+    hero_sub:'يستخدم QuantAI إشارات الذكاء الاصطناعي في الوقت الفعلي واستراتيجيات آلية وتداول النسخ لمساعدتك على الربح في العملات الرقمية والذهب وناسداك وHSI والنفط — على مدار الساعة.',
+    btn_download_win:'تحميل لأنظمة Windows', btn_download_mac:'تحميل لأنظمة Mac', btn_web_app:'تشغيل تطبيق الويب',
+    stat_traders:'متداولون نشطون', stat_volume:'حجم التداول', stat_uptime:'وقت التشغيل', stat_languages:'اللغات',
+    feat_label:'لماذا QuantAI', feat_title:'كل ما تحتاجه للفوز <span>في السوق</span>',
+    feat_ai_title:'مستشار التداول بالذكاء الاصطناعي', feat_ai_desc:'تحدث مع مستشار الذكاء الاصطناعي الشخصي على مدار الساعة. احصل على توصيات التداول وتحليلات السوق واقتراحات الاستراتيجية بلغة واضحة.',
+    feat_signal_title:'بث الإشارات المباشرة', feat_signal_desc:'إشارات شراء/بيع في الوقت الفعلي لأكثر من 50 أداة مالية. مستويات الدخول ووقف الخسارة وجني الأرباح من الذكاء الاصطناعي مع درجات الثقة.',
+    feat_strategy_title:'سوق الاستراتيجيات', feat_strategy_desc:'تصفح واختبر واستنسخ استراتيجيات مثبتة من أفضل المتداولين. النشر بنقرة واحدة إلى حسابك الحقيقي.',
+    feat_copy_title:'تداول النسخ', feat_copy_desc:'نسخ تلقائي لأفضل المتداولين في الوقت الفعلي. حدد حدود المخاطر، أوقف في أي وقت، تتبع الأداء بشفافية.',
+    feat_auto_title:'منشئ المراكز التلقائي', feat_auto_desc:'روبوتات الدخول التلقائي DCA والشبكة والزخم. اضبطه ودع الخوارزمية تنفذ على مدار الساعة.',
+    feat_analytics_title:'تحليلات متقدمة', feat_analytics_desc:'خرائط حرارية للمحفظة وتحليل السحب ومصفوفة الارتباط وتقارير الأداء المدعومة بالذكاء الاصطناعي.',
+    pricing_label:'الأسعار', pricing_title:'اختر <span>ميزتك</span>',
+    plan_basic:'Basic', price_basic:'$29', plan_pro:'Pro', price_pro:'$79', plan_elite:'Elite', price_elite:'$199', price_period:'/شهر',
+    badge_popular:'الأكثر شعبية',
+    basic_f1:'مستشار الذكاء الاصطناعي (20 استعلام/يوم)', basic_f2:'إشارات مباشرة — 10 أدوات', basic_f3:'لوحة تحليلات أساسية', basic_f4:'وصول لتطبيق الويب', basic_f5:'دعم عبر البريد',
+    pro_f1:'مستشار الذكاء الاصطناعي (بدون حد)', pro_f2:'إشارات مباشرة — جميع الأدوات', pro_f3:'وصول لسوق الاستراتيجيات', pro_f4:'تداول النسخ (3 متداولين)', pro_f5:'منشئ المراكز التلقائي', pro_f6:'تطبيق سطح المكتب (Win + Mac)',
+    elite_f1:'جميع ميزات Pro', elite_f2:'تداول النسخ (بدون حد)', elite_f3:'روبوتات المحفظة الآلية', elite_f4:'وصول API + ويبهوك', elite_f5:'مدير حساب مخصص', elite_f6:'وصول مبكر للميزات الجديدة',
+    btn_basic:'ابدأ الآن', btn_pro:'ابدأ Pro', btn_elite:'اختر Elite'
+  },
+  hi: {
+    nav_features:'फीचर्स', nav_pricing:'मूल्य', nav_download:'डाउनलोड', nav_docs:'डॉक्स', nav_get_started:'शुरू करें',
+    hero_tag:'AI-संचालित ट्रेडिंग प्लेटफॉर्म', hero_title:'स्मार्ट ट्रेड करें,<br><em>मेहनत से नहीं.</em>',
+    hero_sub:'QuantAI रियल-टाइम AI सिग्नल, ऑटोमेटेड स्ट्रैटेजी और कॉपी ट्रेडिंग का उपयोग करके आपको क्रिप्टो, गोल्ड, नैस्डैक, HSI और ऑयल में 24/7 प्रॉफिट कमाने में मदद करता है।',
+    btn_download_win:'Windows के लिए डाउनलोड', btn_download_mac:'Mac के लिए डाउनलोड', btn_web_app:'वेब ऐप लॉन्च करें',
+    stat_traders:'सक्रिय ट्रेडर्स', stat_volume:'ट्रेडेड वॉल्यूम', stat_uptime:'अपटाइम SLA', stat_languages:'भाषाएं',
+    feat_label:'QuantAI क्यों', feat_title:'मार्केट में <span>जीतने</span> के लिए आपको चाहिए सब कुछ',
+    feat_ai_title:'AI ट्रेडिंग एडवाइजर', feat_ai_desc:'24/7 अपने व्यक्तिगत AI एडवाइजर से चैट करें। सादे भाषा में ट्रेड रिकमेंडेशन, मार्केट एनालिसिस और स्ट्रैटेजी सुझाव पाएं।',
+    feat_signal_title:'लाइव सिग्नल ब्रॉडकास्ट', feat_signal_desc:'50+ इंस्ट्रूमेंट पर रियल-टाइम बाय/सेल सिग्नल। AI-जेनरेटेड एंट्री, SL और TP लेवल कॉन्फिडेंस स्कोर के साथ।',
+    feat_strategy_title:'स्ट्रैटेजी मार्केटप्लेस', feat_strategy_desc:'टॉप ट्रेडर्स की सिद्ध स्ट्रैटेजी ब्राउज़, बैकटेस्ट और कॉपी करें। वन-क्लिक डिप्लॉयमेंट।',
+    feat_copy_title:'कॉपी ट्रेडिंग', feat_copy_desc:'ऐलीट ट्रेडर्स को रियल-टाइम ऑटो मिरर करें। रिस्क लिमिट सेट करें, कभी भी पॉज़ करें, परफॉर्मेंस ट्रैक करें।',
+    feat_auto_title:'ऑटो पोजीशन बिल्डर', feat_auto_desc:'DCA, ग्रिड और मोमेंटम ऑटो-एंट्री बॉट्स। सेट करें और एल्गोरिदम 24/7 एक्जीक्यूशन संभाले।',
+    feat_analytics_title:'एडवांस्ड एनालिटिक्स', feat_analytics_desc:'पोर्टफोलियो हीट मैप्स, ड्रॉडाउन एनालिसिस, कॉरिलेशन मैट्रिक्स और AI-पावर्ड परफॉर्मेंस रिपोर्ट्स।',
+    pricing_label:'मूल्य', pricing_title:'अपना <span>एज</span> चुनें',
+    plan_basic:'Basic', price_basic:'$29', plan_pro:'Pro', price_pro:'$79', plan_elite:'Elite', price_elite:'$199', price_period:'/महीना',
+    badge_popular:'सबसे लोकप्रिय',
+    basic_f1:'AI एडवाइजर (20 क्वेरी/दिन)', basic_f2:'लाइव सिग्नल — 10 इंस्ट्रूमेंट', basic_f3:'बेसिक एनालिटिक्स डैशबोर्ड', basic_f4:'वेब ऐप एक्सेस', basic_f5:'ईमेल सपोर्ट',
+    pro_f1:'AI एडवाइजर (अनलिमिटेड)', pro_f2:'लाइव सिग्नल — सभी इंस्ट्रूमेंट', pro_f3:'स्ट्रैटेजी मार्केटप्लेस एक्सेस', pro_f4:'कॉपी ट्रेडिंग (3 ट्रेडर्स)', pro_f5:'ऑटो पोजीशन बिल्डर', pro_f6:'डेस्कटॉप ऐप (Win + Mac)',
+    elite_f1:'Pro की सभी सुविधाएं', elite_f2:'कॉपी ट्रेडिंग (अनलिमिटेड)', elite_f3:'ऑटो-बिल्ड पोर्टफोलियो बॉट्स', elite_f4:'API एक्सेस + वेबहुक्स', elite_f5:'डेडिकेटेड अकाउंट मैनेजर', elite_f6:'नई सुविधाओं तक पहले पहुंच',
+    btn_basic:'शुरू करें', btn_pro:'Pro शुरू करें', btn_elite:'Elite चुनें'
+  },
+  ms: {
+    nav_features:'Ciri-ciri', nav_pricing:'Harga', nav_download:'Muat Turun', nav_docs:'Dokumen', nav_get_started:' Bermula',
+    hero_tag:'Platform Dagangan Berkuasa AI', hero_title:'Berdagang dengan lebih bijak,<br><em>bukan lebih susah.</em>',
+    hero_sub:'QuantAI menggunakan isyarat AI masa nyata, strategi automatik dan perdagangan salinan untuk membantu anda mendapat keuntungan merentasi Crypto, Emas, Nasdaq, HSI & Minyak — 24/7.',
+    btn_download_win:'Muat Turun untuk Windows', btn_download_mac:'Muat Turun untuk Mac', btn_web_app:'Lancarkan Web App',
+    stat_traders:'Peniaga Aktif', stat_volume:'Volume Dagangan', stat_uptime:'SLA Disponibiliti', stat_languages:'Bahasa',
+    feat_label:'Mengapa QuantAI', feat_title:'Segala yang anda perlukan untuk <span>Menang dalam Pasaran</span>',
+    feat_ai_title:'Penasihat Dagaan AI', feat_ai_desc:'Borak dengan penasihat AI peribadi anda 24/7. Dapatkan cadangan perdagangan, analisis pasaran dan cadangan strategi dalam bahasa mudah.',
+    feat_signal_title:'Pemancaran Isyarat Langsung', feat_signal_desc:'Isyarat beli/jual masa nyata merentasi 50+ instrumen. Tahap masuk, SL dan TP yang dijana AI dengan skor keyakinan.',
+    feat_strategy_title:'Pasaran Strategi', feat_strategy_desc:'Layari, backtest dan salin strategi yang terbukti dari peniaga terbaik. Deployment satu klik ke akaun langsung anda.',
+    feat_copy_title:'Perdagangan Salinan', feat_copy_desc:'Cerminkan peniaga elit secara automatik masa nyata. Tetapkan had risiko, jeda bila-bila masa, jejak prestasi dengan telus.',
+    feat_auto_title:'Pembina Posisi Auto', feat_auto_desc:'Bots masuk auto DCA, grid dan momentum. Tetapkan dan biarkan algoritma mengendalikan pelaksanaan 24/7.',
+    feat_analytics_title:'Analitik Lanjutan', feat_analytics_desc:'Peta hab portafolio, analisis drawdown, matriks korelasi dan laporan prestasi bertenaga AI.',
+    pricing_label:'Harga', pricing_title:'Pilih <span>Kelebihan</span> Anda',
+    plan_basic:'Basic', price_basic:'$29', plan_pro:'Pro', price_pro:'$79', plan_elite:'Elite', price_elite:'$199', price_period:'/bulan',
+    badge_popular:'Paling Popular',
+    basic_f1:'Penasihat AI (20 soalan/hari)', basic_f2:'Isyarat langsung — 10 instrumen', basic_f3:'Papan pemuka analitik asas', basic_f4:'Akses web app', basic_f5:' sokongan email',
+    pro_f1:'Penasihat AI (tanpa had)', pro_f2:'Isyarat langsung — semua instrumen', pro_f3:'Akses pasaran strategi', pro_f4:'Perdagangan salinan (3 peniaga)', pro_f5:'Pembina posisi auto', pro_f6:'App desktop (Win + Mac)',
+    elite_f1:'Semua ciri Pro', elite_f2:'Perdagangan salinan (tanpa had)', elite_f3:'Bots portfolio auto-bina', elite_f4:'Akses API + webhooks', elite_f5:'Pengurus akaun khusus', elite_f6:'Akses awal ke ciri baharu',
+    btn_basic:'Bermula', btn_pro:'Mula Pro', btn_elite:'Pilih Elite'
+  },
+  id: {
+    nav_features:'Fitur', nav_pricing:'Harga', nav_download:'Unduh', nav_docs:'Dokumen', nav_get_started:'Mulai',
+    hero_tag:'Platform Trading Berbasis AI', hero_title:'Trading Lebih Cerdas,<br><em>Bukan Lebih Berat.</em>',
+    hero_sub:'QuantAI menggunakan sinyal AI real-time, strategi otomatis, dan copy trading untuk membantu Anda menghasilkan di Crypto, Emas, Nasdaq, HSI & Minyak — 24/7.',
+    btn_download_win:'Unduh untuk Windows', btn_download_mac:'Unduh untuk Mac', btn_web_app:'Buka Web App',
+    stat_traders:'Trader Aktif', stat_volume:'Volume Trading', stat_uptime:'SLA Ketersediaan', stat_languages:'Bahasa',
+    feat_label:'Mengapa QuantAI', feat_title:'Segala yang Anda Butuhkan untuk <span>Menang di Pasar</span>',
+    feat_ai_title:'Penasihat Trading AI', feat_ai_desc:'Ngobrol dengan penasihat AI pribadi Anda 24/7. Dapatkan rekomendasi trading, analisis pasar, dan saran strategi dalam bahasa yang mudah dipahami.',
+    feat_signal_title:'Siaran Sinyal Langsung', feat_signal_desc:'Sinyal beli/jual real-time di 50+ instrumen. Level masuk, SL, dan TP yang dihasilkan AI dengan skor kepercayaan.',
+    feat_strategy_title:'Pasar Strategi', feat_strategy_desc:'Jelajahi, backtest, dan salin strategi teruji dari trader top. Deployment satu klik ke akun nyata Anda.',
+    feat_copy_title:'Copy Trading', feat_copy_desc:'Cerminkan trader elit secara otomatis real-time. Tetapkan batas risiko, jeda kapan saja, lacak performa dengan transparan.',
+    feat_auto_title:'Pembuat Posisi Otomatis', feat_auto_desc:'Bot masuk otomatis DCA, grid, dan momentum. Atur dan biarkan algoritma menangani eksekusi 24/7.',
+    feat_analytics_title:'Analitik Lanjutan', feat_analytics_desc:'Peta panas portofolio, analisis drawdown, matriks korelasi, dan laporan performa berbasis AI.',
+    pricing_label:'Harga', pricing_title:'Pilih <span>Keunggulan</span> Anda',
+    plan_basic:'Basic', price_basic:'$29', plan_pro:'Pro', price_pro:'$79', plan_elite:'Elite', price_elite:'$199', price_period:'/bulan',
+    badge_popular:'Paling Populer',
+    basic_f1:'AI Advisor (20 kueri/hari)', basic_f2:'Sinyal langsung — 10 instrumen', basic_f3:'Dasbor analitik dasar', basic_f4:'Akses web app', basic_f5:'Dukungan email',
+    pro_f1:'AI Advisor (tanpa batas)', pro_f2:'Sinyal langsung — semua instrumen', pro_f3:'Akses pasar strategi', pro_f4:'Copy trading (3 trader)', pro_f5:'Pembuat posisi otomatis', pro_f6:'App desktop (Win + Mac)',
+    elite_f1:'Semua fitur Pro', elite_f2:'Copy trading (tanpa batas)', elite_f3:'Bot portofolio auto-buat', elite_f4:'Akses API + webhook', elite_f5:'Manajer akun khusus', elite_f6:'Akses awal ke fitur baru',
+    btn_basic:'Mulai', btn_pro:'Mulai Pro', btn_elite:'Pilih Elite'
+  },
+  vi: {
+    nav_features:'Tính năng', nav_pricing:'Bảng giá', nav_download:'Tải xuống', nav_docs:'Tài liệu', nav_get_started:'Bắt đầu',
+    hero_tag:'Nền tảng Giao dịch AI', hero_title:'Giao dịch Thông minh hơn,<br><em>Không Cần Vất vả.</em>',
+    hero_sub:'QuantAI sử dụng tín hiệu AI thời gian thực, chiến lược tự động và copy trading để giúp bạn kiếm lời trên Crypto, Vàng, Nasdaq, HSI & Dầu — 24/7.',
+    btn_download_win:'Tải cho Windows', btn_download_mac:'Tải cho Mac', btn_web_app:'Mở Web App',
+    stat_traders:'Nhà giao dịch Hoạt động', stat_volume:'Khối lượng Giao dịch', stat_uptime:'SLA Hoạt động', stat_languages:'Ngôn ngữ',
+    feat_label:'Tại sao QuantAI', feat_title:'Mọi thứ bạn cần để <span>Chiến thắng Thị trường</span>',
+    feat_ai_title:'Cố vấn Giao dịch AI', feat_ai_desc:'Trò chuyện với cố vấn AI cá nhân của bạn 24/7. Nhận khuyến nghị giao dịch, phân tích thị trường và đề xuất chiến lược bằng ngôn ngữ dễ hiểu.',
+    feat_signal_title:'Phát tín hiệu Trực tiếp', feat_signal_desc:'Tín hiệu mua/bán thời gian thực trên 50+ công cụ. Mức vào lệnh, SL và TP do AI tạo kèm điểm tin cậy.',
+    feat_strategy_title:'Sàn Chiến lược', feat_strategy_desc:'Duyệt, backtest và sao chép chiến lược đã được chứng minh từ các nhà giao dịch hàng đầu. Triển khai một chạm vào tài khoản thực của bạn.',
+    feat_copy_title:'Copy Trading', feat_copy_desc:'Tự động phản chiếu các nhà giao dịch ưu tú theo thời gian thực. Đặt giới hạn rủi ro, tạm dừng bất cứ lúc nào, theo dõi hiệu suất minh bạch.',
+    feat_auto_title:'Trình tạo Vị thế Tự động', feat_auto_desc:'Bot vào lệnh tự động DCA, lưới và động lượng. Đặt và để thuật toán xử lý thực thi 24/7.',
+    feat_analytics_title:'Phân tích Nâng cao', feat_analytics_desc:'Bản đồ nhiệt danh mục, phân tích drawdown, ma trận tương quan và báo cáo hiệu suất dựa trên AI.',
+    pricing_label:'Bảng giá', pricing_title:'Chọn <span>Lợi thế</span> của bạn',
+    plan_basic:'Basic', price_basic:'$29', plan_pro:'Pro', price_pro:'$79', plan_elite:'Elite', price_elite:'$199', price_period:'/tháng',
+    badge_popular:'Phổ biến nhất',
+    basic_f1:'Cố vấn AI (20 truy vấn/ngày)', basic_f2:'Tín hiệu trực tiếp — 10 công cụ', basic_f3:'Bảng điều khiển phân tích cơ bản', basic_f4:'Truy cập web app', basic_f5:'Hỗ trợ email',
+    pro_f1:'Cố vấn AI (không giới hạn)', pro_f2:'Tín hiệu trực tiếp — tất cả công cụ', pro_f3:'Truy cập sàn chiến lược', pro_f4:'Copy trading (3 nhà giao dịch)', pro_f5:'Trình tạo vị thế tự động', pro_f6:'App desktop (Win + Mac)',
+    elite_f1:'Tất cả tính năng Pro', elite_f2:'Copy trading (không giới hạn)', elite_f3:'Bot danh mục tự tạo', elite_f4:'Truy cập API + webhook', elite_f5:'Quản lý tài khoản chuyên dụng', elite_f6:'Truy cập sớm vào tính năng mới',
+    btn_basic:'Bắt đầu', btn_pro:'Bắt đầu Pro', btn_elite:'Chọn Elite'
+  },
+  th: {
+    nav_features:'คุณสมบัติ', nav_pricing:'ราคา', nav_download:'ดาวน์โหลด', nav_docs:'เอกสาร', nav_get_started:'เริ่มต้น',
+    hero_tag:'แพลตฟอร์มเทรด AI', hero_title:'เทรดอย่างฉลาดขึ้น,<br><em>ไม่ใช่ยากขึ้น.</em>',
+    hero_sub:'QuantAI ใช้สัญญาณ AI แบบเรียลไทม์ กลยุทธ์อัตโนมัติ และการคัดลอกเทรด เพื่อช่วยให้คุณทำกำไรใน Crypto ทอง นาซแดค HSI และน้ำมัน — ตลอด 24 ชม.',
+    btn_download_win:'ดาวน์โหลดสำหรับ Windows', btn_download_mac:'ดาวน์โหลดสำหรับ Mac', btn_web_app:'เปิด Web App',
+    stat_traders:'เทรดเดอร์ที่ใช้งาน', stat_volume:'ปริมาณการเทรด', stat_uptime:'SLA เวลาทำงาน', stat_languages:'ภาษา',
+    feat_label:'ทำไมต้อง QuantAI', feat_title:'ทุกสิ่งที่คุณต้องการเพื่อ <span>ชนะตลาด</span>',
+    feat_ai_title:'ที่ปรึกษาเทรด AI', feat_ai_desc:'แชทกับที่ปรึกษา AI ส่วนตัวของคุณตลอด 24 ชม. รับคำแนะนำการเทรด การวิเคราะห์ตลาด และข้อเสนอกลยุทธ์เป็นภาษาง่ายๆ',
+    feat_signal_title:'สัญญาณสด', feat_signal_desc:'สัญญาณซื้อ/ขายแบบเรียลไทม์ในกว่า 50 ตราสาร ระดับเข้า SL และ TP ที่สร้างโดย AI พร้อมคะแนนความมั่นใจ',
+    feat_strategy_title:'ตลาดกลยุทธ์', feat_strategy_desc:'เรียกดู ทดสอบย้อนกลับ และคัดลอกกลยุทธ์ที่พิสูจน์แล้วจากเทรดเดอร์ชั้นนำ การติดตั้งคลิกเดียวไปยังบัญชีจริงของคุณ',
+    feat_copy_title:'คัดลอกเทรด', feat_copy_desc:'สะท้อนเทรดเดอร์ระดับสูงโดยอัตโนมัติแบบเรียลไทม์ ตั้งขีดจำกัดความเสี่ยง หยุดเมื่อไหร่ก็ได้ ติดตามประสิทธิภาพอย่างโปร่งใส',
+    feat_auto_title:'ตัวสร้างออเดอร์อัตโนมัติ', feat_auto_desc:'บอทเข้าออเดอร์อัตโนมัติ DCA กริด และโมเมนตัม ตั้งค่าแล้วปล่อยให้อัลกอริทึมจัดการ 24 ชม.',
+    feat_analytics_title:'การวิเคราะห์ขั้นสูง', feat_analytics_desc:'แผนที่ความร้อนพอร์ตโฟลิโอ การวิเคราะห์การขาดทุน เมทริกซ์สหสัมพันธ์ และรายงานประสิทธิภาพที่ขับเคลื่อนด้วย AI',
+    pricing_label:'ราคา', pricing_title:'เลือก <span>ข้อได้เปรียบ</span> ของคุณ',
+    plan_basic:'Basic', price_basic:'$29', plan_pro:'Pro', price_pro:'$79', plan_elite:'Elite', price_elite:'$199', price_period:'/เดือน',
+    badge_popular:'ยอดนิยม',
+    basic_f1:'ที่ปรึกษา AI (20 คำถาม/วัน)', basic_f2:'สัญญาณสด — 10 ตราสาร', basic_f3:'แดชบอร์ดวิเคราะห์พื้นฐาน', basic_f4:'เข้าถึงเว็บแอป', basic_f5:'สนับสนุนทางอีเมล',
+    pro_f1:'ที่ปรึกษา AI (ไม่จำกัด)', pro_f2:'สัญญาณสด — ทุกตราสาร', pro_f3:'เข้าถึงตลาดกลยุทธ์', pro_f4:'คัดลอกเทรด (3 เทรดเดอร์)', pro_f5:'ตัวสร้างออเดอร์อัตโนมัติ', pro_f6:'แอปเดสก์ท็อป (Win + Mac)',
+    elite_f1:'คุณสมบัติ Pro ทั้งหมด', elite_f2:'คัดลอกเทรด (ไม่จำกัด)', elite_f3:'บอทพอร์ตโฟลิโออัตโนมัติ', elite_f4:'เข้าถึง API + webhook', elite_f5:'ผู้จัดการบัญชีเฉพาะ', elite_f6:'เข้าถึงคุณสมบัติใหม่ก่อน',
+    btn_basic:'เริ่มต้น', btn_pro:'เริ่มต้น Pro', btn_elite:'เลือก Elite'
+  },
+  tr: {
+    nav_features:'Özellikler', nav_pricing:'Fiyatlandırma', nav_download:'İndir', nav_docs:'Dokümanlar', nav_get_started:'Başla',
+    hero_tag:'AI Destekli Ticaret Platformu', hero_title:'Daha Akıllı Ticaret,<br><em>Daha Kolay Kazanç.</em>',
+    hero_sub:'QuantAI, kripto para, altın, Nasdaq, HSI ve petrol piyasalarında 7/24 kazanmanıza yardımcı olmak için gerçek zamanlı AI sinyalleri, otomatik stratejiler ve copy trading kullanır.',
+    btn_download_win:'Windows için İndir', btn_download_mac:'Mac için İndir', btn_web_app:'Web Uygulamasını Başlat',
+    stat_traders:'Aktif Ticaretçi', stat_volume:'İşlem Hacmi', stat_uptime:'Çalışma Süresi', stat_languages:'Diller',
+    feat_label:'Neden QuantAI', feat_title:'Piyasayı <span>Kazanmak İçin</span> İhtiyacınız Olan Her Şey',
+    feat_ai_title:'AI Ticaret Danışmanı', feat_ai_desc:'7/24 kişisel AI danışmanınızla sohbet edin. Ticaret önerileri, piyasa analizi ve strateji önerileri alın.',
+    feat_signal_title:'Canlı Sinyal Yayını', feat_signal_desc:'50+ enstrüman genelinde gerçek zamanlı alım/satım sinyalleri. AI tarafından oluşturulan giriş, SL ve TP seviyeleri.',
+    feat_strategy_title:'Strateji Pazarı', feat_strategy_desc:'Kanıtlanmış stratejileri inceleyin, geri test edin ve üst düzey tüccarlardan kopyalayın.',
+    feat_copy_title:'Copy Trading', feat_copy_desc:'Üst düzey tüccarları gerçek zamanlı olarak yansıtın. Risk limitleri belirleyin, istediğiniz zaman duraklayın.',
+    feat_auto_title:'Otomatik Pozisyon Oluşturucu', feat_auto_desc:'DCA, grid ve momentum otomatik giriş botları. Ayarlayın ve algoritmanın 7/24 çalışmasına izin verin.',
+    feat_analytics_title:'Gelişmiş Analitik', feat_analytics_desc:'Portföy ısı haritaları, çekilme analizi, korelasyon matrisi ve AI destekli performans raporları.',
+    pricing_label:'Fiyatlandırma', pricing_title:'Kendi <span>Avantajınızı</span> Seçin',
+    plan_basic:'Basic', price_basic:'$29', plan_pro:'Pro', price_pro:'$79', plan_elite:'Elite', price_elite:'$199', price_period:'/ay',
+    badge_popular:'En Popüler',
+    basic_f1:'AI Danışman (20 sorgu/gün)', basic_f2:'Canlı sinyaller — 10 enstrüman', basic_f3:'Temel analitik dashboard', basic_f4:'Web uygulaması erişimi', basic_f5:'E-posta desteği',
+    pro_f1:'AI Danışman (sınırsız)', pro_f2:'Canlı sinyaller — tüm enstrümanlar', pro_f3:'Strateji pazarı erişimi', pro_f4:'Copy trading (3 tüccar)', pro_f5:'Otomatik pozisyon oluşturucu', pro_f6:'Masaüstü uygulaması (Win + Mac)',
+    elite_f1:'Pro\'daki Her Şey', elite_f2:'Copy trading (sınırsız)', elite_f3:'Otomatik portföy botları', elite_f4:'API erişimi + webhooks', elite_f5:'Özel hesap yöneticisi', elite_f6:'Yeni özelliklere erken erişim',
+    btn_basic:'Başla', btn_pro:'Pro\'ya Geç', btn_elite:'Elite\'e Git'
+  },
+  it: {
+    nav_features:'Funzionalità', nav_pricing:'Prezzi', nav_download:'Scarica', nav_docs:'Documenti', nav_get_started:'Inizia',
+    hero_tag:'Piattaforma di Trading AI', hero_title:'Trading Più Intelligente,<br><em>Non Più Difficile.</em>',
+    hero_sub:'QuantAI utilizza segnali AI in tempo reale, strategie automatizzate e copy trading per aiutarti a profitto su Crypto, Oro, Nasdaq, HSI e Petrolio — 24/7.',
+    btn_download_win:'Scarica per Windows', btn_download_mac:'Scarica per Mac', btn_web_app:'Avvia Web App',
+    stat_traders:'Trader Attivi', stat_volume:'Volume Scambiato', stat_uptime:'SLA Disponibilità', stat_languages:'Lingue',
+    feat_label:'Perché QuantAI', feat_title:'Tutto ciò di cui hai bisogno per <span>Vincere il Mercato</span>',
+    feat_ai_title:'Consulente Trading AI', feat_ai_desc:'Chatta con il tuo consulente AI personale 24/7. Ricevi raccomandazioni di trading, analisi di mercato e suggerimenti di strategia.',
+    feat_signal_title:'Broadcast Segnali Live', feat_signal_desc:'Segnali di acquisto/vendita in tempo reale su 50+ strumenti. Livelli di entrata, SL e TP generati dall\'AI.',
+    feat_strategy_title:'Mercato delle Strategie', feat_strategy_desc:'Sfoglia, backtest e copia strategie comprovate dai migliori trader. Implementazione con un clic.',
+    feat_copy_title:'Copy Trading', feat_copy_desc:'Mirrora automaticamente i migliori trader in tempo reale. Imposta limiti di rischio, pausa quando vuoi.',
+    feat_auto_title:'Costruttore Auto Position', feat_auto_desc:'Bot di entrata automatica DCA, grid e momentum. Imposta e lascia che l\'algoritmo gestisca 24/7.',
+    feat_analytics_title:'Analisi Avanzate', feat_analytics_desc:'Mappe termiche del portafoglio, analisi del drawdown, matrice di correlazione e report performance AI-powered.',
+    pricing_label:'Prezzi', pricing_title:'Scegli il Tuo <span>Vantaggio</span>',
+    plan_basic:'Basic', price_basic:'$29', plan_pro:'Pro', price_pro:'$79', plan_elite:'Elite', price_elite:'$199', price_period:'/mese',
+    badge_popular:'Più Popolare',
+    basic_f1:'AI Advisor (20 query/giorno)', basic_f2:'Segnali live — 10 strumenti', basic_f3:'Dashboard analitica base', basic_f4:'Accesso web app', basic_f5:'Supporto email',
+    pro_f1:'AI Advisor (illimitato)', pro_f2:'Segnali live — tutti gli strumenti', pro_f3:'Accesso al mercato strategie', pro_f4:'Copy trading (3 trader)', pro_f5:'Auto position builder', pro_f6:'App desktop (Win + Mac)',
+    elite_f1:'Tutto in Pro', elite_f2:'Copy trading (illimitato)', elite_f3:'Bot portafoglio automatici', elite_f4:'Accesso API + webhooks', elite_f5:'Account manager dedicato', elite_f6:'Accesso anticipato alle nuove funzionalità',
+    btn_basic:'Inizia', btn_pro:'Vai Pro', btn_elite:'Vai Elite'
+  }
+};
