@@ -452,6 +452,10 @@
       <div class="nav-item active" onclick="switchPage('dashboard')">
         <span class="nav-icon">📊</span> 总览
       </div>
+      <div class="nav-item" onclick="switchPage('arbitrage')">
+        <span class="nav-icon">⚖️</span> 跨交易所聚合引擎
+        <span class="badge" style="background:var(--blue);color:#fff">AI</span>
+      </div>
       <div class="nav-item" onclick="switchPage('users')">
         <span class="nav-icon">👥</span> 用户管理
       </div>
@@ -577,6 +581,55 @@
               <tr><td>2026-04-05 01:30</td><td>admin</td><td>用户登录</td><td>joohebin220@gmail.com</td><td><span class="tag tag-success">成功</span></td></tr>
               <tr><td>2026-04-05 01:25</td><td>system</td><td>数据同步</td><td>MetaApi账户同步完成</td><td><span class="tag tag-success">成功</span></td></tr>
               <tr><td>2026-04-05 01:20</td><td>system</td><td>信号生成</td><td>BTC/USDT 多头信号</td><td><span class="tag tag-info">处理中</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 跨交易所聚合引擎 -->
+      <div class="page-section" id="page-arbitrage">
+        <div class="stats-grid">
+          <div class="stat-card green">
+            <div class="stat-label">引擎状态</div>
+            <div class="stat-value" id="arb-console-status">⏹️ 已停止</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">已连接交易所</div>
+            <div class="stat-value" id="arb-console-exchanges">0</div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-label">当前价差</div>
+            <div class="stat-value" id="arb-console-spread">--</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-label">累计收益</div>
+            <div class="stat-value" id="arb-console-profit">$0.00</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">⚖️ 实时价格监测</div>
+            <select id="arb-console-symbol" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:8px" onchange="loadConsoleArbitragePrices()">
+              <option value="BTC/USDT">BTC/USDT</option>
+              <option value="ETH/USDT">ETH/USDT</option>
+              <option value="SOL/USDT">SOL/USDT</option>
+            </select>
+          </div>
+          <div id="arb-console-prices" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:16px">
+            <div style="text-align:center;color:var(--text-dim)">加载中...</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 套利记录</div>
+            <button class="btn btn-sm" onclick="loadConsoleArbitrageHistory()">🔄 刷新</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>时间</th><th>品种</th><th>买入</th><th>卖出</th><th>价差</th><th>收益</th><th>状态</th></tr>
+            </thead>
+            <tbody id="arb-console-history">
+              <tr><td colspan="7" style="text-align:center;color:var(--text-dim)">暂无记录</td></tr>
             </tbody>
           </table>
         </div>
@@ -983,13 +1036,29 @@
           </div>
           <table class="data-table">
             <thead>
-              <tr><th>通道</th><th>交易所</th><th>状态</th><th>延迟</th><th>最后测试</th><th>操作</th></tr>
+              <tr><th>用户</th><th>类型</th><th>券商</th><th>邮箱</th><th>服务器</th><th>账户</th><th>余额</th><th>最后同步</th><th>操作</th></tr>
             </thead>
-            <tbody>
+            <tbody id="brokerTableBody">
               <tr><td>MetaApi</td><td>Binance, Bybit, OKX</td><td><span class="tag tag-success">已连接</span></td><td style="color:var(--success);">23ms</td><td>刚刚</td><td><button class="btn btn-sm">测试</button></td></tr>
               <tr><td>CCXT</td><td>OKX</td><td><span class="tag tag-success">已连接</span></td><td style="color:var(--success);">45ms</td><td>1分钟前</td><td><button class="btn btn-sm">测试</button></td></tr>
               <tr><td>Binance直连</td><td>-</td><td><span class="tag tag-warning">未配置</span></td><td>-</td><td>-</td><td><button class="btn btn-sm">配置</button></td></tr>
               <tr><td>OKX直连</td><td>-</td><td><span class="tag tag-warning">未配置</span></td><td>-</td><td>-</td><td><button class="btn btn-sm">配置</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 交易日志 -->
+        <div class="card" style="margin-top:24px;">
+          <div class="card-header">
+            <div class="card-title">📊 交易日志</div>
+            <button class="btn btn-sm" onclick="loadTradingLogs()">🔄 刷新</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>时间</th><th>交易对</th><th>方向</th><th>数量</th><th>价格</th><th>交易金额</th><th>手续费</th><th>状态</th></tr>
+            </thead>
+            <tbody id="tradingLogsTable">
+              <tr><td colspan="8" style="text-align:center;color:var(--text-dim);">加载中...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1345,6 +1414,14 @@
           <option value="">选择主账户</option>
         </select>
       </div>
+      <div class="form-group">
+        <label class="form-label">权限</label>
+        <select class="form-input" id="subRole">
+          <option value="viewer">仅查看（阅读）</option>
+          <option value="trader">交易权限（可执行交易）</option>
+          <option value="manager">管理员（可管理）</option>
+        </select>
+      </div>
       <div class="modal-actions">
         <button class="btn" onclick="closeModal()">取消</button>
         <button class="btn btn-primary" onclick="createSubaccount()">创建</button>
@@ -1353,7 +1430,7 @@
   </div>
 
   <script>
-    const API_BASE = 'http://localhost:8001';
+    const API_BASE = 'http://54.151.143.233:8001';
     let authToken = localStorage.getItem('quantai_token');
     let currentUser = JSON.parse(localStorage.getItem('quantai_user') || '{}');
 
@@ -1394,6 +1471,7 @@
         if (res.ok) {
           localStorage.setItem('quantai_token', data.access_token);
           localStorage.setItem('quantai_user', JSON.stringify(data.user));
+          authToken = data.access_token;
           currentUser = data.user;
           showApp();
           loadDashboard();
@@ -1430,6 +1508,7 @@
         if (res.ok) {
           localStorage.setItem('quantai_token', data.access_token);
           localStorage.setItem('quantai_user', JSON.stringify(data.user));
+          authToken = data.access_token;
           currentUser = data.user;
           showApp();
           loadDashboard();
@@ -1448,6 +1527,9 @@
       document.getElementById('appLayout').classList.add('active');
       document.getElementById('userName').textContent = currentUser.username || 'Admin';
       document.getElementById('userAvatar').textContent = (currentUser.username || 'A').charAt(0).toUpperCase();
+      // 加载数据
+      loadBrokerAccounts();
+      loadTradingLogs();
     }
 
     // 退出登录
@@ -1466,6 +1548,7 @@
 
       const titles = {
         dashboard: '📊 总览',
+        arbitrage: '⚖️ 跨交易所聚合引擎',
         users: '👥 用户管理',
         subaccounts: '🔐 子账户',
         trading: '📈 交易管理',
@@ -1478,6 +1561,41 @@
         settings: '⚙️ 系统设置'
       };
       document.getElementById('pageTitle').textContent = titles[page] || page;
+
+      // 页面切换时加载数据
+      if(page === 'arbitrage'){
+        loadConsoleArbitragePrices();
+        loadConsoleArbitrageHistory();
+      }
+      if(page === 'subaccounts'){
+        loadSubaccounts();
+      }
+    }
+
+    // 加载子账户列表
+    async function loadSubaccounts() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/subaccounts`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if(res.ok){
+          const subs = await res.json();
+          const tbody = document.getElementById('subaccountsTable');
+          if(tbody){
+            tbody.innerHTML = subs.map(s => `
+              <tr>
+                <td>${s.username}</td>
+                <td>${s.email}</td>
+                <td><span class="badge badge-${s.role === 'manager' ? 'green' : s.role === 'trader' ? 'blue' : 'gray'}">${s.role === 'viewer' ? '仅查看' : s.role === 'trader' ? '交易' : s.role === 'manager' ? '管理' : s.role}</span></td>
+                <td><span class="badge badge-${s.is_active ? 'green' : 'red'}">${s.is_active ? '启用' : '禁用'}</td>
+                <td>${s.created_at ? s.created_at.slice(0,10) : '-'}</td>
+              </tr>
+            `).join('');
+          }
+        }
+      }catch(e){
+        console.log('加载子账户失败');
+      }
     }
 
     // 加载仪表盘数据
@@ -1494,6 +1612,183 @@
         }
       } catch (e) {
         console.log('无法获取统计数据');
+      }
+    }
+
+    // 加载交易统计
+    async function loadTradingStats() {
+      try {
+        const res = await fetch(`${API_BASE}/api/trading-stats/summary`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const stats = await res.json();
+          // 更新统计卡片
+          document.getElementById('statUsers').textContent = stats.total_trade_amount + ' USDT';
+          document.getElementById('statActiveUsers').textContent = stats.pending_fee + ' USDT';
+          document.getElementById('statSubaccounts').textContent = stats.order_count + ' 笔';
+        }
+      } catch (e) {
+        console.log('无法获取交易统计');
+      }
+    }
+
+    // 加载用户交易所配置
+    async function loadBrokerAccounts() {
+      let url = `${API_BASE}/api/brokers/`;
+      let isAdmin = false;
+      
+      // 检查是否为管理员
+      if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager')) {
+        url = `${API_BASE}/api/admin/brokers/all`;
+        isAdmin = true;
+      }
+      
+      try {
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const accounts = await res.json();
+          const tbody = document.getElementById('brokerTableBody');
+          if (tbody) {
+            if (accounts.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-dim);">暂无券商配置</td></tr>';
+            } else {
+              tbody.innerHTML = accounts.map(a => `
+                <tr>
+                  <td>${isAdmin ? (a.username || '-') + ' (' + (a.email || '-') + ')' : a.broker_name}</td>
+                  <td>${a.broker_type === 'forex' ? '🌐 外汇' : a.broker_type === 'metaapi' ? '🔷 MetaApi' : '🪙 加密'}</td>
+                  <td>${a.broker_name}</td>
+                  <td>${a.email || '-'}</td>
+                  <td>${a.server || '-'}</td>
+                  <td><span class="tag ${a.account_type === 'demo' ? 'tag-warning' : 'tag-success'}">${a.account_type === 'demo' ? '模拟' : '真实'}</span></td>
+                  <td>${a.balance || '0'} ${a.currency || 'USDT'}</td>
+                  <td>${a.last_sync_at ? new Date(a.last_sync_at).toLocaleString() : '-'}</td>
+                  <td><button class="btn btn-sm" onclick="testBrokerConnection(${a.id})">测试</button></td>
+                </tr>
+              `).join('');
+            }
+          }
+          
+          // 如果是管理员，加载统计信息
+          if (isAdmin) {
+            document.getElementById('arb-console-exchanges').textContent = accounts.length;
+          }
+        }
+      } catch (e) {
+        console.log('无法获取交易所配置');
+      }
+    }
+
+    // 加载交易日志
+    async function loadTradingLogs(limit = 50) {
+      try {
+        const res = await fetch(`${API_BASE}/api/orders/?limit=${limit}`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const orders = await res.json();
+          const tbody = document.getElementById('tradingLogsTable');
+          if (tbody) {
+            if (orders.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-dim);">暂无交易记录</td></tr>';
+            } else {
+              tbody.innerHTML = orders.map(o => `
+                <tr>
+                  <td>${new Date(o.created_at).toLocaleString()}</td>
+                  <td>${o.symbol}</td>
+                  <td><span class="tag ${o.side === 'buy' ? 'tag-success' : 'tag-error'}">${o.side === 'buy' ? '买入' : '卖出'}</span></td>
+                  <td>${o.quantity}</td>
+                  <td>${o.filled_price}</td>
+                  <td>${o.trade_amount}</td>
+                  <td>${o.rebate_amount}</td>
+                  <td><span class="tag ${o.is_rebated ? 'tag-success' : 'tag-warning'}">${o.is_rebated ? '已扣费' : '待扣费'}</span></td>
+                </tr>
+              `).join('');
+            }
+          }
+        }
+      } catch (e) {
+        console.log('无法获取交易记录');
+      }
+    }
+
+    // 加载中控台套利价格
+    async function loadConsoleArbitragePrices() {
+      try {
+        const symbol = document.getElementById('arb-console-symbol')?.value || 'BTC/USDT';
+        const res = await fetch(`${API_BASE}/api/arbitrage/prices/${encodeURIComponent(symbol)}`);
+        const data = await res.json();
+        if(data.prices){
+          const pricesDiv = document.getElementById('arb-console-prices');
+          const exIcons = {binance:'🟡',okx:'🟠',bybit:'🔵',kucoin:'🟢',gate:'🟣'};
+          const sorted = Object.entries(data.prices).sort((a,b)=>a[1]-b[1]);
+          pricesDiv.innerHTML = sorted.map(([ex,price])=>`
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center">
+              <div style="font-size:18px;margin-bottom:6px">${exIcons[ex]||'🏦'} ${ex.toUpperCase()}</div>
+              <div style="font-size:16px;font-weight:700;color:var(--success)">$${price.toLocaleString()}</div>
+            </div>
+          `).join('');
+          // 计算价差
+          const prices = Object.values(data.prices);
+          if(prices.length >= 2){
+            const max = Math.max(...prices);
+            const min = Math.min(...prices);
+            const spread = ((max - min) / min * 100).toFixed(2);
+            document.getElementById('arb-console-spread').textContent = spread + '%';
+          }
+        }
+      } catch (e) {
+        console.log('获取套利价格失败:',e);
+      }
+    }
+
+    // 加载中控台套利历史
+    let _arbConsoleTimer = null;
+    async function loadConsoleArbitrageHistory() {
+      // 从本地存储获取交易所连接信息
+      const savedEx = localStorage.getItem('arb_exchanges');
+      let exCount = 0;
+      if(savedEx){
+        try {
+          const exs = JSON.parse(savedEx);
+          exCount = Object.keys(exs).length;
+        } catch(e){}
+      }
+      document.getElementById('arb-console-exchanges').textContent = exCount;
+      
+      // 刷新历史记录
+      refreshArbHistory();
+      
+      // 启动定时轮询（每3秒）
+      if(!_arbConsoleTimer){
+        _arbConsoleTimer = setInterval(refreshArbHistory, 3000);
+      }
+    }
+    
+    // 刷新套利历史记录
+    function refreshArbHistory(){
+      const saved = localStorage.getItem('arb_history');
+      if(saved){
+        try {
+          const history = JSON.parse(saved);
+          const tbody = document.getElementById('arb-console-history');
+          tbody.innerHTML = history.map(r=>`
+            <tr>
+              <td>${r.time}</td>
+              <td>${r.symbol}</td>
+              <td>${r.buy}</td>
+              <td>${r.sell}</td>
+              <td>${r.spread}</td>
+              <td style="color:var(--success)">${r.profit}</td>
+              <td><span class="tag tag-success">${r.status}</span></td>
+            </tr>
+          `).join('');
+          // 更新收益统计
+          const total = history.reduce((sum,r)=>sum+parseFloat(r.profit.replace('$','')),0);
+          document.getElementById('arb-console-profit').textContent = '$' + total.toFixed(2);
+        } catch(e){}
       }
     }
 
@@ -1541,6 +1836,7 @@
       const username = document.getElementById('subUsername').value;
       const email = document.getElementById('subEmail').value;
       const password = document.getElementById('subPassword').value;
+      const role = document.getElementById('subRole').value;
 
       if (!username || !email || !password) {
         showNotification('请填写必填项', 'error');
@@ -1554,7 +1850,7 @@
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ username, email, password })
+          body: JSON.stringify({ username, email, password, role })
         });
         
         if (res.ok) {
@@ -1581,7 +1877,7 @@
     }
 
     // 保存MetaApi配置
-    function saveMetaApiConfig() {
+    async function saveMetaApiConfig() {
       const token = document.getElementById('metaApiToken').value;
       const accountId = document.getElementById('metaAccountId').value;
       
@@ -1589,11 +1885,31 @@
         showNotification('请输入 MetaApi Token', 'error');
         return;
       }
+      if (!accountId) {
+        showNotification('请输入 MetaApi 账户 ID', 'error');
+        return;
+      }
       
-      localStorage.setItem('metaapi_token', token);
-      if (accountId) localStorage.setItem('metaapi_account_id', accountId);
-      
-      showNotification('MetaApi 配置已保存', 'success');
+      try {
+        const res = await fetch(`${API_BASE}/api/brokers/metaapi/save-config`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ token, account_id: accountId })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          showNotification('MetaApi 配置已保存并验证成功', 'success');
+          loadBrokerAccounts(); // 刷新账户列表
+        } else {
+          showNotification(data.detail || '保存失败', 'error');
+        }
+      } catch (e) {
+        showNotification('连接服务器失败', 'error');
+      }
     }
 
     // 保存CCXT配置

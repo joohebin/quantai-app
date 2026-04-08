@@ -44,7 +44,12 @@ def place_order(
         filled_price=fill_price,
         filled_quantity=fill_qty,
         status="filled",
-        exchange_order_id=f"QORD{random.randint(100000, 999999)}"
+        exchange_order_id=f"QORD{random.randint(100000, 999999)}",
+        # 计算交易金额和返点
+        trade_amount=fill_price * fill_qty,
+        rebate_percent=1.0,  # 默认1%返点
+        rebate_amount=round(fill_price * fill_qty * 0.01, 2),
+        is_rebated=False
     )
     db.add(order)
 

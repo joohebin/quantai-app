@@ -37,3 +37,60 @@ build-output/
 
 # Specific large files to exclude
 backend/*.pyc
+
+# Environment & Secrets
+.env
+*.env
+backend/.env
+
+# WorkBuddy / CodeBuddy cache
+.workbuddy/
+.codebuddy/
+
+# Database (local dev only)
+*.db
+backend/*.db
+
+# Temp test files
+test_*.py
+test_*.js
+test_*.html
+_check*.js
+_check*.ps1
+_merge_config.py
+_pending_langs.js
+analyze_i18n.js
+run_*.py
+run_*.sh
+start_backend.sh
+index_remote.html
+deep_*.txt
+find_*.py
+fix_*.py
+inject*.py
+scan_*.py
+syntax_check*
+strict_parse*
+bisect_*.py
+bisect_*.txt
+break_out.txt
+nav_out.txt
+trace_*.py
+trace_*.txt
+verify.py
+write_check.py
+show_ctx.py
+debug_*.py
+debug_*.txt
+find_*.py
+serve_https.py
+check_*.py
+check_*.js
+check_*.txt
+extract_*.py
+upload_*.py
+patch_css_init.py
+pre_fix_analysis.py
+raw_bytes_check.py
+sw.js
+manifest.json

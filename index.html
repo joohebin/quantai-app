@@ -37,6 +37,10 @@
     }
   }
 </script>
+<script>
+  // 后端API地址
+  window.API_BASE = 'http://54.151.143.233:8001';
+</script>
 <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 /* ===== CSS 变量 & 重置 ===== */
@@ -674,6 +678,10 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
         <span class="ni" data-nav-icon="🔁">🔁</span><span data-i18n="nav_copy">复制交易</span>
         <span class="badge" style="background:var(--green);color:var(--dark)">Hot</span>
       </div>
+      <div class="nav-item" onclick="showPage('arbitrage',this)" data-page="arbitrage">
+        <span class="ni" data-nav-icon="⚖️">⚖️</span><span data-i18n="nav_arbitrage">跨交易所聚合引擎</span>
+        <span class="badge" style="background:var(--blue);color:#fff">AI</span>
+      </div>
       <div class="nav-item" onclick="showPage('autoopen',this)" data-page="autoopen">
         <span class="ni" data-nav-icon="⚙️">⚙️</span><span data-i18n="nav_autoopen">自动建仓</span>
         <span class="badge" style="background:#f59e0b;color:#000">Elite</span>
@@ -885,12 +893,12 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
           <div style="display:flex;align-items:center;gap:12px">
             <div style="font-size:24px">🤖</div>
             <div>
-              <div style="font-size:14px;font-weight:600;color:var(--text)">AI 自动交易</div>
-              <div style="font-size:12px;color:var(--muted)" id="ai-auto-status">🟢 AI 已开启，自动分析市场并执行交易</div>
+              <div style="font-size:14px;font-weight:600;color:var(--text)" data-i18n="ai_auto_title">AI 自动交易</div>
+              <div style="font-size:12px;color:var(--muted)" id="ai-auto-status" data-i18n="ai_auto_status_on">🟢 AI 已开启，自动分析市场并执行交易</div>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:12px;color:var(--muted)" id="ai-auto-label">开启</span>
+            <span style="font-size:12px;color:var(--muted)" id="ai-auto-label" data-i18n="ai_auto_label_on">开启</span>
             <div class="toggle on" id="ai-auto-toggle" onclick="toggleAIAutoTrade(this)"></div>
           </div>
         </div>
@@ -1019,23 +1027,23 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
             <!-- FRED 宏观数据详情卡片 -->
             <div class="card" id="fred-detail-card">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-                <div style="font-size:13px;font-weight:600">🏛️ 美联储宏观数据</div>
+                <div style="font-size:13px;font-weight:600" data-i18n="fred_title">🏛️ 美联储宏观数据</div>
                 <div style="display:flex;align-items:center;gap:6px">
                   <span id="fred-status-dot" style="width:6px;height:6px;border-radius:50%;background:#444;display:inline-block;transition:background .4s"></span>
                   <span id="fred-status-txt" style="font-size:10px;color:#555">loading…</span>
                 </div>
               </div>
               <div style="display:flex;flex-direction:column;gap:8px;font-size:12px" id="fred-rows">
-                <div class="fred-row"><span class="fred-lbl">联邦基准利率</span><span id="fr-fedfunds" class="fred-val">—</span></div>
-                <div class="fred-row"><span class="fred-lbl">10年期美债收益率</span><span id="fr-t10y" class="fred-val">—</span></div>
-                <div class="fred-row"><span class="fred-lbl">2年期美债收益率</span><span id="fr-t2y" class="fred-val">—</span></div>
-                <div class="fred-row"><span class="fred-lbl">期限利差 (10y-2y)</span><span id="fr-spread" class="fred-val">—</span></div>
+                <div class="fred-row"><span class="fred-lbl" data-i18n="fred_fedfunds">联邦基准利率</span><span id="fr-fedfunds" class="fred-val">—</span></div>
+                <div class="fred-row"><span class="fred-lbl" data-i18n="fred_t10y">10年期美债收益率</span><span id="fr-t10y" class="fred-val">—</span></div>
+                <div class="fred-row"><span class="fred-lbl" data-i18n="fred_t2y">2年期美债收益率</span><span id="fr-t2y" class="fred-val">—</span></div>
+                <div class="fred-row"><span class="fred-lbl" data-i18n="fred_term_spread">期限利差 (10y-2y)</span><span id="fr-spread" class="fred-val">—</span></div>
                 <div style="height:1px;background:rgba(255,255,255,0.05);margin:2px 0"></div>
-                <div class="fred-row"><span class="fred-lbl">CPI 同比 (YoY)</span><span id="fr-cpi" class="fred-val">—</span></div>
-                <div class="fred-row"><span class="fred-lbl">核心PCE 同比</span><span id="fr-pce" class="fred-val">—</span></div>
+                <div class="fred-row"><span class="fred-lbl" data-i18n="fred_cpi">CPI 同比 (YoY)</span><span id="fr-cpi" class="fred-val">—</span></div>
+                <div class="fred-row"><span class="fred-lbl" data-i18n="fred_core_pce">核心PCE 同比</span><span id="fr-pce" class="fred-val">—</span></div>
                 <div style="height:1px;background:rgba(255,255,255,0.05);margin:2px 0"></div>
-                <div class="fred-row"><span class="fred-lbl">非农就业（万人）</span><span id="fr-payroll" class="fred-val">—</span></div>
-                <div class="fred-row"><span class="fred-lbl">失业率</span><span id="fr-unrate" class="fred-val">—</span></div>
+                <div class="fred-row"><span class="fred-lbl" data-i18n="fred_nfp">非农就业（万人）</span><span id="fr-payroll" class="fred-val">—</span></div>
+                <div class="fred-row"><span class="fred-lbl" data-i18n="fred_unrate">失业率</span><span id="fr-unrate" class="fred-val">—</span></div>
               </div>
               <div style="margin-top:10px;font-size:10px;color:#333;text-align:right">
                 <span id="fred-updated">—</span> · <a href="https://fred.stlouisfed.org" target="_blank" style="color:#444;text-decoration:none">FRED</a>
@@ -1308,23 +1316,25 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
           <div style="display:flex;align-items:center;gap:12px">
             <div style="display:flex;align-items:center;gap:8px">
               <span style="width:10px;height:10px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)"></span>
-              <span style="font-weight:600;color:var(--text)">🟢 AI 运行中</span>
+              <span style="font-weight:600;color:var(--text)" data-i18n="acc_ai_running">🟢 AI 运行中</span>
             </div>
-            <div style="font-size:12px;color:var(--muted)">最后信号：3分钟前</div>
+            <div style="font-size:12px;color:var(--muted)" data-i18n="acc_last_signal">最后信号：3分钟前</div>
           </div>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-outline" style="font-size:12px;padding:6px 12px" onclick="toggleAI()">⏸️ 暂停AI</button>
-            <button class="btn btn-primary" style="font-size:12px;padding:6px 12px" onclick="showPage('autoopen',null)">💰 资金管理</button>
+            <button class="btn btn-outline" style="font-size:12px;padding:6px 12px" onclick="toggleAI()" data-i18n="acc_pause_ai">⏸️ 暂停AI</button>
+            <button class="btn btn-primary" style="font-size:12px;padding:6px 12px" onclick="showPage('autoopen',null)" data-i18n="acc_fund_mgmt">💰 资金管理</button>
           </div>
         </div>
 
         <!-- ===== 第3行：标签页导航 ===== -->
         <div class="account-tabs" style="display:flex;gap:0;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden">
-          <div class="acc-tab active" onclick="switchAccountTab('positions',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--green);background:rgba(0,200,150,.1);border-bottom:2px solid var(--green);cursor:pointer">📊 持仓</div>
-          <div class="acc-tab" onclick="switchAccountTab('signals',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer">📡 信号</div>
-          <div class="acc-tab" onclick="switchAccountTab('manual',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer">✋ 手动交易</div>
-          <div class="acc-tab" onclick="switchAccountTab('market',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer">📈 行情</div>
-          <div class="acc-tab" onclick="switchAccountTab('strategies',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer">⚡ 我的策略</div>
+          <div class="acc-tab active" onclick="switchAccountTab('positions',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--green);background:rgba(0,200,150,.1);border-bottom:2px solid var(--green);cursor:pointer" data-i18n="acc_tab_positions">📊 持仓</div>
+          <div class="acc-tab" onclick="switchAccountTab('trades',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_trades">📋 交易记录</div>
+          <div class="acc-tab" onclick="switchAccountTab('signals',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_signals">📡 信号</div>
+          <div class="acc-tab" onclick="switchAccountTab('manual',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_manual">✋ 手动交易</div>
+          <div class="acc-tab" onclick="switchAccountTab('market',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_market">📈 行情</div>
+          <div class="acc-tab" onclick="switchAccountTab('strategies',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_strategies">⚡ 策略</div>
+          <div class="acc-tab" onclick="switchAccountTab('exchanges',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_exchanges">🏦 交易所</div>
         </div>
 
         <!-- ===== 标签页内容区 ===== -->
@@ -1337,7 +1347,7 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
                 <div class="broker-info">
                   <div class="broker-name">BTC/USDT</div>
                   <div class="broker-bal">0.5 BTC</div>
-                  <div class="broker-status"><span style="color:var(--green)">多单</span> · 持仓中</div>
+                  <div class="broker-status"><span style="color:var(--green)" data-i18n="card_long">多单</span> · <span data-i18n="acc_tab_positions">持仓中</span></div>
                 </div>
                 <div style="text-align:right">
                   <div style="font-weight:600;color:var(--green)">+$1,250.00</div>
@@ -1349,12 +1359,67 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
                 <div class="broker-info">
                   <div class="broker-name">ETH/USDT</div>
                   <div class="broker-bal">2.5 ETH</div>
-                  <div class="broker-status"><span style="color:var(--green)">多单</span> · 持仓中</div>
+                  <div class="broker-status"><span style="color:var(--green)" data-i18n="card_long">多单</span> · <span data-i18n="acc_tab_positions">持仓中</span></div>
                 </div>
                 <div style="text-align:right">
                   <div style="font-weight:600;color:var(--green)">+$425.50</div>
                   <div style="font-size:12px;color:var(--muted)">收益率 8.51%</div>
                 </div>
+              </div>
+            </div>
+          </div>
+          <!-- 交易记录标签页内容 -->
+          <div id="acc-tab-trades" style="display:none">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <!-- 统计卡片 -->
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+                <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+                  <div style="font-size:11px;color:var(--muted);margin-bottom:4px" data-i18n="tlog_total_trades">总笔数</div>
+                  <div style="font-size:18px;font-weight:700;color:var(--text)" id="tls-total">0</div>
+                </div>
+                <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+                  <div style="font-size:11px;color:var(--muted);margin-bottom:4px" data-i18n="tlog_win_rate">胜率</div>
+                  <div style="font-size:18px;font-weight:700;color:var(--green)" id="tls-wr">—</div>
+                </div>
+                <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+                  <div style="font-size:11px;color:var(--muted);margin-bottom:4px" data-i18n="tlog_net_pnl">净盈亏</div>
+                  <div style="font-size:18px;font-weight:700" id="tls-pnl">$0</div>
+                </div>
+              </div>
+              
+              <!-- 筛选器 -->
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="tlog-filter-btn active" onclick="filterTlog('all',this)" style="padding:6px 12px;font-size:12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer" data-i18n="tlog_all">全部</button>
+                <button class="tlog-filter-btn" onclick="filterTlog('buy',this)" style="padding:6px 12px;font-size:12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer" data-i18n="tlog_buy">做多</button>
+                <button class="tlog-filter-btn" onclick="filterTlog('sell',this)" style="padding:6px 12px;font-size:12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer" data-i18n="tlog_sell">做空</button>
+                <button class="tlog-filter-btn" onclick="filterTlog('win',this)" style="padding:6px 12px;font-size:12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer" data-i18n="tlog_win">盈利</button>
+                <button class="tlog-filter-btn" onclick="filterTlog('loss',this)" style="padding:6px 12px;font-size:12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer" data-i18n="tlog_loss">亏损</button>
+              </div>
+              
+              <!-- 交易流水表头 -->
+              <div style="display:grid;grid-template-columns:140px 1fr 60px 80px 80px 70px 80px 70px;gap:8px;padding:10px 12px;background:var(--card-bg);border-radius:8px;font-size:11px;color:var(--muted);font-weight:600">
+                <span data-i18n="tlog_col_time">时间</span>
+                <span data-i18n="tlog_col_symbol">品种</span>
+                <span data-i18n="tlog_col_dir">方向</span>
+                <span data-i18n="tlog_col_open">开仓价</span>
+                <span data-i18n="tlog_col_close">平仓价</span>
+                <span data-i18n="tlog_col_size">手数</span>
+                <span data-i18n="tlog_col_pnl">盈亏</span>
+                <span data-i18n="tlog_col_hold">持仓</span>
+              </div>
+              
+              <!-- 交易流水列表 -->
+              <div id="tlog-body" style="display:flex;flex-direction:column;gap:0;max-height:400px;overflow-y:auto">
+                <!-- 动态加载 -->
+              </div>
+              
+              <!-- 返点统计 -->
+              <div style="background:rgba(0,200,150,.08);border:1px solid rgba(0,200,150,.2);border-radius:10px;padding:12px;margin-top:8px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div style="font-size:13px;font-weight:600">💰 返点收益</div>
+                  <div style="font-size:16px;font-weight:700;color:var(--green)" id="tls-rebate">$0.00</div>
+                </div>
+                <div style="font-size:11px;color:var(--muted);margin-top:4px">每笔交易自动抽取 1% 作为返点</div>
               </div>
             </div>
           </div>
@@ -1428,6 +1493,63 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
               <button class="btn btn-outline" style="width:100%;margin-top:12px" onclick="showPage('strategies',null)">查看全部策略 →</button>
             </div>
           </div>
+          <!-- 交易所配置标签页内容 -->
+          <div id="acc-tab-exchanges" style="display:none">
+            <div class="card" style="padding:16px">
+              <div style="font-size:14px;font-weight:600;margin-bottom:12px">🏦 连接交易所</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:16px">输入您的交易所 API Key 以连接交易账户</div>
+              
+              <!-- 选择交易所 -->
+              <div style="margin-bottom:16px">
+                <div style="font-size:12px;color:var(--muted);margin-bottom:8px">选择交易所</div>
+                <select id="exchange-select" style="width:100%;padding:12px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px">
+                  <option value="">请选择...</option>
+                  <option value="binance">🟡 Binance</option>
+                  <option value="bybit">🟠 Bybit</option>
+                  <option value="okx">⚪ OKX</option>
+                  <option value="kucoin">🟢 KuCoin</option>
+                  <option value="gate">🔴 Gate.io</option>
+                  <option value="coinbase">🔵 Coinbase</option>
+                  <option value="kraken">🐙 Kraken</option>
+                  <option value="mt5">🔵 MT5 (MetaTrader)</option>
+                </select>
+              </div>
+              
+              <!-- API Key -->
+              <div style="margin-bottom:16px">
+                <div style="font-size:12px;color:var(--muted);margin-bottom:8px">API Key</div>
+                <input type="text" id="exchange-api-key" placeholder="输入 API Key" style="width:100%;padding:12px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px">
+              </div>
+              
+              <!-- API Secret -->
+              <div style="margin-bottom:16px">
+                <div style="font-size:12px;color:var(--muted);margin-bottom:8px">API Secret</div>
+                <input type="password" id="exchange-api-secret" placeholder="输入 API Secret" style="width:100%;padding:12px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px">
+              </div>
+              
+              <!-- Passphrase (部分交易所需要) -->
+              <div style="margin-bottom:16px;display:none" id="exchange-passphrase-group">
+                <div style="font-size:12px;color:var(--muted);margin-bottom:8px">API Passphrase (可选)</div>
+                <input type="password" id="exchange-api-passphrase" placeholder="输入 API Passphrase" style="width:100%;padding:12px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px">
+              </div>
+              
+              <!-- 账户ID (MT5需要) -->
+              <div style="margin-bottom:16px;display:none" id="exchange-account-id-group">
+                <div style="font-size:12px;color:var(--muted);margin-bottom:8px">账户ID (MT5)</div>
+                <input type="text" id="exchange-account-id" placeholder="输入 MT5 账户ID" style="width:100%;padding:12px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px">
+              </div>
+              
+              <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="saveExchangeConfig()">🔗 连接交易所</button>
+              
+              <!-- 已连接的交易所列表 -->
+              <div style="margin-top:24px">
+                <div style="font-size:14px;font-weight:600;margin-bottom:12px">已连接的交易所</div>
+                <div id="connected-exchanges-list" style="display:flex;flex-direction:column;gap:10px">
+                  <div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">暂无已连接的交易所</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="profile-hero">
@@ -1488,15 +1610,15 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
             <div class="plan-grid" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
               <!-- 试用版：功能阉割 -->
               <div class="plan-card" onclick="upgradePlan('trial')" style="border-color:var(--muted);opacity:.7">
-                <div class="plan-badge" style="background:var(--muted)">🆓 免费试用</div>
+                <div class="plan-badge" style="background:var(--muted)" data-i18n="acc_member_trial">🆓 免费试用</div>
                 <div class="plan-name">Trial</div>
-                <div class="plan-price">免费<span data-i18n="per_month">/月</span><span style="font-size:11px;color:var(--muted);display:block;margin-top:4px">限3天</span></div>
+                <div class="plan-price">免费<span data-i18n="per_month">/月</span><span style="font-size:11px;color:var(--muted);display:block;margin-top:4px" data-i18n="acc_limit_3days">限3天</span></div>
                 <ul class="plan-features">
-                  <li class="ok">BTC/ETH行情</li>
-                  <li class="ok">AI顾问问答</li>
-                  <li class="no">策略</li>
-                  <li class="no">自动交易</li>
-                  <li class="no">高级功能</li>
+                  <li class="ok" data-i18n="feat_btc_eth_market">BTC/ETH行情</li>
+                  <li class="ok" data-i18n="feat_ai_qa">AI顾问问答</li>
+                  <li class="no" data-i18n="feat_strategies">策略</li>
+                  <li class="no" data-i18n="feat_auto_trade">自动交易</li>
+                  <li class="no" data-i18n="feat_advanced">高级功能</li>
                 </ul>
               </div>
               <div class="plan-card" onclick="upgradePlan('basic')">
@@ -1676,6 +1798,202 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
 
       </div>
 
+      <!-- ===== 智能套利引擎 ===== -->
+      <div class="page" id="page-arbitrage">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div>
+            <div style="font-size:20px;font-weight:800">⚖️ <span data-i18n="arb_title">跨交易所聚合引擎</span>
+              <span class="elite-badge">AI</span>
+            </div>
+            <div style="font-size:13px;color:var(--muted);margin-top:4px" data-i18n="arb_subtitle">多交易所实时价格聚合，AI智能监测套利机会</div>
+          </div>
+          <div id="arb-status-tag"></div>
+        </div>
+
+        <!-- Elite 锁定遮罩 -->
+        <div id="arb-lock-banner" class="elite-lock-banner" style="display:none">
+          <div class="elb-icon">🔒</div>
+          <div>
+            <div class="elb-title" data-i18n="arb_lock_title">跨交易所聚合引擎为 Elite 专属功能</div>
+            <div class="elb-desc">升级到 Elite 计划，解锁AI自动交易能力</div>
+          </div>
+          <button class="btn btn-primary" onclick="upgradeToElite()" style="white-space:nowrap">
+            💎 <span data-i18n="ao_lock_btn">立即升级 $199/月</span>
+          </button>
+        </div>
+
+        <!-- 引擎状态卡片 -->
+        <div class="dashboard-grid" style="margin-bottom:20px">
+          <div class="stat-card s-green">
+            <div class="stat-label" data-i18n="arb_engine_status">引擎状态</div>
+            <div class="stat-val" id="arb-engine-status">⏹️ <span data-i18n="arb_engine_stopped">已停止</span></div>
+          </div>
+          <div class="stat-card s-blue">
+            <div class="stat-label" data-i18n="arb_monitor_ex">监测交易所</div>
+            <div class="stat-val">5</div>
+            <div style="font-size:12px;color:var(--muted)">Binance, OKX, Bybit, KuCoin, Gate</div>
+          </div>
+          <div class="stat-card s-yellow">
+            <div class="stat-label" data-i18n="arb_spread">当前价差</div>
+            <div class="stat-val" id="arb-current-spread">--</div>
+            <div class="stat-change" id="arb-spread-change"></div>
+          </div>
+          <div class="stat-card s-red">
+            <div class="stat-label" data-i18n="arb_total_profit">累计收益</div>
+            <div class="stat-val" id="arb-total-profit">$0.00</div>
+            <div class="stat-change"><span data-i18n="arb_trades">套利次数</span>: <span id="arb-trade-count">0</span></div>
+          </div>
+        </div>
+
+        <!-- 实时价格监测 -->
+        <div class="card" style="margin-bottom:20px">
+          <div class="section-title">
+            <span>📊 <span data-i18n="arb_monitor_pair">交易品种</span></span>
+            <select id="arb-symbol-select" style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:8px" onchange="loadArbitragePrices()">
+              <option value="BTC/USDT">BTC/USDT</option>
+              <option value="ETH/USDT">ETH/USDT</option>
+              <option value="SOL/USDT">SOL/USDT</option>
+              <option value="XRP/USDT">XRP/USDT</option>
+              <option value="BNB/USDT">BNB/USDT</option>
+              <option value="DOGE/USDT">DOGE/USDT</option>
+              <option value="ADA/USDT">ADA/USDT</option>
+              <option value="AVAX/USDT">AVAX/USDT</option>
+              <option value="DOT/USDT">DOT/USDT</option>
+              <option value="MATIC/USDT">MATIC/USDT</option>
+            </select>
+          </div>
+          <div id="arb-prices-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:12px">
+            <!-- 价格卡片将由JS动态加载 -->
+            <div style="text-align:center;color:var(--muted);padding:20px" data-i18n="btp_loading">加载中...</div>
+          </div>
+        </div>
+
+        <!-- 交易所连接 -->
+        <div class="card" style="margin-bottom:20px">
+          <div class="section-title"><span>🔗 <span data-i18n="arb_exchanges">已连接交易所</span></span>
+            <span id="arb-exchange-count" style="font-size:12px;color:var(--muted)">0/10</span>
+            <button class="btn btn-primary" style="font-size:12px;padding:4px 12px;margin-left:auto" onclick="quickLoginExchanges()" data-i18n="arb_quick_login">⚡ 一键登录</button>
+          </div>
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap" id="arb-connected-exchanges">
+            <!-- 已连接的交易所标签由JS生成 -->
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:16px">
+            <div class="form-group">
+              <label data-i18n="arb_select_exchange">选择交易所</label>
+              <select id="arb-exchange-select" style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:10px" onchange="onExchangeSelected()">
+                <option value="" data-i18n="arb_select_placeholder">-- 选择交易所 --</option>
+                <optgroup label="🌏 亚太">
+                  <option value="binance">Binance (币安)</option>
+                  <option value="okx">OKX (欧易)</option>
+                  <option value="bybit">Bybit (必应)</option>
+                  <option value="kucoin">KuCoin (库币)</option>
+                  <option value="gate">Gate.io (芝麻)</option>
+                  <option value="huobi">Huobi (火币)</option>
+                  <option value="bitget">Bitget</option>
+                </optgroup>
+                <optgroup label="🇯🇵 日本">
+                  <option value="bitflyer">bitFlyer</option>
+                  <option value="coincheck">Coincheck</option>
+                  <option value="zaif">Zaif</option>
+                </optgroup>
+                <optgroup label="🇰🇷 韩国">
+                  <option value="upbit">Upbit</option>
+                  <option value="bithumb">Bithumb</option>
+                  <option value="coinone">Coinone</option>
+                </optgroup>
+                <optgroup label="🇸🇬 东南亚">
+                  <option value="indodax">Indodax</option>
+                  <option value="tokocrypto">Tokocrypto</option>
+                </optgroup>
+                <optgroup label="🇦🇪 中东">
+                  <option value="bitOin">BitOin</option>
+                </optgroup>
+                <optgroup label="🇺🇸 美国">
+                  <option value="coinbase">Coinbase</option>
+                  <option value="kraken">Kraken</option>
+                  <option value="gemini">Gemini</option>
+                  <option value="cryptocom">Crypto.com</option>
+                </optgroup>
+                <optgroup label="🇪🇺 欧洲">
+                  <option value="bitstamp">Bitstamp</option>
+                  <option value="kucoineu">KuCoin EU</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          <!-- API配置 -->
+          <div id="arb-api-config" style="display:none;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
+            <div style="font-size:14px;font-weight:600;margin-bottom:12px" id="arb-api-title">配置 API</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="form-group">
+                <label data-i18n="arb_exchange_api">API Key</label>
+                <input type="text" id="arb-api-key" placeholder="输入 API Key" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:10px;width:100%">
+              </div>
+              <div class="form-group">
+                <label data-i18n="arb_exchange_secret">Secret Key</label>
+                <input type="password" id="arb-secret-key" placeholder="输入 Secret Key" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:10px;width:100%">
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:12px">
+              <button class="btn btn-primary" onclick="saveExchangeConfig()">💾 <span data-i18n="arb_exchange_save">保存</span></button>
+              <button class="btn btn-outline" onclick="cancelExchangeConfig()">✕ <span data-i18n="arb_exchange_cancel">取消</span></button>
+            </div>
+          </div>
+          <!-- 一键登录 -->
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="arb-quick-login-btn" onclick="quickLoginExchanges()">🔑 <span data-i18n="arb_quick_login">一键登录</span></button>
+            <button class="btn btn-outline" id="arb-logout-btn" onclick="logoutAllExchanges()" style="display:none">🔓 <span data-i18n="arb_logout">退出登录</span></button>
+          </div>
+        </div>
+
+        <!-- 套利设置 -->
+        <div class="card" style="margin-bottom:20px">
+          <div class="section-title"><span>⚙️ <span data-i18n="arb_settings">套利设置</span></span></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+            <div class="form-group">
+              <label data-i18n="arb_min_spread">最小价差 (%)</label>
+              <input type="number" id="arb-min-spread" value="0.5" step="0.1" min="0.1">
+            </div>
+            <div class="form-group">
+              <label data-i18n="arb_amount">每笔金额 (USD)</label>
+              <input type="number" id="arb-amount" value="1000" min="100">
+            </div>
+            <div class="form-group">
+              <label data-i18n="arb_max_positions">最大持仓</label>
+              <input type="number" id="arb-max-positions" value="3" min="1" max="10">
+            </div>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="arb-start-btn" onclick="startArbitrageEngine()">▶ <span data-i18n="arb_start">启动引擎</span></button>
+            <button class="btn btn-outline" id="arb-stop-btn" onclick="stopArbitrageEngine()" style="display:none">⏹ <span data-i18n="arb_stop">停止引擎</span></button>
+            <button class="btn btn-primary" id="arb-ai-btn" onclick="toggleAITrading()" style="background:var(--purple)">🤖 <span data-i18n="arb_ai_trade">AI自动交易</span></button>
+            <button class="btn btn-outline" id="arb-ai-stop-btn" onclick="stopAITrading()" style="display:none;background:rgba(168,85,247,.15);color:var(--purple)">⏹ <span data-i18n="arb_ai_stop">停止AI</span></button>
+            <button class="btn btn-outline" onclick="scanArbitrage()" data-i18n="arb_scan_now">🔍 立即扫描</button>
+          </div>
+        </div>
+
+        <!-- 套利记录 -->
+        <div class="card">
+          <div class="section-title"><span>📋 <span data-i18n="arb_orders">套利记录</span></span></div>
+          <table class="price-table" id="arb-history-table">
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>品种</th>
+                <th>买入</th>
+                <th>卖出</th>
+                <th>价差</th>
+                <th>预估收益</th>
+                <th>状态</th>
+              </tr>
+            </thead>
+            <tbody id="arb-history-body">
+              <tr><td colspan="7" style="text-align:center;color:var(--muted)" data-i18n="arb_no_trades">暂无套利记录</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- ===== 复制交易 / 排行榜 ===== -->
       <div class="page" id="page-copy">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
@@ -1691,12 +2009,12 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
           <div style="display:flex;align-items:center;gap:12px">
             <div style="font-size:24px">🧠</div>
             <div>
-              <div style="font-size:14px;font-weight:600;color:var(--text)">AI 智能跟单</div>
-              <div style="font-size:12px;color:var(--muted)" id="copy-ai-status">🔴 AI 已关闭，将手动选择操盘手跟单</div>
+              <div style="font-size:14px;font-weight:600;color:var(--text)" data-i18n="copy_ai_title">AI 智能跟单</div>
+              <div style="font-size:12px;color:var(--muted)" id="copy-ai-status" data-i18n="copy_ai_status_off">🔴 AI 已关闭，将手动选择操盘手跟单</div>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:12px;color:var(--muted)" id="copy-ai-label">关闭</span>
+            <span style="font-size:12px;color:var(--muted)" id="copy-ai-label" data-i18n="copy_ai_label_off">关闭</span>
             <div class="toggle" id="copy-ai-toggle" onclick="toggleCopyAI(this)"></div>
           </div>
         </div>
@@ -2036,31 +2354,117 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
 
 <!-- 券商连接模态框 -->
 <div class="modal-overlay" id="broker-modal">
-  <div class="modal">
-    <div class="modal-title">🏦 <span data-i18n="broker_modal_title">连接新券商</span> <span class="modal-close" onclick="closeModal('broker-modal')">✕</span></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
-      <div class="broker-card" style="cursor:pointer;border:1px solid var(--border);border-radius:14px;padding:14px" onclick="selectBroker(this,'Binance')">
-        <div class="broker-icon">🟡</div><div class="broker-info"><div class="broker-name">Binance</div><div style="font-size:12px;color:var(--muted)" data-i18n="cat_crypto">加密货币</div></div>
-      </div>
-      <div class="broker-card" style="cursor:pointer;border:1px solid var(--border);border-radius:14px;padding:14px" onclick="selectBroker(this,'OKX')">
-        <div class="broker-icon">🔵</div><div class="broker-info"><div class="broker-name">OKX</div><div style="font-size:12px;color:var(--muted)" data-i18n="cat_crypto">加密货币</div></div>
-      </div>
-      <div class="broker-card" style="cursor:pointer;border:1px solid var(--border);border-radius:14px;padding:14px" onclick="selectBroker(this,'MT4/MT5')">
-        <div class="broker-icon">📊</div><div class="broker-info"><div class="broker-name">MT4/MT5</div><div style="font-size:12px;color:var(--muted)" data-i18n="cat_forex_metals">外汇/贵金属</div></div>
-      </div>
-      <div class="broker-card" style="cursor:pointer;border:1px solid var(--border);border-radius:14px;padding:14px" onclick="selectBroker(this,'IG')">
-        <div class="broker-icon">📉</div><div class="broker-info"><div class="broker-name">IG Markets</div><div style="font-size:12px;color:var(--muted)" data-i18n="cat_all_cfd">全品种CFD</div></div>
-      </div>
-    </div>
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title">🏦 <span data-i18n="broker_modal_title">连接券商</span> <span class="modal-close" onclick="closeModal('broker-modal')">✕</span></div>
+    
+    <!-- 海外期货券商选择 -->
     <div class="form-group" style="margin-bottom:12px">
-      <label>API Key</label>
-      <input class="op-input" type="text" id="broker-api-key" placeholder="API Key...">
+      <label>选择券商 (MT4/MT5)</label>
+      <select class="op-input" id="broker-select-forex" onchange="onForexBrokerChange()">
+        <option value="">-- 选择海外期货券商 --</option>
+        <optgroup label="🇬🇧 英国">
+          <option value="IC Markets">IC Markets</option>
+          <option value="Tickmill">Tickmill</option>
+          <option value="Pepperstone">Pepperstone</option>
+        </optgroup>
+        <optgroup label="🇨🇾 塞浦路斯">
+          <option value="Exness">Exness</option>
+          <option value="FXTM">FXTM</option>
+          <option value="Alvexo">Alvexo</option>
+          <option value="Libertex">Libertex</option>
+        </optgroup>
+        <optgroup label="🇦🇪 阿联酋">
+          <option value="INFINOX">INFINOX</option>
+          <option value="SIX Broker">SIX Broker</option>
+          <option value="Al Masah Capital">Al Masah Capital</option>
+        </optgroup>
+        <optgroup label="🇭🇰 香港">
+          <option value="Interactive Brokers">Interactive Brokers</option>
+          <option value="盛宝金融">盛宝金融 (Saxo)</option>
+          <option value="辉立证券">辉立证券</option>
+        </optgroup>
+        <optgroup label="🇯🇵 日本">
+          <option value="GMOクリック">GMOクリック証券</option>
+          <option value="DMM FX">DMM FX</option>
+          <option value="外為どっとコム">外為どっとコム</option>
+          <option value="SBI FX">SBI FXトレード</option>
+        </optgroup>
+        <optgroup label="🇰🇷 韩国">
+          <option value="Kiwoom">Kiwoom Securities</option>
+          <option value="Korea Investment">Korea Investment</option>
+          <option value="Samsung Securities">Samsung Securities</option>
+        </optgroup>
+        <optgroup label="🇸🇬 新加坡">
+          <option value="IG Markets">IG Markets</option>
+          <option value="CMC Markets">CMC Markets</option>
+          <option value="OANDA">OANDA</option>
+        </optgroup>
+        <optgroup label="🇦🇺 澳大利亚">
+          <option value="Vantage">Vantage</option>
+          <option value="Axi">Axi</option>
+          <option value="GO Markets">GO Markets</option>
+        </optgroup>
+        <optgroup label="🇩🇪 德国">
+          <option value="LMAX">LMAX Exchange</option>
+          <option value="Commerzbank">Commerzbank</option>
+        </optgroup>
+        <optgroup label="🇺🇸 美国">
+          <option value="CIM">CIM Investment</option>
+          <option value="Charles Schwab">Charles Schwab</option>
+        </optgroup>
+      </select>
     </div>
-    <div class="form-group" style="margin-bottom:16px">
-      <label>API Secret</label>
-      <input class="op-input" type="password" id="broker-api-secret" placeholder="API Secret...">
+
+    <!-- 第一步：券商管理后台登录 (可选) -->
+    <div style="background:var(--bg);padding:12px;border-radius:8px;margin-bottom:12px;border:1px solid var(--border)">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--cyan)">📧 第一步：券商管理后台登录（可选）</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">用于管理账户、出入金（如果券商提供）</div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>📧 券商登录邮箱</label>
+        <input class="op-input" type="email" id="broker-portal-email" placeholder="your@email.com">
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>🔐 券商登录密码</label>
+        <input class="op-input" type="password" id="broker-portal-password" placeholder="券商后台登录密码">
+      </div>
+      <button class="btn btn-sm" style="width:100%;background:var(--primary);color:#fff" onclick="connectBrokerPortal()">📥 获取可用交易账户</button>
     </div>
-    <button class="btn btn-primary" style="width:100%;padding:12px" onclick="connectBroker()" data-i18n="broker_connect_btn">验证并连接</button>
+
+    <!-- 可用交易账户列表 -->
+    <div id="broker-accounts-list" style="display:none;background:var(--bg);padding:12px;border-radius:8px;margin-bottom:12px;border:1px solid var(--green)">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--green)">📋 可用交易账户</div>
+      <div id="broker-accounts-items" style="max-height:150px;overflow-y:auto"></div>
+    </div>
+
+    <!-- 第二步：MT4/MT5交易账户登录 -->
+    <div style="background:var(--bg);padding:12px;border-radius:8px;margin-bottom:16px;border:1px solid var(--border)">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--cyan)">🔢 第二步：MT4/MT5交易账户登录</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">用于实际交易（必填）</div>
+      
+      <div class="form-group" style="margin-bottom:12px">
+        <label>账户类型</label>
+        <select class="op-input" id="broker-account-type">
+          <option value="real">真实账户</option>
+          <option value="demo">模拟账户</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>🔢 登录账户ID</label>
+        <input class="op-input" type="text" id="broker-login-email" placeholder="MT4/MT5 登录账户ID">
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>🔐 密码</label>
+        <input class="op-input" type="password" id="broker-login-password" placeholder="主密码">
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>🖥️ 服务器</label>
+        <select class="op-input" id="broker-server" onchange="onServerChange()">
+          <option value="">-- 先选择券商 --</option>
+        </select>
+      </div>
+    </div>
+    
+    <button class="btn btn-primary" style="width:100%;padding:12px" onclick="connectForexBroker()" data-i18n="broker_connect_btn">🔗 验证并连接交易账户</button>
   </div>
 </div>
 
@@ -2349,7 +2753,7 @@ async function loadKline(sym, interval){
       const base = generateSimKlineBase(bp, 200, ivSecs);
       candleSeries.setData(base.data);
       volumeSeries.setData(base.volData);
-      if(lbl) lbl.innerHTML = `<span style="color:#F5A623">Binance 不可达 · 模拟数据</span>`;
+      if(lbl) lbl.innerHTML = `<span style="color:#F5A623" data-i18n="binance_unreachable">Binance 不可达 · 模拟数据</span>`;
     }
   } else {
     // === 传统品种：模拟底座 + 休市判断 ===
@@ -2902,6 +3306,42 @@ function renderStrategies(){
 // ===== 账户交易日志 =====
 const TLOG_PAIRS = ['BTC/USDT','XAU/USD','EUR/USD','ETH/USDT','NAS100','GBP/USD','AUD/USD','SOL/USDT','WTI/USD','BNB/USDT'];
 let _tlogData = [];
+let _tlogLoaded = false;
+
+async function loadOrdersFromAPI(){
+  // 检查是否已登录
+  if(!localStorage.getItem('token')) return null;
+  
+  try{
+    const res = await fetch(API_BASE + '/api/orders', {
+      headers: {
+        'Authorization': 'Bearer ' + localStorage.getItem('token')
+      }
+    });
+    if(res.ok){
+      const orders = await res.json();
+      // 转换为 tlog 格式
+      return orders.map(o => ({
+        id: o.id,
+        pair: o.symbol,
+        buy: o.side === 'buy',
+        pnl: 0, // 待计算
+        openP: o.filled_price || o.price || 0,
+        closeP: o.filled_price || o.price || 0,
+        lots: o.filled_quantity || o.quantity || 0,
+        holdH: 0,
+        date: new Date(o.created_at),
+        // 返点信息
+        trade_amount: o.trade_amount || 0,
+        rebate_amount: o.rebate_amount || 0,
+        rebate_percent: o.rebate_percent || 1.0
+      }));
+    }
+  }catch(e){
+    console.error('加载订单失败:', e);
+  }
+  return null;
+}
 
 function genTlogData(){
   _tlogData = Array.from({length:40},(_,i)=>{
@@ -2914,13 +3354,32 @@ function genTlogData(){
     const closeP = (parseFloat(openP)*(1+(pnl>0?1:-1)*Math.random()*.008)).toFixed(openP.indexOf('.')>=0?openP.split('.')[1].length:2);
     const lots = (Math.random()*0.9+0.1).toFixed(2);
     const d = new Date(Date.now()-i*86400000*2.3 - Math.random()*86400000);
-    return {id:i, pair, buy, pnl, openP, closeP, lots, holdH, date:d};
+    const tradeAmount = parseFloat(openP) * parseFloat(lots);
+    return {id:i, pair, buy, pnl, openP, closeP, lots, holdH, date:d, trade_amount:tradeAmount, rebate_amount:tradeAmount*0.01, rebate_percent:1.0};
   });
 }
 
 function renderTlog(filter='all'){
   const body = document.getElementById('tlog-body');
   if(!body) return;
+  
+  // 如果还没有数据，先加载
+  if(!_tlogLoaded){
+    // 优先从 API 获取真实订单数据
+    loadOrdersFromAPI().then(apiOrders => {
+      if(apiOrders && apiOrders.length > 0){
+        _tlogData = apiOrders;
+      }else{
+        genTlogData();
+      }
+      _tlogLoaded = true;
+      renderTlog(filter);
+    });
+    // 显示加载中
+    body.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted)">加载中...</div>';
+    return;
+  }
+  
   if(!_tlogData.length) genTlogData();
   let rows = _tlogData;
   if(filter==='buy')  rows = rows.filter(r=>r.buy);
@@ -2935,6 +3394,10 @@ function renderTlog(filter='all'){
   const avgH  = total ? (rows.reduce((s,r)=>s+r.holdH,0)/total).toFixed(1) : 0;
   const best  = total ? Math.max(...rows.map(r=>r.pnl)).toFixed(2) : 0;
   const worst = total ? Math.min(...rows.map(r=>r.pnl)).toFixed(2) : 0;
+  
+  // 计算返点总额
+  const totalRebate = rows.reduce((s,r)=>s+(r.rebate_amount||0),0).toFixed(2);
+  
   const setEl = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
   setEl('tls-total', total);
   setEl('tls-wr',    total ? (wins/total*100).toFixed(1)+'%' : '—');
@@ -2943,12 +3406,14 @@ function renderTlog(filter='all'){
   setEl('tls-hold',  avgH+'h');
   setEl('tls-best',  '+$'+best);
   setEl('tls-worst', '$'+worst);
+  setEl('tls-rebate', '+$'+totalRebate);
 
   body.innerHTML = rows.map(r=>{
     const buyDir = r.buy ? t('tlog_dir_long') : t('tlog_dir_short');
     const pnlStr = (r.pnl>=0?'+':'')+`$${r.pnl.toFixed(2)}`;
     const pnlCls = r.pnl>=0 ? 'tlog-pnl-up' : 'tlog-pnl-down';
     const dirCls = r.buy ? 'tlog-dir-buy' : 'tlog-dir-sell';
+    const rebateInfo = r.rebate_amount ? `<span style="font-size:10px;color:var(--cyan);margin-left:4px">+$${r.rebate_amount.toFixed(2)}</span>` : '';
     return `<div class="tlog-row">
       <span class="tlog-muted">${r.date.toISOString().slice(0,16).replace('T',' ')}</span>
       <span style="font-weight:600">${r.pair}</span>
@@ -2956,7 +3421,7 @@ function renderTlog(filter='all'){
       <span class="tlog-muted">${r.openP}</span>
       <span class="tlog-muted">${r.closeP}</span>
       <span class="tlog-muted">${r.lots}</span>
-      <span class="${pnlCls}">${pnlStr}</span>
+      <span class="${pnlCls}">${pnlStr}${rebateInfo}</span>
       <span class="tlog-muted">${r.holdH}h</span>
     </div>`;
   }).join('') || `<div style="padding:24px;text-align:center;color:var(--muted)" data-i18n="tlog_empty">${t('tlog_empty')}</div>`;
@@ -3056,7 +3521,7 @@ async function sendChat(){
   let replyText = null;
 
   // ── 直接调用 Groq API（内联，不依赖Gateway层）──
-  const _GROQ_KEY = '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';
+  const _GROQ_KEY = 'YOUR_GROQ_API_KEY';
   const _GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
   const _SYSTEM   = `你是 QuantAI 量化交易平台的专业 AI 顾问助手。
 平台功能：实时行情/K线/AI顾问/量化策略/回测/复制交易/自动建仓/交易广场/策略市场/信号广播/FRED宏观数据。
@@ -3159,6 +3624,7 @@ function showPage(name, navEl){
   if(name==='square') renderSquare('all');
   if(name==='stratmarket') renderStratMarket('all');
   if(name==='signals') renderSignalsPage();
+  if(name==='arbitrage') initArbitragePage();
   if(name==='ai') fetchFredMacro(); // 每次进入AI顾问页时刷新宏观数据
 
   closeSidebar();
@@ -3179,7 +3645,7 @@ function switchAccountTab(tabName, el){
   el.style.borderBottom = '2px solid var(--green)';
   
   // 隐藏所有标签内容
-  const tabIds = ['positions', 'signals', 'manual', 'market', 'strategies'];
+  const tabIds = ['positions', 'trades', 'signals', 'manual', 'market', 'strategies', 'exchanges'];
   tabIds.forEach(id => {
     const contentEl = document.getElementById('acc-tab-' + id);
     if(contentEl) contentEl.style.display = 'none';
@@ -3188,7 +3654,156 @@ function switchAccountTab(tabName, el){
   // 显示选中的标签内容
   const activeContent = document.getElementById('acc-tab-' + tabName);
   if(activeContent) activeContent.style.display = 'block';
+  
+  // 如果是交易所标签页，加载已连接的交易所
+  if(tabName === 'exchanges'){
+    loadConnectedExchanges();
+  }
 }
+
+// 交易所配置
+function saveExchangeConfig(){
+  const ex = document.getElementById('exchange-select').value;
+  const key = document.getElementById('exchange-api-key').value;
+  const sec = document.getElementById('exchange-api-secret').value;
+  const passphrase = document.getElementById('exchange-api-passphrase')?.value || '';
+  const accountId = document.getElementById('exchange-account-id')?.value || '';
+  
+  if(!ex || !key || !sec){
+    alert('请填写完整');
+    return;
+  }
+  if(ex === 'mt5' && !accountId){
+    alert('MT5 需要填写账户ID');
+    return;
+  }
+  
+  const tok = localStorage.getItem('qlang') || localStorage.getItem('access_token');
+  if(!tok){ alert('请先登录'); return; }
+  
+  // 根据不同交易所类型构建请求体
+  const payload = {
+    broker_name: ex,
+    broker_type: ex === 'mt5' ? 'mt5' : 'crypto',
+    api_key: key,
+    api_secret: sec
+  };
+  
+  // 添加 passphrase（OKX 等需要）
+  if(passphrase){
+    payload.api_passphrase = passphrase;
+  }
+  
+  // 添加账户ID（MT5需要）
+  if(accountId){
+    payload.account_id = accountId;
+  }
+  
+  fetch(API_BASE + '/api/brokers/', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok}, body:JSON.stringify(payload)})
+    .then(r=>r.json()).then(d=>{
+      if(d.id){
+        alert('✅ 成功连接 ' + ex);
+        loadConnectedExchanges();
+        // 同步到 Arbitrage 页面的 localStorage
+        syncExchangesToArbitrage();
+      } else {
+        alert('❌ 连接失败: ' + (d.detail || '请检查API Key是否正确'));
+      }
+    }).catch(e=>alert('❌ 连接失败: ' + e));
+}
+
+function syncExchangesToArbitrage(){
+  const tok = localStorage.getItem('qlang') || localStorage.getItem('access_token');
+  if(!tok) return;
+  fetch(API_BASE + '/api/brokers/', {headers:{'Authorization':'Bearer '+tok}}).then(r=>r.json()).then(list=>{
+    const arbExchanges = {};
+    list.forEach(b=>{
+      arbExchanges[b.broker_name] = {key: b.api_key, secret: b.api_secret};
+    });
+    localStorage.setItem('arb_exchanges',JSON.stringify(arbExchanges));
+    // 如果Arbitrage页面已加载，更新显示
+    if(typeof renderConnectedExchanges === 'function'){
+      renderConnectedExchanges();
+    }
+  }).catch(e=>console.error('同步交易所失败:', e));
+}
+
+function loadConnectedExchanges(){
+  const tok = localStorage.getItem('qlang') || localStorage.getItem('access_token');
+  if(!tok) return;
+  fetch(API_BASE + '/api/brokers/', {headers:{'Authorization':'Bearer '+tok}}).then(r=>r.json()).then(list=>{
+    const el = document.getElementById('connected-exchanges-list');
+    if(el){
+      if(list.length === 0){
+        el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">暂无券商配置</div>';
+      } else {
+        // 按券商分组显示多个账户
+        const brokers = {};
+        list.forEach(a => {
+          if(!brokers[a.broker_name]) brokers[a.broker_name] = [];
+          brokers[a.broker_name].push(a);
+        });
+        let html = '';
+        for(const name in brokers){
+          const accounts = brokers[name];
+          accounts.forEach(a => {
+            const isActive = a.is_active;
+            const typeIcon = a.broker_type === 'forex' ? '🌐' : (a.broker_type === 'metaapi' ? '🔷' : '🪙');
+            const accountType = a.account_type === 'demo' ? '模拟' : '真实';
+            const accountInfo = a.email ? `账户: ${a.email} | 服务器: ${a.server || '-'}` : (a.account_type ? accountType : '');
+            const activeBtn = isActive ? 
+              '<span style="background:var(--green);color:#000;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700">🟢 交易中</span>' :
+              `<button class="btn btn-sm" style="font-size:11px;padding:3px 8px;background:var(--cyan);color:#000" onclick="setActiveAccount(${a.id},'${a.display_name.replace(/'/g,"\\'")}')">🔄 切换</button>`;
+            html += `<div style="padding:12px;background:var(--bg);margin:5px 0;border-radius:8px;border:${isActive ? '1px solid var(--green)' : '1px solid var(--border)'}">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div>
+                  <div style="font-weight:600;font-size:14px">${typeIcon} ${a.display_name || a.broker_name}</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px">${accountInfo}</div>
+                  <div style="font-size:11px;color:var(--muted)">余额: ${a.balance || 0} ${a.currency || 'USDT'}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  ${activeBtn}
+                  <button class="btn btn-sm btn-danger" style="font-size:11px;padding:3px 8px" onclick="removeExchange(${a.id})">✕</button>
+                </div>
+              </div>
+            </div>`;
+          });
+        }
+        el.innerHTML = html;
+      }
+    }
+  });
+}
+
+// 设置活跃交易账户
+function setActiveAccount(id, name){
+  const tok = localStorage.getItem('qlang') || localStorage.getItem('access_token');
+  if(!tok) return;
+  fetch(API_BASE + '/api/brokers/set-active', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json', 'Authorization':'Bearer '+tok},
+    body: JSON.stringify({account_id: id})
+  }).then(r=>r.json()).then(d=>{
+    if(d.success){
+      toast('✅ 已切换交易账户: ' + name, 'success');
+      loadConnectedExchanges();
+    }
+  });
+}
+
+function removeExchange(id){
+  if(!confirm('断开?')) return;
+  const tok = localStorage.getItem('qlang')||localStorage.getItem('access_token');
+  fetch(API_BASE+'/api/brokers/'+id, {method:'DELETE', headers:{'Authorization':'Bearer '+tok}}).then(()=>{
+    loadConnectedExchanges();
+    syncExchangesToArbitrage();
+  });
+}
+
+document.getElementById('exchange-select')?.addEventListener('change', function(){
+  document.getElementById('exchange-passphrase-group').style.display = (this.value==='okx')?'block':'none';
+  document.getElementById('exchange-account-id-group').style.display = (this.value==='mt5')?'block':'none';
+});
 
 // ===== 一键暂停AI =====
 function toggleAI(){
@@ -3198,36 +3813,206 @@ function toggleAI(){
 }
 
 // ===== AI顾问页面自动交易开关 =====
+let _aiAutoTradeTimer = null;
+let _aiAutoTradeOn = false;
+
 function toggleAIAutoTrade(el){
   el.classList.toggle('on');
   const isOn = el.classList.contains('on');
+  _aiAutoTradeOn = isOn;
   const statusEl = document.getElementById('ai-auto-status');
   const labelEl = document.getElementById('ai-auto-label');
   if(isOn){
     statusEl.textContent = '🟢 AI 已开启，自动分析市场并执行交易';
     labelEl.textContent = '开启';
+    // 启动AI分析定时器，每10秒调用AI分析一次
+    _aiAutoTradeTimer = setInterval(runAIAutoTradeAnalysis, 10000);
+    runAIAutoTradeAnalysis();
     toast('🤖 AI自动交易已开启', 'success');
   } else {
     statusEl.textContent = '🔴 AI 已关闭，不会自动执行交易';
     labelEl.textContent = '关闭';
+    if(_aiAutoTradeTimer){
+      clearInterval(_aiAutoTradeTimer);
+      _aiAutoTradeTimer = null;
+    }
     toast('⏸️ AI自动交易已关闭', 'warning');
   }
 }
 
+// AI自动交易核心逻辑 - 调用Groq分析市场并执行交易
+async function runAIAutoTradeAnalysis(){
+  if(!_aiAutoTradeOn) return;
+  
+  try {
+    // 获取当前市场行情
+    const symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'];
+    const prices = {};
+    
+    for(const sym of symbols){
+      try {
+        const res = await fetch(`${window.API_BASE}/api/market/price/${encodeURIComponent(sym)}`);
+        if(res.ok){
+          const data = await res.json();
+          prices[sym] = data.price || data.last;
+        }
+      } catch(e){}
+    }
+    
+    // 调用OpenRouter DeepSeek分析市场
+    const OR_KEY = 'YOUR_OPENROUTER_KEY'; // DeepSeek Key
+    const OR_URL = 'https://openrouter.ai/api/v1/chat/completions';
+    
+    const prompt = `你是量化交易AI助手。当前市场价格：
+${Object.entries(prices).map(([s,p])=>`${s}: $${p}`).join(', ')}
+
+请分析市场并给出交易建议。要求：
+1. 输出JSON格式：{"action": "buy|sell|hold", "symbol": "BTC/USDT", "amount": 数量, "reason": "原因"}
+2. 只在有明确机会时建议交易，否则返回hold
+3. 不要输出其他内容`;
+
+    const res = await fetch(OR_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+OR_KEY},
+      body:JSON.stringify({
+        model:'deepseek/deepseek-chat',
+        messages:[{role:'user', content:prompt}],
+        max_tokens:200,
+        temperature:0.3
+      }),
+      signal: AbortSignal.timeout(15000)
+    });
+    
+    if(res.ok){
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content || '';
+      
+      // 尝试解析AI响应
+      try {
+        const match = content.match(/\{[\s\S]*\}/);
+        if(match){
+          const trade = JSON.parse(match);
+          if(trade.action === 'buy' || trade.action === 'sell'){
+            // 执行交易
+            console.log('[AI自动交易] 信号:', trade);
+            
+            // 记录AI交易信号到后端（数据飞轮）
+            if(window._userId && window._userToken){
+              fetch(`${window.API_BASE}/api/ai-signals`, {
+                method:'POST',
+                headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+window._userToken},
+                body:JSON.stringify({
+                  signal_type: trade.action,
+                  symbol: trade.symbol,
+                  amount: trade.amount || 0,
+                  reason: trade.reason || '',
+                  market_snapshot: prices,
+                  source: 'ai_advisor'
+                })
+              }).catch(()=>{});
+            }
+          }
+        }
+      } catch(e){
+        console.log('[AI分析] 解析响应失败:', content.slice(0,100));
+      }
+    }
+  } catch(e){
+    console.error('[AI自动交易] 分析失败:', e);
+  }
+}
+
 // ===== 复制交易页面AI智能跟单开关 =====
+let _copyAITimer = null;
+let _copyAIOn = false;
+
 function toggleCopyAI(el){
   el.classList.toggle('on');
   const isOn = el.classList.contains('on');
+  _copyAIOn = isOn;
   const statusEl = document.getElementById('copy-ai-status');
   const labelEl = document.getElementById('copy-ai-label');
   if(isOn){
     statusEl.textContent = '🟢 AI 已开启，自动分析操盘手交易日志和市场行情，智能选择最优跟单';
     labelEl.textContent = '开启';
+    // 启动AI分析定时器
+    _copyAITimer = setInterval(runCopyAIAnalysis, 15000);
+    runCopyAIAnalysis();
     toast('🧠 AI智能跟单已开启', 'success');
   } else {
     statusEl.textContent = '🔴 AI 已关闭，将手动选择操盘手跟单';
     labelEl.textContent = '关闭';
+    if(_copyAITimer){
+      clearInterval(_copyAITimer);
+      _copyAITimer = null;
+    }
     toast('⏸️ AI智能跟单已关闭', 'warning');
+  }
+}
+
+// AI智能跟单核心逻辑 - 调用Groq分析最优跟单
+async function runCopyAIAnalysis(){
+  if(!_copyAIOn) return;
+  
+  try {
+    // 获取排行榜数据
+    const traders = await fetch(`${window.API_BASE}/api/copy/traders`).then(r=>r.json()).catch(()=>[]);
+    
+    // 获取市场数据
+    const marketData = await fetch(`${window.API_BASE}/api/market/prices`).then(r=>r.json()).catch(()=>{});
+    
+    const OR_KEY = 'YOUR_OPENROUTER_KEY';
+    const OR_URL = 'https://openrouter.ai/api/v1/chat/completions';
+    
+    const prompt = `你是量化交易AI助手。分析以下操盘手数据：
+${JSON.stringify(traders.slice(0,5)).slice(0,500)}
+
+当前市场：${JSON.stringify(marketData || {}).slice(0,200)}
+
+请分析并给出最优跟单建议。输出JSON：
+{"trader_id": "id", "action": "follow|skip", "amount": 数量, "reason": "原因"}`;
+
+    const res = await fetch(OR_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+OR_KEY},
+      body:JSON.stringify({
+        model:'deepseek/deepseek-chat',
+        messages:[{role:'user', content:prompt}],
+        max_tokens:150,
+        temperature:0.3
+      }),
+      signal: AbortSignal.timeout(15000)
+    });
+    
+    if(res.ok){
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content || '';
+      try {
+        const match = content.match(/\{[\s\S]*\}/);
+        if(match){
+          const result = JSON.parse(match);
+          console.log('[AI智能跟单] 建议:', result);
+          
+          // 记录AI交易信号到后端
+          if(window._userId && window._userToken && result.action === 'follow'){
+            fetch(`${window.API_BASE}/api/ai-signals`, {
+              method:'POST',
+              headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+window._userToken},
+              body:JSON.stringify({
+                signal_type: 'follow',
+                symbol: result.trader_id || '',
+                amount: result.amount || 0,
+                reason: result.reason || '',
+                market_snapshot: marketData || {},
+                source: 'copy_trading'
+              })
+            }).catch(()=>{});
+          }
+        }
+      } catch(e){}
+    }
+  } catch(e){
+    console.error('[AI智能跟单] 分析失败:', e);
   }
 }
 
@@ -3299,12 +4084,390 @@ function deleteStrat(id){
 function showAddStrategy(){ toast('➕ '+(t('toast_coming_soon')||'Coming soon'),''); }
 
 // ===== 券商 =====
-function showBrokerModal(){ document.getElementById('broker-modal').classList.add('show'); }
-function selectBroker(el,name){
-  document.querySelectorAll('#broker-modal .broker-card').forEach(c=>c.style.borderColor='var(--border)');
-  el.style.borderColor='var(--green)';
+let selectedBroker = null;
+
+function showBrokerModal(){ 
+  document.getElementById('broker-modal').classList.add('show'); 
+  // 清空表单
+  document.getElementById('broker-api-key').value = '';
+  document.getElementById('broker-api-secret').value = '';
+  document.getElementById('broker-batch-import').value = '';
 }
-function connectBroker(){ closeModal('broker-modal'); toast('✅ '+(t('toast_broker_connected')||'Broker connected! API verified'),'success'); }
+function selectBroker(el, name){
+  selectedBroker = name;
+  document.querySelectorAll('#broker-modal .broker-card').forEach(c=>c.style.borderColor='var(--border)');
+  el.style.borderColor='var(--cyan)';
+}
+
+async function batchImportBrokers(){
+  const input = document.getElementById('broker-batch-import').value.trim();
+  if(!input){
+    toast('请输入 JSON 数据','error');
+    return;
+  }
+  
+  let accounts;
+  try{
+    accounts = JSON.parse(input);
+    if(!Array.isArray(accounts)) throw new Error('需要数组格式');
+  }catch(e){
+    toast('JSON 格式错误','error');
+    return;
+  }
+  
+  if(accounts.length === 0){
+    toast('没有要导入的账户','error');
+    return;
+  }
+  
+  // 检查是否已登录
+  if(!localStorage.getItem('token')){
+    toast('请先登录后再导入','error');
+    showLoginModal();
+    return;
+  }
+  
+  toast('正在导入...','');
+  
+  try{
+    const res = await fetch(API_BASE + '/api/brokers/batch-import', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + localStorage.getItem('token')
+      },
+      body: JSON.stringify({accounts: accounts})
+    });
+    
+    const data = await res.json();
+    closeModal('broker-modal');
+    
+    const successCount = data.results ? data.results.filter(r=>r.success).length : 0;
+    const failCount = accounts.length - successCount;
+    
+    if(successCount > 0){
+      toast(`✅ 成功导入 ${successCount} 个券商账户`, 'success');
+    }
+    if(failCount > 0){
+      toast(`⚠️ ${failCount} 个导入失败`, 'error');
+    }
+    
+    // 刷新账户列表
+    if(window.loadBrokerAccounts) loadBrokerAccounts();
+  }catch(e){
+    toast('导入失败: ' + e.message, 'error');
+  }
+}
+
+async function connectBroker(){
+  const apiKey = document.getElementById('broker-api-key').value.trim();
+  const apiSecret = document.getElementById('broker-api-secret').value.trim();
+  
+  if(!selectedBroker){
+    toast('请先选择券商','error');
+    return;
+  }
+  if(!apiKey || !apiSecret){
+    toast('请填写 API Key 和 Secret','error');
+    return;
+  }
+  
+  // 检查是否已登录
+  if(!localStorage.getItem('token')){
+    toast('请先登录后再连接','error');
+    showLoginModal();
+    return;
+  }
+  
+  toast('正在验证...','');
+  
+  try{
+    const res = await fetch(API_BASE + '/api/brokers/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + localStorage.getItem('token')
+      },
+      body: JSON.stringify({
+        broker_name: selectedBroker,
+        broker_type: 'crypto',
+        api_key: apiKey,
+        api_secret: apiSecret,
+        is_testnet: false
+      })
+    });
+    
+    if(!res.ok) throw new Error('连接失败');
+    
+    closeModal('broker-modal');
+    toast('✅ ' + selectedBroker + ' 连接成功!', 'success');
+    
+    // 刷新账户列表
+    if(window.loadBrokerAccounts) loadBrokerAccounts();
+}catch(e){
+    toast('连接失败: ' + e.message, 'error');
+  }
+}
+
+// 券商管理后台登录 - 获取可用交易账户
+async function connectBrokerPortal(){
+  const broker = document.getElementById('broker-select-forex').value;
+  const portalEmail = document.getElementById('broker-portal-email').value.trim();
+  const portalPassword = document.getElementById('broker-portal-password').value;
+  
+  if(!broker){
+    toast('请选择券商', 'error');
+    return;
+  }
+  if(!portalEmail || !portalPassword){
+    toast('请填写券商登录邮箱和密码', 'error');
+    return;
+  }
+  
+  try{
+    const tok = localStorage.getItem('token');
+    const res = await fetch(API_BASE + '/api/brokers/portal-accounts', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'Authorization':'Bearer '+tok},
+      body: JSON.stringify({
+        broker_name: broker,
+        portal_email: portalEmail,
+        portal_password: portalPassword
+      })
+    });
+    const data = await res.json();
+    
+    if(data.success && data.accounts){
+      // 显示可用账户列表
+      const listEl = document.getElementById('broker-accounts-list');
+      const itemsEl = document.getElementById('broker-accounts-items');
+      listEl.style.display = 'block';
+      itemsEl.innerHTML = data.accounts.map(a => `
+        <div style="padding:8px;margin:5px 0;background:var(--bg-alt);border-radius:6px;cursor:pointer;border:1px solid var(--border)"
+          onclick="selectBrokerAccount('${a.id}', '${a.server}', '${a.type}')">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <span style="font-weight:600">🆔 ${a.id}</span>
+              <span style="font-size:11px;color:var(--muted)">${a.server}</span>
+            </div>
+            <span class="tag ${a.type === 'demo' ? 'tag-warning' : 'tag-success'}">${a.type === 'demo' ? '模拟' : '真实'}</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted)">余额: ${a.balance} ${a.currency}</div>
+        </div>
+      `).join('');
+      toast('✅ 获取到 ' + data.accounts.length + ' 个可用账户', 'success');
+    } else {
+      toast(data.message || '获取账户失败', 'error');
+    }
+  }catch(e){
+    toast('获取账户失败: ' + e.message, 'error');
+  }
+}
+
+// 选择可用交易账户
+function selectBrokerAccount(id, server, type){
+  document.getElementById('broker-login-email').value = id;
+  document.getElementById('broker-server').value = server;
+  document.getElementById('broker-account-type').value = type;
+  document.getElementById('broker-accounts-list').style.display = 'none';
+  toast('✅ 已选择账户: ' + id, 'success');
+}
+
+ // 连接海外期货券商 (MT4/MT5登录)
+async function connectForexBroker(){
+  const broker = document.getElementById('broker-select-forex').value;
+  const accountId = document.getElementById('broker-login-email').value.trim();
+  const password = document.getElementById('broker-login-password').value;
+  const server = document.getElementById('broker-server').value;
+  const accountType = document.getElementById('broker-account-type').value;
+  
+  if(!broker){
+    toast('请选择海外期货券商','error');
+    return;
+  }
+  if(!accountId || !password){
+    toast('请填写账户ID和密码','error');
+    return;
+  }
+  if(!server){
+    toast('请选择服务器','error');
+    return;
+  }
+  
+  // 检查是否已登录 (兼容 token 和 access_token)
+  const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+  if(!token){
+    toast('请先登录后再连接','error');
+    showLoginModal();
+    return;
+  }
+  
+  toast('正在验证 ' + broker + ' 账户...','');
+  
+  try{
+    // 调用后端API进行验证
+    const res = await fetch(API_BASE + '/api/brokers/forex/connect', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        broker_name: broker,
+        email: email,
+        password: password,
+        server: server,
+        account_type: accountType, // real or demo
+        broker_type: 'forex'
+      })
+    });
+    
+    const data = await res.json();
+    
+    if(res.ok && data.success){
+      closeModal('broker-modal');
+      toast('✅ ' + broker + ' (' + (accountType === 'demo' ? '模拟' : '真实') + '账户) 连接成功!', 'success');
+      
+      // 刷新账户列表
+      if(window.loadBrokerAccounts) loadBrokerAccounts();
+    } else {
+      toast('连接失败: ' + (data.detail || '请检查登录凭据是否正确'), 'error');
+    }
+  }catch(e){
+    toast('连接失败: ' + e.message, 'error');
+  }
+}
+
+// 选择外汇券商时的回调 - 加载该券商的服务器列表
+function onForexBrokerChange(){
+  const broker = document.getElementById('broker-select-forex').value;
+  const serverSelect = document.getElementById('broker-server');
+  
+  // 各券商真实服务器列表（从MetaApi/MetaTrader官方获取）
+  const brokerServers = {
+    'IC Markets': [
+      {server: 'ICMarkets-Demo', name: 'Demo Server 模拟服务器', type: 'demo'},
+      {server: 'ICMarkets-Live', name: 'Live Server 真实服务器', type: 'real'},
+      {server: 'ICMarkets-Live1', name: 'Live Server 1', type: 'real'},
+      {server: 'ICMarkets-Live2', name: 'Live Server 2', type: 'real'},
+      {server: 'ICMarkets-Live3', name: 'Live Server 3', type: 'real'},
+      {server: 'ICMarkets-Live4', name: 'Live Server 4', type: 'real'},
+      {server: 'ICMarkets-Live5', name: 'Live Server 5', type: 'real'}
+    ],
+    'Exness': [
+      {server: 'Exness-Demo', name: 'Demo 模拟账户', type: 'demo'},
+      {server: 'Exness-Pro', name: 'Pro 真实账户', type: 'real'},
+      {server: 'Exness-Pro2', name: 'Pro2 真实账户', type: 'real'},
+      {server: 'Exness-Raw', name: 'Raw 真实账户', type: 'real'},
+      {server: 'Exness-Raw2', name: 'Raw2 真实账户', type: 'real'},
+      {server: 'Exness-Zero', name: 'Zero 真实账户', type: 'real'},
+      {server: 'Exness-Trade', name: 'Trade 真实账户', type: 'real'}
+    ],
+    'Tickmill': [
+      {server: 'Tickmill-Demo', name: 'Demo 模拟账户', type: 'demo'},
+      {server: 'Tickmill-Live', name: 'Live 真实账户', type: 'real'},
+      {server: 'Tickmill-Live2', name: 'Live2 真实账户', type: 'real'},
+      {server: 'Tickmill-Pro', name: 'Pro 真实账户', type: 'real'}
+    ],
+    'Pepperstone': [
+      {server: 'Pepperstone-Demo', name: 'Demo 模拟账户', type: 'demo'},
+      {server: 'Pepperstone-Real', name: 'Real 真实账户', type: 'real'},
+      {server: 'Pepperstone-ECN', name: 'ECN 真实账户', type: 'real'},
+      {server: 'Pepperstone-ECN-Demo', name: 'ECN Demo', type: 'demo'},
+      {server: 'Pepperstone', name: 'Standard 标准账户', type: 'real'}
+    ],
+    'INFINOX': [
+      {server: 'INFINOX-Demo', name: 'Demo Server 模拟服务器', type: 'demo'},
+      {server: 'INFINOX-Live', name: 'Live Server 真实服务器', type: 'real'},
+      {server: 'INFINOX-ECN', name: 'ECN Server 真实服务器', type: 'real'},
+      {server: 'INFINOX-STD', name: 'Standard Server', type: 'real'}
+    ],
+    'FXTM': [
+      {server: 'FXTM-Demo', name: 'Demo 模拟账户', type: 'demo'},
+      {server: 'FXTM-ECN', name: 'ECN 真实账户', type: 'real'},
+      {server: 'FXTM-ECN-Demo', name: 'ECN Demo', type: 'demo'},
+      {server: 'FXTM-STP', name: 'STP 真实账户', type: 'real'},
+      {server: 'FXTM-STP-Demo', name: 'STP Demo', type: 'demo'}
+    ],
+    'Vantage': [
+      {server: 'Vantage-Demo', name: 'Demo 模拟账户', type: 'demo'},
+      {server: 'Vantage-RAW-ECN', name: 'RAW ECN 真实账户', type: 'real'},
+      {server: 'Vantage-STD', name: 'Standard 标准账户', type: 'real'},
+      {server: 'Vantage-Pro', name: 'Pro 账户', type: 'real'}
+    ],
+    'Axi': [
+      {server: 'Axi-Demo', name: 'Demo 模拟账户', type: 'demo'},
+      {server: 'Axi-Live', name: 'Live 真实账户', type: 'real'},
+      {server: 'Axi-Live2', name: 'Live2 真实账户', type: 'real'}
+    ],
+    'Interactive Brokers': [
+      {server: 'IBKR-Demo', name: 'Paper Trading 模拟', type: 'demo'},
+      {server: 'IBKR-LIVE', name: 'Live Trading 真实', type: 'real'}
+    ],
+    'IG Markets': [
+      {server: 'IG-Demo', name: 'Demo 模拟账户', type: 'demo'},
+      {server: 'IG-Live', name: 'Live 真实账户', type: 'real'},
+      {server: 'IG-Live2', name: 'Live2 真实账户', type: 'real'}
+    ],
+    'OANDA': [
+      {server: 'OANDA-Demo', name: 'Demo 模拟账户', type: 'demo'},
+      {server: 'OANDA-Live', name: 'Live 真实账户', type: 'real'},
+      {server: 'OANDA-Practice', name: 'Practice 练习账户', type: 'demo'}
+    ]
+  };
+  
+  // 清空并填充服务器下拉列表
+  serverSelect.innerHTML = '<option value="">-- 选择服务器 --</option>';
+  
+  if(broker && brokerServers[broker]){
+    // 先显示真实账户
+    const realServers = brokerServers[broker].filter(s => s.type === 'real');
+    const demoServers = brokerServers[broker].filter(s => s.type === 'demo');
+    
+    if(realServers.length > 0){
+      const group = document.createElement('optgroup');
+      group.label = '🟢 真实账户 (Real)';
+      realServers.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.server;
+        opt.textContent = s.name;
+        opt.dataset.type = 'real';
+        group.appendChild(opt);
+      });
+      serverSelect.appendChild(group);
+    }
+    
+    if(demoServers.length > 0){
+      const group = document.createElement('optgroup');
+      group.label = '🟡 模拟账户 (Demo)';
+      demoServers.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.server;
+        opt.textContent = s.name;
+        opt.dataset.type = 'demo';
+        group.appendChild(opt);
+      });
+      serverSelect.appendChild(group);
+    }
+  }
+  
+  // 如果没有预定义服务器，提供手动输入
+  if(!broker || !brokerServers[broker]){
+    serverSelect.innerHTML = '<option value="">-- 输入服务器名称 --</option>';
+  }
+  
+  // 重置账户类型
+  document.getElementById('broker-account-type').value = 'real';
+}
+
+// 选择服务器时自动更新账户类型
+function onServerChange(){
+  const serverSelect = document.getElementById('broker-server');
+  const selectedOption = serverSelect.options[serverSelect.selectedIndex];
+  if(selectedOption && selectedOption.dataset.type){
+    document.getElementById('broker-account-type').value = selectedOption.dataset.type;
+  }
+}
 
 // ===== 工具函数 =====
 function openSymbol(sym){
@@ -3340,13 +4503,39 @@ function doLogin(){
   if(!email || !pwd){
     toast('请输入邮箱和密码','error'); return;
   }
-  // 模拟登录成功
-  localStorage.setItem('user_logged_in','true');
-  localStorage.setItem('user_email',email);
-  localStorage.setItem('user_name',email.split('@')[0]);
-  updateUserUI();
-  closeModal('login-modal');
-  toast('✅ 登录成功！欢迎回来','success');
+  
+  // 调用后端 API 登录
+  fetch(API_BASE + '/api/auth/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({email: email, password: pwd})
+  })
+  .then(r => r.json())
+  .then(d => {
+    if(d.access_token){
+      // 保存 token
+      localStorage.setItem('access_token', d.access_token);
+      localStorage.setItem('refresh_token', d.refresh_token || '');
+      localStorage.setItem('user_logged_in','true');
+      localStorage.setItem('user_email', email);
+      localStorage.setItem('user_name', d.user?.name || email.split('@')[0]);
+      updateUserUI();
+      closeModal('login-modal');
+      toast('✅ 登录成功！欢迎回来','success');
+    } else {
+      toast(d.detail || '登录失败','error');
+    }
+  })
+  .catch(e => {
+    console.error(e);
+    // 如果后端调用失败，使用模拟登录（兼容模式）
+    localStorage.setItem('user_logged_in','true');
+    localStorage.setItem('user_email',email);
+    localStorage.setItem('user_name',email.split('@')[0]);
+    updateUserUI();
+    closeModal('login-modal');
+    toast('✅ 登录成功！（离线模式）','success');
+  });
 }
 function doRegister(){
   const name = document.getElementById('reg-username').value.trim();
@@ -3358,13 +4547,37 @@ function doRegister(){
   if(pwd.length < 6){
     toast('密码至少6位','error'); return;
   }
-  // 模拟注册成功
-  localStorage.setItem('user_logged_in','true');
-  localStorage.setItem('user_email',email);
-  localStorage.setItem('user_name',name);
-  updateUserUI();
-  closeModal('login-modal');
-  toast('✅ 注册成功！欢迎加入 QuantAI','success');
+  
+  // 调用后端 API 注册
+  fetch(API_BASE + '/api/auth/register', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      email: email, 
+      username: name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase(),  // username 至少3个字符
+      password: pwd, 
+      full_name: name
+    })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if(d.access_token){
+      localStorage.setItem('access_token', d.access_token);
+      localStorage.setItem('refresh_token', d.refresh_token || '');
+      localStorage.setItem('user_logged_in','true');
+      localStorage.setItem('user_email',email);
+      localStorage.setItem('user_name',name);
+      updateUserUI();
+      closeModal('login-modal');
+      toast('✅ 注册成功！欢迎加入 QuantAI','success');
+    } else {
+      toast(d.detail || '注册失败','error');
+    }
+  })
+  .catch(e => {
+    console.error(e);
+    toast('注册失败: ' + e.message,'error');
+  });
 }
 function updateUserUI(){
   const loggedIn = localStorage.getItem('user_logged_in') === 'true';
@@ -3436,7 +4649,8 @@ const I18N = {
     // 账户
     acc_title: '我的账户', acc_plan: '当前方案', acc_upgrade: '升级订阅',
     acc_broker: '券商账户', acc_connect: '连接券商',
-    acc_member_free: '免费版', acc_member_pro: 'Pro 会员', acc_member_elite: '精英会员',
+    acc_member_free: '免费版', acc_member_pro: 'Pro 会员', acc_member_elite: '精英会员', acc_member_trial: '🆓 免费试用',
+    acc_limit_3days: '限3天', feat_btc_eth_market: 'BTC/ETH行情', feat_ai_qa: 'AI顾问问答', feat_strategies: '策略', feat_auto_trade: '自动交易', feat_advanced: '高级功能',
     acc_valid_until: '有效期至', acc_reg_date: '注册时间', acc_total_pnl: '总盈利',
     acc_brokers_count: '已连接券商', acc_running_strats: '运行策略', acc_account: '账户',
     acc_broker_section: '已连接券商', acc_subscription: '我的订阅',
@@ -3475,6 +4689,19 @@ const I18N = {
     ct_tag_ct4:'夜盘剥头皮 · 2年', ct_tag_ct5:'宏观多品种 · 6年', ct_tag_ct6:'定投+趋势 · 7年',
     // 自动建仓
     nav_autoopen:'自动建仓', ao_title:'自动建仓', ao_subtitle:'三种智能建仓模式，全自动执行',
+    // 跨交易所聚合引擎
+    nav_arbitrage:'跨交易所聚合引擎', arb_title:'跨交易所聚合引擎', arb_subtitle:'多交易所实时价格聚合，AI智能监测套利机会',
+    arb_engine_status:'引擎状态', arb_engine_running:'运行中', arb_engine_stopped:'已停止',
+    arb_monitor_ex:'已连接交易所', arb_monitor_pair:'交易品种', arb_spread:'当前价差',
+    arb_profit:'预估收益', arb_trades:'套利次数', arb_total_profit:'累计收益',
+    arb_start:'启动引擎', arb_stop:'停止引擎', arb_settings:'引擎设置',
+    arb_min_spread:'最小价差 (%)', arb_amount:'每笔金额 (USD)', arb_max_positions:'最大持仓',
+    arb_orders:'套利记录', arb_no_trades:'暂无套利记录',
+    arb_add_exchange:'添加交易所', arb_quick_login:'一键登录', arb_logout:'退出登录',
+    arb_ai_trade:'AI自动交易', arb_ai_stop:'停止AI',
+    arb_exchanges:'🔗 已连接交易所', arb_select_exchange:'选择交易所', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'保存', arb_exchange_cancel:'取消', arb_exchange_connected:'已连接', arb_exchange_disconnected:'未连接',arb_exchange_login:'登录', arb_exchange_logout:'退出',
+    arb_lock_title:'跨交易所聚合引擎为 Elite 专属功能', arb_lock_desc:'升级到 Elite 计划，解锁AI自动交易能力',
+    arb_lock_btn:'立即升级 $199/月',
     ao_lock_title:'自动建仓为 Elite 专属功能', ao_lock_desc:'升级到 Elite 计划，解锁全自动交易建仓能力',
     ao_lock_btn:'立即升级 $199/月',
     ao_mode_signal:'策略触发', ao_mode_signal_desc:'RSI/MACD/EMA 等技术指标触发时自动建仓',
@@ -3590,6 +4817,25 @@ const I18N = {
     ai_resp_strategy:'⚡ 为您推荐3个适合当前行情的策略：\n\n1. **BTC MACD趋势** — 胜率67%，回测年化+89%\n2. **黄金网格** — 适合震荡行情，月收益3-5%\n3. **EUR/USD均线** — 低风险，适合新手\n\n是否要我帮您开启某个策略？',
     ai_resp_default:'我理解了您的需求。根据当前市场情况，让我为您分析一下...\n\n📊 市场整体偏多，但需注意美联储政策风险。建议保持仓位在50%以下，并设置好止损。\n\n有什么具体的交易品种或策略想深入了解吗？',
     legal_title:'法律与合规', legal_privacy:'隐私政策', legal_privacy_desc:'个人数据收集与保护', legal_terms:'使用条款', legal_terms_desc:'服务条款与责任说明', legal_cookie:'Cookie 政策', legal_cookie_desc:'Cookie 使用与偏好管理', legal_community:'社区准则', legal_community_desc:'社区行为规范',
+    // 账户页新增
+    acc_ai_running:'AI 运行中', acc_ai_stopped:'AI 已关闭', acc_last_signal:'最后信号', acc_pause_ai:'暂停AI', acc_resume_ai:'开启AI',
+    acc_fund_mgmt:'资金管理', acc_tab_positions:'持仓', acc_tab_trades:'交易记录', acc_tab_signals:'信号', acc_tab_manual:'手动交易',
+    acc_tab_market:'行情', acc_tab_strategies:'策略', acc_tab_exchanges:'交易所',
+    acc_long_pos:'多单·持仓中', acc_short_pos:'空单·持仓中',
+    // 通用状态
+    btp_loading:'加载中...', binance_unreachable:'Binance 不可达 · 模拟数据',
+    // AI Chat
+    ai_auto_title:'AI 自动交易', ai_auto_status_on:'🟢 AI 已开启，自动分析市场并执行交易', ai_auto_status_off:'🔴 AI 已关闭，不会自动执行交易', ai_auto_label_on:'开启', ai_auto_label_off:'关闭',
+    // Copy Trading
+    copy_ai_title:'AI 智能跟单', copy_ai_status_on:'🟢 AI 已开启，自动分析操盘手交易日志和市场行情，智能选择最优跟单', copy_ai_status_off:'🔴 AI 已关闭，将手动选择操盘手跟单', copy_ai_label_on:'开启', copy_ai_label_off:'关闭',
+    // Arb Loading
+    arb_loading:'加载中...', arb_no_exchange:'暂无连接的交易所，请选择添加', arb_scan_now:'立即扫描', arb_select_placeholder:'-- 选择交易所 --',
+    // Dashboard stats
+    dash_total_assets:'总资产', dash_today_pnl:'今日盈亏', dash_cum_pnl:'累计盈亏', dash_return_rate:'收益率',
+    // Fred宏观
+    fred_title:'🏛️ 美联储宏观数据', fred_fedfunds:'联邦基准利率', fred_t10y:'10年期美债收益率', fred_t2y:'2年期美债收益率', fred_term_spread:'期限利差', fred_cpi:'CPI 同比', fred_core_pce:'核心PCE 同比', fred_nfp:'非农就业', fred_unrate:'失业率',
+    // Acc Details
+    acc_assets_detail:'总资产', acc_pnl_today:'今日盈亏', acc_pnl_cum:'累计盈亏', acc_return_rate:'收益率',
   },
   en: {
     nav_dashboard: 'Dashboard', nav_market: 'Market', nav_ai: 'AI Chat',
@@ -3597,7 +4843,8 @@ const I18N = {
     page_dashboard: 'Dashboard', page_market: 'Market', page_ai: 'AI Assistant',
     page_positions: 'My Positions', page_strategies: 'Strategy Manager', page_backtest: 'Backtest', page_account: 'My Account',
     page_copy: 'Copy Trading', page_autoopen: 'Auto Open',
-    page_square: 'Trading Square', page_stratmarket: 'Strategy Market', page_signals: 'Signal Broadcast', daily_pnl: "Today's P&L", win_rate: 'Win Rate', active_strategies: 'Active Strategies', pos_count: 'Open Positions',
+    page_square: 'Trading Square', page_stratmarket: 'Strategy Market', page_signals: 'Signal Broadcast', 
+    total_asset: 'Total Assets (USD)', daily_pnl: "Today's P&L", win_rate: 'Win Rate', active_strategies: 'Active Strategies', pos_count: 'Open Positions',
     card_today: 'Today', card_month: 'This Month', card_paused: ' Paused', card_running: ' Running',
     card_long: 'Long', card_short: 'Short',
     quick_order: '+ Quick Order',
@@ -3632,7 +4879,8 @@ const I18N = {
     strat_macd: 'MACD Trend Following', strat_ema: 'EMA Crossover', strat_rsi: 'RSI Overbought/Oversold', strat_grid: 'Grid Trading', strat_bb: 'Bollinger Breakout',
     acc_title: 'My Account', acc_plan: 'Current Plan', acc_upgrade: 'Upgrade',
     acc_broker: 'Broker Account', acc_connect: 'Connect Broker',
-    acc_member_free: 'Free', acc_member_pro: 'Pro Member', acc_member_elite: 'Elite Member',
+    acc_member_free: 'Free', acc_member_pro: 'Pro Member', acc_member_elite: 'Elite Member', acc_member_trial: '🆓 Free Trial',
+    acc_limit_3days: '3 days', feat_btc_eth_market: 'BTC/ETH Markets', feat_ai_qa: 'AI Q&A', feat_strategies: 'Strategies', feat_auto_trade: 'Auto Trade', feat_advanced: 'Advanced Features',
     acc_valid_until: 'Valid Until', acc_reg_date: 'Registered', acc_total_pnl: 'Total P&L',
     acc_brokers_count: 'Brokers', acc_running_strats: 'Active Strategies', acc_account: 'Account',
     acc_broker_section: 'Connected Brokers', acc_subscription: 'My Subscription',
@@ -3783,6 +5031,37 @@ const I18N = {
     ai_resp_strategy:'⚡ 3 Strategies for Current Market:\n\n1. **BTC MACD Trend** — 67% win rate, +89% annual backtest\n2. **Gold Grid** — Best for ranging markets, 3-5%/month\n3. **EUR/USD EMA** — Low risk, great for beginners\n\nShall I activate one for you?',
     ai_resp_default:'I understand your needs. Let me analyze the current market conditions...\n\n📊 Overall market is bullish, but watch Fed policy risks. Keep position below 50% and always set stop-losses.\n\nAny specific symbol or strategy you\'d like to explore?',
     legal_title:'Legal & Compliance', legal_privacy:'Privacy Policy', legal_privacy_desc:'Data collection and protection', legal_terms:'Terms of Service', legal_terms_desc:'Service terms and liability', legal_cookie:'Cookie Policy', legal_cookie_desc:'Cookie usage and preferences', legal_community:'Community Guidelines', legal_community_desc:'Community code of conduct',
+    // 账户页新增
+    acc_ai_running:'AI Running', acc_ai_stopped:'AI Stopped', acc_last_signal:'Last Signal', acc_pause_ai:'Pause AI', acc_resume_ai:'Start AI',
+    acc_fund_mgmt:'Fund Management', acc_tab_positions:'Positions', acc_tab_trades:'Trades', acc_tab_signals:'Signals', acc_tab_manual:'Manual',
+    acc_tab_market:'Market', acc_tab_strategies:'Strategies', acc_tab_exchanges:'Exchanges',
+    acc_long_pos:'Long · In Position', acc_short_pos:'Short · In Position',
+    // 通用状态
+    btp_loading:'Loading...', binance_unreachable:'Binance Unreachable · Mock Data',
+    // AI Chat
+    ai_auto_title:'AI Auto Trading', ai_auto_status_on:'AI is ON, analyzing markets and executing trades', ai_auto_status_off:'AI is OFF, no automatic trading', ai_auto_label_on:'ON', ai_auto_label_off:'OFF',
+    // Copy Trading
+    copy_ai_title:'AI Smart Follow', copy_ai_status_on:'AI is ON, analyzing trader logs and market for optimal follow', copy_ai_status_off:'AI is OFF, manually select traders to follow', copy_ai_label_on:'ON', copy_ai_label_off:'OFF',
+    // Arb Loading
+    arb_loading:'Loading...', arb_no_exchange:'No exchanges connected, please add one', arb_scan_now:'Scan Now', arb_select_placeholder:'-- Select Exchange --',
+    // Dashboard stats
+    dash_total_assets:'Total Assets', dash_today_pnl:'Today P&L', dash_cum_pnl:'Cumulative P&L', dash_return_rate:'Return Rate',
+    // Fred宏观
+    fred_title:'🏛️ Fed Macro Data', fred_fedfunds:'Fed Funds Rate', fred_t10y:'10Y Treasury', fred_t2y:'2Y Treasury', fred_term_spread:'Term Spread', fred_cpi:'CPI YoY', fred_core_pce:'Core PCE YoY', fred_nfp:'NFP', fred_unrate:'Unemployment Rate',
+    // Acc Details
+    acc_assets_detail:'Total Assets', acc_pnl_today:'Today P&L', acc_pnl_cum:'Cumulative P&L', acc_return_rate:'Return Rate',
+    // Arbitrage Engine
+    nav_arbitrage:'Cross-Exchange Arbitrage', arb_title:'Cross-Exchange Arbitrage', arb_subtitle:'Real-time multi-exchange price aggregation, AI-driven arbitrage monitoring',
+    arb_engine_status:'Engine Status', arb_engine_running:'Running', arb_engine_stopped:'Stopped',
+    arb_monitor_ex:'Connected Exchanges', arb_monitor_pair:'Trading Pair', arb_spread:'Current Spread',
+    arb_profit:'Est. Profit', arb_trades:'Trades', arb_total_profit:'Total Profit',
+    arb_start:'Start Engine', arb_stop:'Stop Engine', arb_settings:'Arbitrage Settings',
+    arb_min_spread:'Min Spread (%)', arb_amount:'Amount per Trade (USD)', arb_max_positions:'Max Positions',
+    arb_orders:'Arbitrage Log', arb_no_trades:'No arbitrage records',
+    arb_add_exchange:'Add Exchange', arb_quick_login:'Quick Login', arb_logout:'Logout',
+    arb_ai_trade:'AI Auto Trade', arb_ai_stop:'Stop AI',
+    arb_exchanges:'🔗 Connected Exchanges', arb_select_exchange:'Select Exchange', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'Save', arb_exchange_cancel:'Cancel', arb_exchange_connected:'Connected', arb_exchange_disconnected:'Not Connected',arb_exchange_login:'Login', arb_exchange_logout:'Logout',
+    arb_lock_title:'Cross-Exchange Arbitrage is Elite-only', arb_lock_desc:'Upgrade to Elite plan to unlock AI auto trading', arb_lock_btn:'Upgrade $199/mo',
   },
   ja: {
     nav_dashboard: 'ダッシュボード', nav_market: '相場', nav_ai: 'AIアシスト',
@@ -3963,6 +5242,25 @@ const I18N = {
     ai_resp_strategy:'⚡ 現在の相場に合う3つの戦略：\n\n1. **BTC MACD トレンド** — 勝率67%、年化+89%\n2. **ゴールド グリッド** — レンジ相場向き、月3-5%\n3. **EUR/USD EMA** — 低リスク、初心者向け\n\nどれかを有効にしますか？',
     ai_resp_default:'ご要望を理解しました。現在の市場状況を分析します...\n\n📊 全体的に強気ですが、FED 政策リスクに注意。ポジションを50%以下に保ち、損切りを必ず設定してください。\n\n特定の銘柄や戦略について詳しく知りたい場合は教えてください。',
     legal_title:'法律・コンプライアンス', legal_privacy:'プライバシーポリシー', legal_privacy_desc:'個人情報の収集と保護', legal_terms:'利用規約', legal_terms_desc:'サービス利用条件', legal_cookie:'Cookieポリシー', legal_cookie_desc:'Cookieの使用と設定', legal_community:'コミュニティガイドライン', legal_community_desc:'コミュニティ行動規範',
+    // アカウント页新規
+    acc_ai_running:'AI 稼働中', acc_ai_stopped:'AI 停止', acc_last_signal:'最終シグナル', acc_pause_ai:'AI 一時停止', acc_resume_ai:'AI 開始',
+    acc_fund_mgmt:'資金管理', acc_tab_positions:'ポジシオン', acc_tab_trades:'取引記録', acc_tab_signals:'シグナル', acc_tab_manual:'手動取引',
+    acc_tab_market:'マーケット', acc_tab_strategies:'戦略', acc_tab_exchanges:'取引所',
+    acc_long_pos:'買い·ポジシオン中', acc_short_pos:'売り·ポジシオン中',
+    // 共通
+    btp_loading:'加载中...', binance_unreachable:'Binance 到達不能 · シミュレーションデータ',
+    // クロスエクスチェangeアービトラージ
+    nav_arbitrage:'アービトラージ', arb_title:'クロスエクスチェーンアービトラージ', arb_subtitle:'複数取引所リアルタイム価格集約、AI駆動アービトラージ監視',
+    arb_engine_status:'エンジン状態', arb_engine_running:'実行中', arb_engine_stopped:'停止',
+    arb_monitor_ex:'接続取引所', arb_monitor_pair:'取引ペア', arb_spread:'現在スプレッド',
+    arb_profit:'推定利益', arb_trades:'取引回数', arb_total_profit:'累計利益',
+    arb_start:'エンジン開始', arb_stop:'エンジン停止', arb_settings:'アービトラージ設定',
+    arb_min_spread:'最小スプレッド (%)', arb_amount:'1回あたりの金額 (USD)', arb_max_positions:'最大ポジション数',
+    arb_orders:'アービトラージ記録', arb_no_trades:'アービトラージ記録なし',
+    arb_add_exchange:'取引所追加', arb_quick_login:'クイックログイン', arb_logout:'ログアウト',
+    arb_ai_trade:'AI自動取引', arb_ai_stop:'AI停止',
+    arb_exchanges:'🔗 接続取引所', arb_select_exchange:'取引所選択', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'保存', arb_exchange_cancel:'キャンセル', arb_exchange_connected:'接続済み', arb_exchange_disconnected:'未接続',arb_exchange_login:'ログイン', arb_exchange_logout:'ログアウト',
+    arb_lock_title:'アービトラージはElite限定', arb_lock_desc:'EliteにアップグレードしてAI自動取引を解放', arb_lock_btn:'アップグレード $199/月',
   },
   ko: {
     nav_dashboard: '대시보드', nav_market: '시장', nav_ai: 'AI 채팅',
@@ -4135,6 +5433,18 @@ const I18N = {
     ai_resp_strategy:'⚡ 현재 시장에 맞는 3가지 전략：\n\n1. **BTC MACD 트렌드** — 승률 67%, 연화 +89%\n2. **금 그리드** — 박스권 시장용, 월 3-5%\n3. **EUR/USD EMA** — 저위험, 초보자 적합\n\n전략을 활성화할까요?',
     ai_resp_default:'요구사항을 이해했습니다. 현재 시장 상황을 분석합니다...\n\n📊 전반적으로 강세지만 Fed 정책 리스크 주의. 포지션을 50% 이하로 유지하고 손절을 설정하세요.\n\n특정 종목이나 전략에 대해 더 알고 싶으신가요?',
     legal_title:'법률 및 규정 준수', legal_privacy:'개인정보 보호정책', legal_privacy_desc:'개인 데이터 수집 및 보호', legal_terms:'이용약관', legal_terms_desc:'서비스 이용 조건', legal_cookie:'쿠키 정책', legal_cookie_desc:'쿠키 사용 및 관리', legal_community:'커뮤니티 가이드라인', legal_community_desc:'커뮤니티 행동 규칙',
+    // 크로스익스체인지차익거래
+    nav_arbitrage:'차익거래', arb_title:'크로스익스체인지차익거래', arb_subtitle:'다중거래소 실시간 가격 집합, AI 기반 차익거래 모니터링',
+    arb_engine_status:'엔진 상태', arb_engine_running:'실행중', arb_engine_stopped:'중지됨',
+    arb_monitor_ex:'연결거래소', arb_monitor_pair:'거래페어', arb_spread:'현재스프레드',
+    arb_profit:'예상수익', arb_trades:'거래회수', arb_total_profit:'누적수익',
+    arb_start:'엔진 시작', arb_stop:'엔진 중지', arb_settings:'차익거래 설정',
+    arb_min_spread:'최소스프레드 (%)', arb_amount:'1회당 금액 (USD)', arb_max_positions:'최대포지션',
+    arb_orders:'차익거래 기록', arb_no_trades:'차익거래 기록없음',
+    arb_add_exchange:'거래소 추가', arb_quick_login:'빠른로그인', arb_logout:'로그아웃',
+    arb_ai_trade:'AI자동거래', arb_ai_stop:'AI중지',
+    arb_exchanges:'🔗 연결거래소', arb_select_exchange:'거래소 선택', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'저장', arb_exchange_cancel:'취소', arb_exchange_connected:'연결됨', arb_exchange_disconnected:'연결안됨',arb_exchange_login:'로그인', arb_exchange_logout:'로그아웃',
+    arb_lock_title:'차익거래는 Elite전용', arb_lock_desc:'Elite로 업그레이드하여 AI자동거래 잠금해제', arb_lock_btn:'업그레이드 $199/월',
   },
   ru: {
     nav_dashboard: 'Панель', nav_market: 'Рынок', nav_ai: 'AI Чат',
@@ -4306,6 +5616,18 @@ const I18N = {
     ai_resp_strategy:'⚡ 3 стратегии для текущего рынка:\n\n1. **BTC MACD Тренд** — 67% побед, +89% в год\n2. **Золотая сетка** — для диапазонного рынка, 3-5%/мес\n3. **EUR/USD EMA** — низкий риск, для новичков\n\nАктивировать одну из них?',
     ai_resp_default:'Я понял ваш запрос. Позвольте проанализировать текущий рынок...\n\n📊 Рынок в целом бычий, но следите за рисками ФРС. Держите позиции ниже 50% и устанавливайте стоп-лоссы.\n\nЕсть ли конкретный инструмент или стратегия для детального изучения?',
     legal_title:'Правовые документы', legal_privacy:'Политика конфиденциальности', legal_privacy_desc:'Сбор и защита данных', legal_terms:'Условия использования', legal_terms_desc:'Условия сервиса и ответственность', legal_cookie:'Политика Cookie', legal_cookie_desc:'Использование файлов Cookie', legal_community:'Правила сообщества', legal_community_desc:'Правила поведения в сообществе',
+    // Кросс-биржевой арбитраж
+    nav_arbitrage:'Арбитраж', arb_title:'Кросс-биржевой арбитраж', arb_subtitle:'Агрегация цен с нескольких бирж, AI мониторинг арбитража',
+    arb_engine_status:'Статус движка', arb_engine_running:'Работает', arb_engine_stopped:'Остановлен',
+    arb_monitor_ex:'Подключенные биржи', arb_monitor_pair:'Торговая пара', arb_spread:'Текущий спред',
+    arb_profit:'Ожидаемая прибыль', arb_trades:'Сделки', arb_total_profit:'Общая прибыль',
+    arb_start:'Запустить движок', arb_stop:'Остановить движок', arb_settings:'Настройки арбитража',
+    arb_min_spread:'Мин. спред (%)', arb_amount:'Сумма за сделку (USD)', arb_max_positions:'Макс. позиций',
+    arb_orders:'Журнал арбитража', arb_no_trades:'Нет записей арбитража',
+    arb_add_exchange:'Добавить биржу', arb_quick_login:'Быстрый вход', arb_logout:'Выход',
+    arb_ai_trade:'AI авто-торговля', arb_ai_stop:'Остановить AI',
+    arb_exchanges:'🔗 Подключенные биржи', arb_select_exchange:'Выбрать биржу', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'Сохранить', arb_exchange_cancel:'Отмена', arb_exchange_connected:'Подключено', arb_exchange_disconnected:'Не подключено',arb_exchange_login:'Вход', arb_exchange_logout:'Выход',
+    arb_lock_title:'Арбитраж - функция Elite', arb_lock_desc:'Обновите до Elite для разблокировки AI авто-торговли', arb_lock_btn:'Обновить $199/мес',
   },
   ar: {
     nav_dashboard: 'لوحة القيادة', nav_market: 'السوق', nav_ai: 'دردشة AI',
@@ -4641,6 +5963,18 @@ const I18N = {
     ai_analyze_suffix:' ¿Cómo ves mi posición?',
     ai_placeholder:'Ingresa tu instrucción o pregunta…',
     legal_title:'Legal y Cumplimiento', legal_privacy:'Política de Privacidad', legal_privacy_desc:'Recopilación y protección de datos', legal_terms:'Términos de Uso', legal_terms_desc:'Términos de servicio', legal_cookie:'Política de Cookies', legal_cookie_desc:'Uso de cookies', legal_community:'Directrices de la Comunidad', legal_community_desc:'Reglas de conducta',
+    // Arbitraje entre Exchanges
+    nav_arbitrage:'Arbitraje', arb_title:'Arbitraje Cross-Exchange', arb_subtitle:'Agregación de precios en tiempo real, monitoreo IA de oportunidades de arbitraje',
+    arb_engine_status:'Estado del Motor', arb_engine_running:'Ejecutando', arb_engine_stopped:'Detenido',
+    arb_monitor_ex:'Exchanges Conectados', arb_monitor_pair:'Par de Trading', arb_spread:'Spread Actual',
+    arb_profit:'Beneficio Est.', arb_trades:'Operaciones', arb_total_profit:'Beneficio Total',
+    arb_start:'Iniciar Motor', arb_stop:'Detener Motor', arb_settings:'Config. Arbitraje',
+    arb_min_spread:'Spread Mín (%)', arb_amount:'Monto por Operación (USD)', arb_max_positions:'Máx Posiciones',
+    arb_orders:'Registro de Arbitraje', arb_no_trades:'Sin registros de arbitraje',
+    arb_add_exchange:'Agregar Exchange', arb_quick_login:'Inicio Rápido', arb_logout:'Cerrar Sesión',
+    arb_ai_trade:'Trading Automático IA', arb_ai_stop:'Detener IA',
+    arb_exchanges:'🔗 Exchanges Conectados', arb_select_exchange:'Seleccionar Exchange', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'Guardar', arb_exchange_cancel:'Cancelar', arb_exchange_connected:'Conectado', arb_exchange_disconnected:'No Conectado',arb_exchange_login:'Conectar', arb_exchange_logout:'Desconectar',
+    arb_lock_title:'Arbitraje es Solo para Elite', arb_lock_desc:'Actualiza a Elite para desbloquear trading automático IA', arb_lock_btn:'Actualizar $199/mes',
   },
   // Português
   pt: {
@@ -4806,6 +6140,18 @@ const I18N = {
     ai_analyze_suffix:' Como vê minha posição?',
     ai_placeholder:'Digite sua instrução ou pergunta…',
     legal_title:'Legal e Conformidade', legal_privacy:'Política de Privacidade', legal_privacy_desc:'Coleta e proteção de dados', legal_terms:'Termos de Uso', legal_terms_desc:'Termos de serviço', legal_cookie:'Política de Cookies', legal_cookie_desc:'Uso de cookies', legal_community:'Diretrizes da Comunidade', legal_community_desc:'Regras de conduta',
+    // Arbitragem Cross-Exchange
+    nav_arbitrage:'Arbitragem', arb_title:'Arbitragem Cross-Exchange', arb_subtitle:'Agregação de preços em tempo real, monitoramento de IA para oportunidades de arbitragem',
+    arb_engine_status:'Status do Motor', arb_engine_running:'Executando', arb_engine_stopped:'Parado',
+    arb_monitor_ex:'Exchanges Conectados', arb_monitor_pair:'Par de Trading', arb_spread:'Spread Atual',
+    arb_profit:'Lucro Est.', arb_trades:'Operações', arb_total_profit:'Lucro Total',
+    arb_start:'Iniciar Motor', arb_stop:'Parar Motor', arb_settings:'Config. Arbitragem',
+    arb_min_spread:'Spread Mín (%)', arb_amount:'Valor por Operação (USD)', arb_max_positions:'Máx Posições',
+    arb_orders:'Registro de Arbitragem', arb_no_trades:'Sem registros de arbitragem',
+    arb_add_exchange:'Adicionar Exchange', arb_quick_login:'Login Rápido', arb_logout:'Sair',
+    arb_ai_trade:'Trading Automático IA', arb_ai_stop:'Parar IA',
+    arb_exchanges:'🔗 Exchanges Conectados', arb_select_exchange:'Selecionar Exchange', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'Salvar', arb_exchange_cancel:'Cancelar', arb_exchange_connected:'Conectado', arb_exchange_disconnected:'Não Conectado',arb_exchange_login:'Conectar', arb_exchange_logout:'Desconectar',
+    arb_lock_title:'Arbitragem é Exclusive do Elite', arb_lock_desc:'Atualize para Elite para desbloquear trading automático IA', arb_lock_btn:'Atualizar $199/mês',
   },
   // Français
   fr: {
@@ -4971,6 +6317,18 @@ const I18N = {
     ai_analyze_suffix:' Comment voyez-vous ma position?',
     ai_placeholder:'Entrez votre instruction ou question…',
     legal_title:'Légal et Conformité', legal_privacy:'Politique de Confidentialité', legal_privacy_desc:'Collecte et protection des données', legal_terms:"Conditions d'Utilisation", legal_terms_desc:"Conditions de service", legal_cookie:"Politique d'Utilisation des Cookies", legal_cookie_desc:'Utilisation des cookies', legal_community:'Directives de la Communauté', legal_community_desc:'Règles de conduite',
+    // Arbitrage Cross-Exchange
+    nav_arbitrage:'Arbitrage', arb_title:'Arbitrage Cross-Exchange', arb_subtitle:"Agrégation des prix en temps réel, surveillance IA des opportunités d'arbitrage",
+    arb_engine_status:'État du Moteur', arb_engine_running:'En cours', arb_engine_stopped:'Arrêté',
+    arb_monitor_ex:'Exchanges Connectés', arb_monitor_pair:'Paire de Trading', arb_spread:'Spread Actuel',
+    arb_profit:'Profit Est.', arb_trades:'Opérations', arb_total_profit:'Profit Total',
+    arb_start:'Démarrer Moteur', arb_stop:'Arrêter Moteur', arb_settings:'Config. Arbitrage',
+    arb_min_spread:'Spread Min (%)', arb_amount:'Montant par Opération (USD)', arb_max_positions:'Max Positions',
+    arb_orders:'Journal d\'Arbitrage', arb_no_trades:'Pas d\'enregistrements d\'arbitrage',
+    arb_add_exchange:'Ajouter Exchange', arb_quick_login:'Connexion Rapide', arb_logout:'Déconnexion',
+    arb_ai_trade:'Trading Automatique IA', arb_ai_stop:'Arrêter IA',
+    arb_exchanges:'🔗 Exchanges Connectés', arb_select_exchange:'Sélectionner Exchange', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'Sauvegarder', arb_exchange_cancel:'Annuler', arb_exchange_connected:'Connecté', arb_exchange_disconnected:'Non Connecté',arb_exchange_login:'Connecter', arb_exchange_logout:'Déconnecter',
+    arb_lock_title:'Arbitrage Réservé aux Elite', arb_lock_desc:'Passez à Elite pour débloquer le trading automatique IA', arb_lock_btn:'Mettre à niveau $199/mois',
   },
   // Deutsch
   de: {
@@ -5149,6 +6507,18 @@ const I18N = {
     ai_resp_strategy:'⚡ 3 Strategien für aktuellen Markt:\n\n1. **BTC MACD Trend** — 67% Win-Rate, +89% jährlich\n2. **Gold Grid** — Für Range-Märkte, 3-5%/Monat\n3. **EUR/USD EMA** — Niedriges Risiko, für Anfänger\n\nSoll ich eine aktivieren?',
     ai_resp_default:'Ich verstehe Ihren Wunsch. Lassen Sie mich den aktuellen Markt analysieren...\n\n📊 Markt insgesamt bullisch, aber Fed-Risiken beobachten. Position unter 50% halten und immer Stop-Loss setzen.\n\nGibt es ein bestimmtes Symbol oder Strategie für detaillierte Analyse?',
     legal_title:'Rechtliches', legal_privacy:'Datenschutz', legal_privacy_desc:'Datenerhebung und Schutz', legal_terms:'Nutzungsbedingungen', legal_terms_desc:'Servicebedingungen', legal_cookie:'Cookie-Richtlinie', legal_cookie_desc:'Cookie-Nutzung', legal_community:'Community-Regeln',     legal_community_desc:'Verhaltenskodex',
+    // Cross-Exchange Arbitrage
+    nav_arbitrage:'Arbitrage', arb_title:'Cross-Exchange Arbitrage', arb_subtitle:'Echtzeit-Preisaggregation mehrerer Börsen, KI-Überwachung von Arbitrage-Möglichkeiten',
+    arb_engine_status:'Motorstatus', arb_engine_running:'Läuft', arb_engine_stopped:'Gestoppt',
+    arb_monitor_ex:'Verbundene Börsen', arb_monitor_pair:'Handelspaar', arb_spread:'Aktueller Spread',
+    arb_profit:'Gesch. Gewinn', arb_trades:'Trades', arb_total_profit:'Gesamtgewinn',
+    arb_start:'Motor starten', arb_stop:'Motor stoppen', arb_settings:'Arbitrage-Einstellungen',
+    arb_min_spread:'Min Spread (%)', arb_amount:'Betrag pro Trade (USD)', arb_max_positions:'Max Positionen',
+    arb_orders:'Arbitrage-Protokoll', arb_no_trades:'Keine Arbitrage-Einträge',
+    arb_add_exchange:'Börse hinzufügen', arb_quick_login:'Schnellanmeldung', arb_logout:'Abmelden',
+    arb_ai_trade:'KI Auto-Handel', arb_ai_stop:'KI stoppen',
+    arb_exchanges:'🔗 Verbundene Börsen', arb_select_exchange:'Börse wählen', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'Speichern', arb_exchange_cancel:'Abbrechen', arb_exchange_connected:'Verbunden', arb_exchange_disconnected:'Nicht verbunden',arb_exchange_login:'Anmelden', arb_exchange_logout:'Abmelden',
+    arb_lock_title:'Arbitrage ist Elite-exklusiv', arb_lock_desc:'Upgrade auf Elite um KI-Auto-Handel freizuschalten', arb_lock_btn:'Upgrade $199/Monat',
   },
   // Nederlands
   nl: {
@@ -5327,6 +6697,18 @@ const I18N = {
     ai_resp_strategy:'⚡ 3 Strategieën voor huidige markt:\n\n1. **BTC MACD Trend** — 67% win rate, +89% jaarlijks\n2. **Gold Grid** — Voor range markten, 3-5%/maand\n3. **EUR/USD EMA** — Laag risico, voor beginners\n\nSnel een activeren?',
     ai_resp_default:'Ik begrijp je wens. Laat me de huidige markt analyseren...\n\n📊 Markt overall bullish, maar let op Fed risico\'s. Houd positie onder 50% en zet altijd stop-losses.\n\nSpecifiek symbool of strategie voor detailanalyse?',
     legal_title:'Juridisch', legal_privacy:'Privacy', legal_privacy_desc:'Data verzameling en bescherming', legal_terms:'Voorwaarden', legal_terms_desc:'Service voorwaarden', legal_cookie:'Cookie Beleid', legal_cookie_desc:'Cookie gebruik', legal_community:'Community Regels',     legal_community_desc:'Gedragscode',
+    // Cross-Exchange Arbitrage
+    nav_arbitrage:'Arbitrage', arb_title:'Cross-Exchange Arbitrage', arb_subtitle:'Realtime prijsaggregatie van meerdere beurzen, AI-bewaking van arbitrage-mogelijkheden',
+    arb_engine_status:'Motorstatus', arb_engine_running:'Actief', arb_engine_stopped:'Gestopt',
+    arb_monitor_ex:'Verbonden Beurzen', arb_monitor_pair:'Handelspaar', arb_spread:'Huidige Spread',
+    arb_profit:'Gesch. Winst', arb_trades:'Trades', arb_total_profit:'Totale Winst',
+    arb_start:'Motor Starten', arb_stop:'Motor Stoppen', arb_settings:'Arbitrage Instellingen',
+    arb_min_spread:'Min Spread (%)', arb_amount:'Bedrag per Trade (USD)', arb_max_positions:'Max Posities',
+    arb_orders:'Arbitrage Logboek', arb_no_trades:'Geen arbitrage records',
+    arb_add_exchange:'Exchange Toevoegen', arb_quick_login:'Snelle Login', arb_logout:'Uitloggen',
+    arb_ai_trade:'AI Auto Handel', arb_ai_stop:'AI Stoppen',
+    arb_exchanges:'🔗 Verbonden Beurzen', arb_select_exchange:'Selecteer Exchange', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'Opslaan', arb_exchange_cancel:'Annuleren', arb_exchange_connected:'Verbonden', arb_exchange_disconnected:'Niet Verbonden',arb_exchange_login:'Inloggen', arb_exchange_logout:'Uitloggen',
+    arb_lock_title:'Arbitrage is Exclusive voor Elite', arb_lock_desc:'Upgrade naar Elite voor AI auto-handel', arb_lock_btn:'Upgrade $199/maand',
   },
   // Polski
   pl: {
@@ -5505,6 +6887,18 @@ const I18N = {
     ai_resp_strategy:'⚡ 3 Strategie dla obecnego rynku:\n\n1. **BTC MACD Trend** — 67% win rate, +89% rocznie\n2. **Gold Grid** — Dla rynków w konsolidacji, 3-5%/miesiąc\n3. **EUR/USD EMA** — Niskie ryzyko, dla początkujących\n\nAktywować jedną?',
     ai_resp_default:'Rozumiem twoje potrzeby. Pozwól przeanalizować obecny rynek...\n\n📊 Rynek ogólnie byczy, ale uważaj na ryzyka Fed. Trzymaj pozycję poniżej 50% i zawsze ustawiaj stop-lossy.\n\nKonkretny symbol lub strategia do szczegółowej analizy?',
     legal_title:'Prawne', legal_privacy:'Prywatność', legal_privacy_desc:'Zbieranie i ochrona danych', legal_terms:'Regulamin', legal_terms_desc:'Warunki usługi', legal_cookie:'Polityka Cookies', legal_cookie_desc:'Użycie cookies', legal_community:'Zasady Społeczności',     legal_community_desc:'Kodeks postępowania',
+    // Arbitraż Cross-Exchange
+    nav_arbitrage:'Arbitraż', arb_title:'Arbitraż Cross-Exchange', arb_subtitle:'Agregacja cen w czasie rzeczywistym z wielu giełd, monitorowanie AI możliwości arbitragu',
+    arb_engine_status:'Status Silnika', arb_engine_running:'Uruchomiony', arb_engine_stopped:'Zatrzymany',
+    arb_monitor_ex:'Połączone Giełdy', arb_monitor_pair:'Para Trading', arb_spread:'Aktualny Spread',
+    arb_profit:'Szac. Zysk', arb_trades:'Transakcje', arb_total_profit:'Łączny Zysk',
+    arb_start:'Uruchom Silnik', arb_stop:'Zatrzymaj Silnik', arb_settings:'Ustawienia Arbitrażu',
+    arb_min_spread:'Min Spread (%)', arb_amount:'Kwota na Transakcję (USD)', arb_max_positions:'Max Poz.',
+    arb_orders:'Log Arbitrażu', arb_no_trades:'Brak zapisów arbitragu',
+    arb_add_exchange:'Dodaj Giełdę', arb_quick_login:'Szybkie Logowanie', arb_logout:'Wyloguj',
+    arb_ai_trade:'AI Auto Trading', arb_ai_stop:'Zatrzymaj AI',
+    arb_exchanges:'🔗 Połączone Giełdy', arb_select_exchange:'Wybierz Giełdę', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'Zapisz', arb_exchange_cancel:'Anuluj', arb_exchange_connected:'Połączono', arb_exchange_disconnected:'Nie Połączono',arb_exchange_login:'Zaloguj', arb_exchange_logout:'Wyloguj',
+    arb_lock_title:'Arbitraż jest Tylko dla Elite', arb_lock_desc:'Zaktualizuj do Elite aby odblokować AI auto trading', arb_lock_btn:'Aktualizuj $199/mies',
   },
   // Turkce
   tr: {
@@ -5683,6 +7077,18 @@ const I18N = {
     ai_resp_strategy:'⚡ Guncel piyasa icin 3 Strateji:\n\n1. **BTC MACD Trend** — 67% kazanma orani, +89% yillik\n2. **Altin Grid** — Konsolidasyonlu piyasalar icin, 3-5%/ay\n3. **EUR/USD EMA** — Dusuk risk, yeni baslayanlar icin\n\nBirini aktiflestireyim mi?',
     ai_resp_default:'Ihtiyacinizi anladim. Guncel piyasayi analiz edeyim...\n\n📊 Piyasa genel olarak yukseliste ama Fed politik risklerine dikkat. Pozisyonu %50\'nin altinda tut ve her zaman stop-loss koy.\n\nBelirli bir sembol veya strateji var mi?',
     legal_title:'Yasal', legal_privacy:'Gizlilik', legal_privacy_desc:'Veri toplama ve koruma', legal_terms:'Kullanim Kosullari', legal_terms_desc:'Hizmet kosullari', legal_cookie:'Cerez Politikasi', legal_cookie_desc:'Cerez kullanimi', legal_community:'Topluluk Kurallari',     legal_community_desc:'Davranis kodu',
+    // Cross-Exchange Arbitraj
+    nav_arbitrage:'Arbitraj', arb_title:'Cross-Exchange Arbitraj', arb_subtitle:'Coklu borsa fiyat toplama, AI arbitraj firsatlari izleme',
+    arb_engine_status:'Motor Durumu', arb_engine_running:'Calisiyor', arb_engine_stopped:'Durduruldu',
+    arb_monitor_ex:'Bagli Borsalar', arb_monitor_pair:'Islem Cifti', arb_spread:'Guncel Spread',
+    arb_profit:'Tahmini Kar', arb_trades:'Islemler', arb_total_profit:'Toplam Kar',
+    arb_start:'Motoru Baslat', arb_stop:'Motoru Durdur', arb_settings:'Arbitraj Ayarlari',
+    arb_min_spread:'Min Spread (%)', arb_amount:'Islem Basina Tutar (USD)', arb_max_positions:'Max Pozisyon',
+    arb_orders:'Arbitraj Kaydi', arb_no_trades:'Arbitraj kaydi yok',
+    arb_add_exchange:'Borsa Ekle', arb_quick_login:'Hizli Giris', arb_logout:'Cikis',
+    arb_ai_trade:'AI Otomatik Islem', arb_ai_stop:'AI Durdur',
+    arb_exchanges:'🔗 Bagli Borsalar', arb_select_exchange:'Borsa Sec', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'Kaydet', arb_exchange_cancel:'Iptal', arb_exchange_connected:'Bagli', arb_exchange_disconnected:'Bagli Degil',arb_exchange_login:'Giris', arb_exchange_logout:'Cikis',
+    arb_lock_title:'Arbitraj Sadece Elite Ozel', arb_lock_desc:'AI otomatik islemi acmak icin Elite\'e yukselt', arb_lock_btn:'Yukselt $199/ay',
   },
   // Thai
   th: {
@@ -5861,6 +7267,18 @@ const I18N = {
     ai_resp_strategy:'⚡ 3 กลยุทธ์สำหรับตลาดปัจจุบัน:\n\n1. **BTC MACD Trend** — 67% อัตราชนะ +89% ต่อปี\n2. **Gold Grid** — สำหรับตลาด ranging 3-5%/เดือน\n3. **EUR/USD EMA** — ความเสี่ยงต่ำ สำหรับมือใหม่\n\nจะเปิดใช้งานอันไหน?',
     ai_resp_default:'เข้าใจความต้องการของคุณ ขอวิเคราะห์ตลาดปัจจุบัน...\n\n📊 ตลาดโดยรวมกระทิง แต่ระวังความเสี่ยง Fed ถือสถานะต่ำกว่า 50% และตั้ง stop-loss เสมอ\n\nมีสัญลักษณ์หรือกลยุทธ์เฉพาะที่อยากวิเคราะห์ไหม?',
     legal_title:'กฎหมาย', legal_privacy:'ความเป็นส่วนตัว', legal_privacy_desc:'การเก็บรวบรวมและปกป้องข้อมูล', legal_terms:'ข้อกำหนดการใช้งาน', legal_terms_desc:'เงื่อนไขบริการ', legal_cookie:'นโยบายคุกกี้', legal_cookie_desc:'การใช้คุกกี้', legal_community:'กฎชุมชน', legal_community_desc:'จรรยาบรรณ',
+    // Arbitrage ข้าม Exchange
+    nav_arbitrage:'Arbitrage', arb_title:'Arbitrage ข้าม Exchange', arb_subtitle:'รวมราคาเรียลไทม์หลายตลาด, AI ตรวจจับโอกาส arbitrage',
+    arb_engine_status:'สถานะ Engine', arb_engine_running:'ทำงาน', arb_engine_stopped:'หยุด',
+    arb_monitor_ex:'Exchange ที่เชื่อมต่อ', arb_monitor_pair:'คู่เทรด', arb_spread:'Spread ปัจจุบัน',
+    arb_profit:'กำไรโดยประมาณ', arb_trades:'จำนวนเทรด', arb_total_profit:'กำไรรวม',
+    arb_start:'เริ่ม Engine', arb_stop:'หยุด Engine', arb_settings:'ตั้งค่า Arbitrage',
+    arb_min_spread:'Spread ต่ำสุด (%)', arb_amount:'จำนวนต่อเทรด (USD)', arb_max_positions:'สถานะสูงสุด',
+    arb_orders:'บันทึก Arbitrage', arb_no_trades:'ไม่มีบันทึก arbitrage',
+    arb_add_exchange:'เพิ่ม Exchange', arb_quick_login:'เข้าสู่ระบบเร็ว', arb_logout:'ออกจากระบบ',
+    arb_ai_trade:'AI เทรดอัตโนมัติ', arb_ai_stop:'หยุด AI',
+    arb_exchanges:'🔗 Exchange ที่เชื่อมต่อ', arb_select_exchange:'เลือก Exchange', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'บันทึก', arb_exchange_cancel:'ยกเลิก', arb_exchange_connected:'เชื่อมต่อแล้ว', arb_exchange_disconnected:'ไม่ได้เชื่อมต่อ',arb_exchange_login:'เข้าสู่ระบบ', arb_exchange_logout:'ออกจากระบบ',
+    arb_lock_title:'Arbitrage เฉพาะ Elite เท่านั้น', arb_lock_desc:'อัปเกรดเป็น Elite เพื่อปลดล็อก AI เทรดอัตโนมัติ', arb_lock_btn:'อัปเกรด $199/เดือน',
   },
   // Bahasa Indonesia
   id: {
@@ -5958,6 +7376,18 @@ const I18N = {
     update_available:'🔄 Update tersedia...', update_downloaded:'✅ Update siap, klik untuk restart', network_offline:'⚠️ Offline',
     toast_upgrading:'Redirect ke', toast_view_plans:'Lihat Semua Paket',
     legal_title:'Legal', legal_privacy:'Privasi', legal_privacy_desc:'Pengumpulan dan perlindungan data', legal_terms:'Syarat Layanan', legal_terms_desc:'Ketentuan layanan', legal_cookie:'Kebijakan Cookie', legal_cookie_desc:'Penggunaan cookie', legal_community:'Pedoman Komunitas', legal_community_desc:'Kode etik',
+    // Arbitrage Cross-Exchange
+    nav_arbitrage:'Arbitrage', arb_title:'Arbitrage Cross-Exchange', arb_subtitle:'Agregasi harga real-time berbagai bursa, AI pantau peluang arbitrage',
+    arb_engine_status:'Status Engine', arb_engine_running:'Berjalan', arb_engine_stopped:'Berhenti',
+    arb_monitor_ex:'Bursa Terhubung', arb_monitor_pair:'Pasangan Trading', arb_spread:'Spread Saat Ini',
+    arb_profit:'Estimasi Profit', arb_trades:'Transaksi', arb_total_profit:'Total Profit',
+    arb_start:'Mulai Engine', arb_stop:'Hentikan Engine', arb_settings:'Pengaturan Arbitrage',
+    arb_min_spread:'Spread Min (%)', arb_amount:'Jumlah per Transaksi (USD)', arb_max_positions:'Max Posisi',
+    arb_orders:'Log Arbitrage', arb_no_trades:'Tidak ada catatan arbitrage',
+    arb_add_exchange:'Tambah Bursa', arb_quick_login:'Login Cepat', arb_logout:'Logout',
+    arb_ai_trade:'Trading Otomatis AI', arb_ai_stop:'Hentikan AI',
+    arb_exchanges:'🔗 Bursa Terhubung', arb_select_exchange:'Pilih Bursa', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'Simpan', arb_exchange_cancel:'Batal', arb_exchange_connected:'Terhubung', arb_exchange_disconnected:'Tidak Terhubung',arb_exchange_login:'Login', arb_exchange_logout:'Logout',
+    arb_lock_title:'Arbitrage Hanya untuk Elite', arb_lock_desc:'Upgrade ke Elite untuk unlock trading otomatis AI', arb_lock_btn:'Upgrade $199/bulan',
   },
   // Tieng Viet
   vi: {
@@ -6136,6 +7566,18 @@ const I18N = {
     ai_resp_strategy:'⚡ 3 Chien luoc cho thi truong hien tai:\n\n1. **BTC MACD Trend** — 67% ty le thang, +89% nam\n2. **Gold Grid** — Cho thi truong ranging, 3-5%/thang\n3. **EUR/USD EMA** — Rui ro thap, cho nguoi moi\n\nKich hoat mot trong so?',
     ai_resp_default:'Toi hieu yeu cau cua ban. De toi phan tich thi truong hien tai...\n\n📊 Thi truong总体 tang nhung can than rui ro Fed. Giu vi tri duoi 50% va dat stop-loss.\n\nCo ma hoac chien luoc cu the nao muon phan tich chi tiet?',
     legal_title:'Phap ly', legal_privacy:'Quyen rieng tu', legal_privacy_desc:'Thu thap va bao ve du lieu', legal_terms:'Dieu khoan su dung', legal_terms_desc:'Dieu khoan dich vu', legal_cookie:'Chinh sach Cookie', legal_cookie_desc:'Su dung cookie', legal_community:'Quy tac cong dong', legal_community_desc:'Quy tac hanh vi',
+    // Arbitrage Cross-Exchange
+    nav_arbitrage:'Arbitrage', arb_title:'Arbitrage Cross-Exchange', arb_subtitle:'Tong hop gia thoi gian thuc nhieu san, AI giam sat co hoi arbitrage',
+    arb_engine_status:'Trang thai Engine', arb_engine_running:'Dang chay', arb_engine_stopped:'Dung',
+    arb_monitor_ex:'San da ket noi', arb_monitor_pair:'Cap giao dich', arb_spread:'Spread hien tai',
+    arb_profit:'Loi du kien', arb_trades:'So giao dich', arb_total_profit:'Tong loi',
+    arb_start:'Khoi dong Engine', arb_stop:'Dung Engine', arb_settings:'Cai dat Arbitrage',
+    arb_min_spread:'Spread toi thieu (%)', arb_amount:'So tien moi giao dich (USD)', arb_max_positions:'Vi tri toi da',
+    arb_orders:'Lich su Arbitrage', arb_no_trades:'Khong co ban ghi arbitrage',
+    arb_add_exchange:'Them San', arb_quick_login:'Dang nhap nhanh', arb_logout:'Dang xuat',
+    arb_ai_trade:'Giao dich AI tu dong', arb_ai_stop:'Dung AI',
+    arb_exchanges:'🔗 San da ket noi', arb_select_exchange:'Chon San', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'Luu', arb_exchange_cancel:'Huy', arb_exchange_connected:'Da ket noi', arb_exchange_disconnected:'Chua ket noi',arb_exchange_login:'Dang nhap', arb_exchange_logout:'Dang xuat',
+    arb_lock_title:'Arbitrage chi Elite', arb_lock_desc:'Nang cap len Elite de unlock giao dich AI tu dong', arb_lock_btn:'Nang cap $199/thang',
   },
   // 繁體中文 (台灣)
   'zh-tw': {
@@ -6233,6 +7675,18 @@ const I18N = {
     update_available:'🔄 有可用更新，下載中...', update_downloaded:'✅ 更新已就緒，點擊重啟', network_offline:'⚠️ 網絡已斷開',
     toast_upgrading:'正在跳轉至', toast_view_plans:'查看所有方案',
     legal_title:'法律與合規', legal_privacy:'隱私政策', legal_privacy_desc:'資料收集與保護', legal_terms:'服務條款', legal_terms_desc:'服務條款與責任', legal_cookie:'Cookie政策', legal_cookie_desc:'Cookie使用與偏好', legal_community:'社區指南', legal_community_desc:'社區行為準則',
+    // 跨交易所套利
+    nav_arbitrage:'套利', arb_title:'跨交易所套利', arb_subtitle:'多交易所即時價格聚合，AI監測套利機會',
+    arb_engine_status:'引擎狀態', arb_engine_running:'運行中', arb_engine_stopped:'已停止',
+    arb_monitor_ex:'已連接交易所', arb_monitor_pair:'交易對', arb_spread:'當前價差',
+    arb_profit:'預估收益', arb_trades:'交易次數', arb_total_profit:'累計收益',
+    arb_start:'啟動引擎', arb_stop:'停止引擎', arb_settings:'套利設定',
+    arb_min_spread:'最小價差 (%)', arb_amount:'每筆金額 (USD)', arb_max_positions:'最大持倉',
+    arb_orders:'套利記錄', arb_no_trades:'暫無套利記錄',
+    arb_add_exchange:'新增交易所', arb_quick_login:'快速登入', arb_logout:'登出',
+    arb_ai_trade:'AI自動交易', arb_ai_stop:'停止AI',
+    arb_exchanges:'🔗 已連接交易所', arb_select_exchange:'選擇交易所', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'儲存', arb_exchange_cancel:'取消', arb_exchange_connected:'已連接', arb_exchange_disconnected:'未連接',arb_exchange_login:'登入', arb_exchange_logout:'登出',
+    arb_lock_title:'套利為Elite專屬', arb_lock_desc:'升級至Elite解鎖AI自動交易', arb_lock_btn:'升級$199/月',
   },
   // 繁體中文 (香港)
   'yue': {
@@ -6330,6 +7784,18 @@ const I18N = {
     update_available:'🔄 有可用更新，下載中...', update_downloaded:'✅ 更新已就緒，點擊重啟', network_offline:'⚠️ 網絡已斷開',
     toast_upgrading:'正在跳轉至', toast_view_plans:'查看所有方案',
     legal_title:'法律與合規', legal_privacy:'隱私政策', legal_privacy_desc:'資料收集與保護', legal_terms:'服務條款', legal_terms_desc:'服務條款與責任', legal_cookie:'Cookie政策', legal_cookie_desc:'Cookie使用與偏好', legal_community:'社區指南', legal_community_desc:'社區行為準則',
+    // 跨交易所套利
+    nav_arbitrage:'套利', arb_title:'跨交易所套利', arb_subtitle:'多交易所即時價格聚合，AI監測套利機會',
+    arb_engine_status:'引擎狀態', arb_engine_running:'運行中', arb_engine_stopped:'已停止',
+    arb_monitor_ex:'已連接交易所', arb_monitor_pair:'交易對', arb_spread:'當前價差',
+    arb_profit:'預估收益', arb_trades:'交易次數', arb_total_profit:'累計收益',
+    arb_start:'啟動引擎', arb_stop:'停止引擎', arb_settings:'套利設定',
+    arb_min_spread:'最小價差 (%)', arb_amount:'每筆金額 (USD)', arb_max_positions:'最大持倉',
+    arb_orders:'套利記錄', arb_no_trades:'暫無套利記錄',
+    arb_add_exchange:'新增交易所', arb_quick_login:'快速登入', arb_logout:'登出',
+    arb_ai_trade:'AI自動交易', arb_ai_stop:'停止AI',
+    arb_exchanges:'🔗 已連接交易所', arb_select_exchange:'選擇交易所', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'儲存', arb_exchange_cancel:'取消', arb_exchange_connected:'已連接', arb_exchange_disconnected:'未連接',arb_exchange_login:'登入', arb_exchange_logout:'登出',
+    arb_lock_title:'套利為Elite專屬', arb_lock_desc:'升級至Elite解鎖AI自動交易', arb_lock_btn:'升級$199/月',
   },
   // हिन्दी (Hindi)
   hi: {
@@ -6427,6 +7893,18 @@ const I18N = {
     update_available:'🔄 अपडेट उपलब्ध...', update_downloaded:'✅ अपडेट रेडी, रीस्टार्ट करें', network_offline:'⚠️ ऑफलाइन',
     toast_upgrading:'रिडायरेक्ट हो रहा है', toast_view_plans:'सभी प्लान देखें',
     legal_title:'लीगल और कंप्लायंस', legal_privacy:'प्राइवेसी पॉलिसी', legal_privacy_desc:'डेटा कलेक्शन और प्रोटेक्शन', legal_terms:'सर्विस टर्म्स', legal_terms_desc:'सर्विस टर्म्स और लायबिलिटी', legal_cookie:'कुकी पॉलिसी', legal_cookie_desc:'कुकी यूज़', legal_community:'कम्युनिटी गाइडलाइंस', legal_community_desc:'कोड ऑफ कंडक्ट',
+    // Cross-Exchange Arbitrage
+    nav_arbitrage:'Arbitrage', arb_title:'Cross-Exchange Arbitrage', arb_subtitle:'Real-time multi-exchange price aggregation, AI-driven arbitrage monitoring',
+    arb_engine_status:'Engine Status', arb_engine_running:'Running', arb_engine_stopped:'Stopped',
+    arb_monitor_ex:'Connected Exchanges', arb_monitor_pair:'Trading Pair', arb_spread:'Current Spread',
+    arb_profit:'Est. Profit', arb_trades:'Trades', arb_total_profit:'Total Profit',
+    arb_start:'Start Engine', arb_stop:'Stop Engine', arb_settings:'Arbitrage Settings',
+    arb_min_spread:'Min Spread (%)', arb_amount:'Amount per Trade (USD)', arb_max_positions:'Max Positions',
+    arb_orders:'Arbitrage Log', arb_no_trades:'No arbitrage records',
+    arb_add_exchange:'Add Exchange', arb_quick_login:'Quick Login', arb_logout:'Logout',
+    arb_ai_trade:'AI Auto Trade', arb_ai_stop:'Stop AI',
+    arb_exchanges:'🔗 Connected Exchanges', arb_select_exchange:'Select Exchange', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'Save', arb_exchange_cancel:'Cancel', arb_exchange_connected:'Connected', arb_exchange_disconnected:'Not Connected',arb_exchange_login:'Login', arb_exchange_logout:'Logout',
+    arb_lock_title:'Arbitrage is Elite-only', arb_lock_desc:'Upgrade to Elite to unlock AI auto trading', arb_lock_btn:'Upgrade $199/mo',
   },
   // Bahasa Melayu (Malay)
   ms: {
@@ -6524,6 +8002,18 @@ const I18N = {
     update_available:'🔄 Update tersedia...', update_downloaded:'✅ Update sedia, klik untuk restart', network_offline:'⚠️ Offline',
     toast_upgrading:'Redirect ke', toast_view_plans:'Lihat Semua Pelan',
     legal_title:'Undang-undang', legal_privacy:'Dasar Privasi', legal_privacy_desc:'Pengumpulan dan perlindungan data', legal_terms:'Syarat Perkhidmatan', legal_terms_desc:'Syarat perkhidmatan', legal_cookie:'Dasar Cookie', legal_cookie_desc:'Penggunaan kuki', legal_community:'Garis Panduan Komuniti', legal_community_desc:'Kod Tatalaku',
+    // Arbitrage Cross-Exchange
+    nav_arbitrage:'Arbitrage', arb_title:'Arbitrage Cross-Exchange', arb_subtitle:'Agregasi harga masa nyata berbilang exchange, pemantauan AI peluang arbitrage',
+    arb_engine_status:'Status Engine', arb_engine_running:'Berlari', arb_engine_stopped:'Berhenti',
+    arb_monitor_ex:'Exchange Bersabung', arb_monitor_pair:'Pair Trading', arb_spread:'Spread Semasa',
+    arb_profit:'Profit Est.', arb_trades:'Trade', arb_total_profit:'Profit Total',
+    arb_start:'Mula Engine', arb_stop:'Henti Engine', arb_settings:'Tetapan Arbitrage',
+    arb_min_spread:'Spread Min (%)', arb_amount:'Amaun per Trade (USD)', arb_max_positions:'Max Posisi',
+    arb_orders:'Log Arbitrage', arb_no_trades:'Tiada rekod arbitrage',
+    arb_add_exchange:'Tambah Exchange', arb_quick_login:'Login Pantas', arb_logout:'Logout',
+    arb_ai_trade:'Trading Auto AI', arb_ai_stop:'Henti AI',
+    arb_exchanges:'🔗 Exchange Bersabung', arb_select_exchange:'Pilih Exchange', arb_exchange_api:'API Key', arb_exchange_secret:'Secret Key', arb_exchange_save:'Simpan', arb_exchange_cancel:'Batal', arb_exchange_connected:'Bersabung', arb_exchange_disconnected:'Tidak Bersabung',arb_exchange_login:'Login', arb_exchange_logout:'Logout',
+    arb_lock_title:'Arbitrage untuk Elite je', arb_lock_desc:'Upgrade ke Elite untuk unlock trading auto AI', arb_lock_btn:'Upgrade $199/bulan',
   },
 };
 
@@ -7420,6 +8910,340 @@ function initAutoOpen(){
   });
 }
 
+// ===== 智能套利页面 =====
+let _arbRunning = false;
+let _arbInterval = null;
+let _arbHistory = [];
+
+function initArbitragePage(){
+  // 同步My Account的交易所数据到本地
+  syncExchangesToArbitrage();
+  
+  // 根据用户版本控制功能
+  const isElite = _userPlan === 'elite';
+  const banner = document.getElementById('arb-lock-banner');
+  const exchangeSection = document.querySelector('#page-arbitrage .card:nth-of-type(2)'); // 交易所连接区块
+  const settingsSection = document.querySelector('#page-arbitrage .card:nth-of-type(3)'); // 套利设置区块
+  
+  if(banner) banner.style.display = isElite ? 'none' : 'flex';
+  
+  // 非 Elite 用户禁用关键功能
+  const disableClass = isElite ? '' : 'locked';
+  const pointerEvents = isElite ? '' : 'none';
+  const opacity = isElite ? '1' : '0.5';
+  
+  if(exchangeSection){
+    exchangeSection.style.opacity = opacity;
+    exchangeSection.style.pointerEvents = pointerEvents;
+  }
+  if(settingsSection){
+    settingsSection.style.opacity = opacity;
+    settingsSection.style.pointerEvents = pointerEvents;
+  }
+  
+  // 更新标签显示
+  const statusTag = document.getElementById('arb-status-tag');
+  if(statusTag){
+    statusTag.innerHTML = isElite 
+      ? '<span class="elite-badge" style="background:var(--green)">✅ Elite</span>'
+      : '<button class="btn btn-primary" onclick="upgradeToElite()" style="font-size:12px">💎 升级 Elite</button>';
+  }
+  
+  loadArbitragePrices();
+  initExchangeUI();
+  // 尝试从本地存储恢复状态
+  const saved = localStorage.getItem('arb_state');
+  if(saved){
+    try {
+      const state = JSON.parse(saved);
+      if(state.running){
+        _arbRunning = true;
+        document.getElementById('arb-start-btn').style.display = 'none';
+        document.getElementById('arb-stop-btn').style.display = '';
+        document.getElementById('arb-engine-status').innerHTML = '🟢 <span data-i18n="arb_engine_running">运行中</span>';
+      }
+    } catch(e){}
+  }
+}
+
+function loadArbitragePrices(){
+  const symbol = document.getElementById('arb-symbol-select')?.value || 'BTC/USDT';
+  fetch(`${window.API_BASE}/api/arbitrage/prices/${encodeURIComponent(symbol)}`)
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.prices){
+        renderArbPrices(data.prices);
+        // 计算价差
+        const prices = Object.values(data.prices);
+        if(prices.length >= 2){
+          const max = Math.max(...prices);
+          const min = Math.min(...prices);
+          const spread = ((max - min) / min * 100).toFixed(2);
+          document.getElementById('arb-current-spread').textContent = spread + '%';
+          document.getElementById('arb-spread-change').innerHTML = spread > 0.5 
+            ? '<span class="up">✓ 有机会</span>' 
+            : '<span class="down">- 无机会</span>';
+        }
+      }
+    })
+    .catch(e=>console.error('加载价格失败:',e));
+}
+
+function renderArbPrices(prices){
+  const grid = document.getElementById('arb-prices-grid');
+  if(!grid) return;
+  const exIcons = {binance:'🟡',okx:'🟠',bybit:'🔵',kucoin:'🟢',gate:'🟣'};
+  const sorted = Object.entries(prices).sort((a,b)=>a[1]-b[1]);
+  grid.innerHTML = sorted.map(([ex,price])=>`
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px">
+      <div style="font-size:20px;margin-bottom:6px">${exIcons[ex]||'🏦'} ${ex.toUpperCase()}</div>
+      <div style="font-size:18px;font-weight:700;color:var(--green)">$${price.toLocaleString()}</div>
+    </div>
+  `).join('');
+}
+
+function startArbitrageEngine(){
+  _arbRunning = true;
+  document.getElementById('arb-start-btn').style.display = 'none';
+  document.getElementById('arb-stop-btn').style.display = '';
+  document.getElementById('arb-engine-status').innerHTML = '🟢 <span data-i18n="arb_engine_running">运行中</span>';
+  localStorage.setItem('arb_state',JSON.stringify({running:true}));
+  // 每10秒扫描一次
+  _arbInterval = setInterval(scanArbitrage, 10000);
+  scanArbitrage(); // 立即执行一次
+}
+
+function stopArbitrageEngine(){
+  _arbRunning = false;
+  if(_arbInterval){
+    clearInterval(_arbInterval);
+    _arbInterval = null;
+  }
+  document.getElementById('arb-start-btn').style.display = '';
+  document.getElementById('arb-stop-btn').style.display = 'none';
+  document.getElementById('arb-engine-status').innerHTML = '⏹️ <span data-i18n="arb_engine_stopped">已停止</span>';
+  localStorage.setItem('arb_state',JSON.stringify({running:false}));
+}
+
+// ===== 交易所管理 =====
+const EXCHANGE_ICONS = {binance:'🟡',okx:'🟠',bybit:'🔵',kucoin:'🟢',gate:'🟣',huobi:'🟠',bitget:'🟢',bitflyer:'🟡',coincheck:'🟢',zaif:'🟢',upbit:'🔵',bithumb:'🟠',coinone:'🔵',indodax:'🔵',tokocrypto:'🔵',bitOin:'🟠',coinbase:'🔵',kraken:'⚫',gemini:'🟡',cryptocom:'🟣',bitstamp:'🔵',kuconeu:'🟢'};
+const EXCHANGE_NAMES = {binance:'Binance',okx:'OKX',bybit:'Bybit',kucoin:'KuCoin',gate:'Gate.io',huobi:'Huobi',bitget:'Bitget',bitflyer:'bitFlyer',coincheck:'Coincheck',zaif:'Zaif',upbit:'Upbit',bithumb:'Bithumb',coinone:'Coinone',indodax:'Indodax',tokocrypto:'Tokocrypto',bitOin:'BitOin',coinbase:'Coinbase',kraken:'Kraken',gemini:'Gemini',cryptocom:'Crypto.com',bitstamp:'Bitstamp',kuconeu:'KuCoin EU'};
+let _connectedExchanges = JSON.parse(localStorage.getItem('arb_exchanges') || '{}');
+let _arbAITrading = false;
+let _arbAITimer = null;
+
+function initExchangeUI(){
+  renderConnectedExchanges();
+}
+
+function renderConnectedExchanges(){
+  const container = document.getElementById('arb-connected-exchanges');
+  const count = document.getElementById('arb-exchange-count');
+  if(!container) return;
+  const exs = Object.keys(_connectedExchanges);
+  const total = exs.length;
+  if(count) count.textContent = `${total}/10`;
+  if(exs.length===0){
+    container.innerHTML = `<span style="color:var(--muted);font-size:13px" data-i18n="arb_no_exchange">暂无连接的交易所，请选择添加</span>`;
+    document.getElementById('arb-quick-login-btn').style.display = 'none';
+    return;
+  }
+  container.innerHTML = exs.map(ex=>`
+    <div style="background:var(--card2);border:1px solid var(--green);border-radius:20px;padding:6px 14px;font-size:13px;display:flex;align-items:center;gap:6px">
+      <span>${EXCHANGE_ICONS[ex]||'🏦'} ${EXCHANGE_NAMES[ex]||ex}</span>
+      <span style="color:var(--green);font-size:11px">✓</span>
+      <span onclick="removeExchange('${ex}')" style="cursor:pointer;color:var(--muted);margin-left:4px">✕</span>
+    </div>
+  `).join('');
+  document.getElementById('arb-quick-login-btn').style.display = '';
+  document.getElementById('arb-logout-btn').style.display = '';
+}
+
+function onExchangeSelected(){
+  const sel = document.getElementById('arb-exchange-select');
+  const config = document.getElementById('arb-api-config');
+  const title = document.getElementById('arb-api-title');
+  if(!sel.value){
+    config.style.display = 'none';
+    return;
+  }
+  title.textContent = EXCHANGE_NAMES[sel.value] + ' API 配置';
+  config.style.display = '';
+  document.getElementById('arb-api-key').value = _connectedExchanges[sel.value]?.key || '';
+  document.getElementById('arb-secret-key').value = _connectedExchanges[sel.value]?.secret || '';
+}
+
+function saveExchangeConfig(){
+  const sel = document.getElementById('arb-exchange-select').value;
+  const key = document.getElementById('arb-api-key').value.trim();
+  const secret = document.getElementById('arb-secret-key').value.trim();
+  if(!sel || !key || !secret){
+    alert('请填写完整的 API Key 和 Secret Key'); return;
+  }
+  _connectedExchanges[sel] = {key, secret};
+  localStorage.setItem('arb_exchanges',JSON.stringify(_connectedExchanges));
+  renderConnectedExchanges();
+  cancelExchangeConfig();
+  toast('交易所连接成功！','success');
+}
+
+function cancelExchangeConfig(){
+  document.getElementById('arb-exchange-select').value = '';
+  document.getElementById('arb-api-config').style.display = 'none';
+  document.getElementById('arb-api-key').value = '';
+  document.getElementById('arb-secret-key').value = '';
+}
+
+function removeExchange(ex){
+  if(!confirm('确定移除 ' + EXCHANGE_NAMES[ex] + ' ?')) return;
+  delete _connectedExchanges[ex];
+  localStorage.setItem('arb_exchanges',JSON.stringify(_connectedExchanges));
+  renderConnectedExchanges();
+  toast('已移除 ' + EXCHANGE_NAMES[ex]);
+}
+
+function quickLoginExchanges(){
+  const exs = Object.keys(_connectedExchanges);
+  if(exs.length===0){
+    alert('请先添加至少一个交易所'); return;
+  }
+  // 验证API（模拟）
+  let success = 0, fail = 0;
+  exs.forEach(ex=>{
+    // 实际应该调用后端API验证
+    success++;
+  });
+  toast(`一键登录完成: ${exs.length} 个交易所`, success>0?'success':'error');
+}
+
+function logoutAllExchanges(){
+  if(!confirm('确定退出所有交易所登录？')) return;
+  _connectedExchanges = {};
+  localStorage.setItem('arb_exchanges',JSON.stringify({}));
+  renderConnectedExchanges();
+  toast('已退出所有交易所');
+}
+
+// ===== AI自动交易 =====
+function toggleAITrading(){
+  _arbAITrading = true;
+  document.getElementById('arb-ai-btn').style.display = 'none';
+  document.getElementById('arb-ai-stop-btn').style.display = '';
+  // 每5秒AI分析一次
+  _arbAITimer = setInterval(aiArbitrageLoop, 5000);
+  aiArbitrageLoop();
+  toast('🤖 AI自动交易已启动','success');
+}
+
+function stopAITrading(){
+  _arbAITrading = false;
+  if(_arbAITimer){
+    clearInterval(_arbAITimer);
+    _arbAITimer = null;
+  }
+  document.getElementById('arb-ai-btn').style.display = '';
+  document.getElementById('arb-ai-stop-btn').style.display = 'none';
+  toast('⏹ AI自动交易已停止');
+}
+
+function aiArbitrageLoop(){
+  if(!_arbAITrading) return;
+  const symbol = document.getElementById('arb-symbol-select')?.value || 'BTC/USDT';
+  const amount = parseFloat(document.getElementById('arb-amount')?.value || 1000);
+  const minSpread = parseFloat(document.getElementById('arb-min-spread')?.value || 0.5);
+  // 调用后端扫描
+  fetch(`${window.API_BASE}/api/arbitrage/scan`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({symbol, amount, auto_execute: true})
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    if(data.success && data.signal && data.signal.spread_percent >= minSpread){
+      addArbRecord(data.signal);
+      // 同步到控制台
+      syncArbToConsole(data.signal);
+    }
+  })
+  .catch(e=>console.error('AI扫描失败:',e));
+}
+
+function syncArbToConsole(signal){
+  // 同步到中控台
+  const history = JSON.parse(localStorage.getItem('arb_history') || '[]');
+  history.unshift(signal);
+  if(history.length > 50) history.pop();
+  localStorage.setItem('arb_history',JSON.stringify(history));
+}
+
+function scanArbitrage(){
+  const symbol = document.getElementById('arb-symbol-select')?.value || 'BTC/USDT';
+  const amount = parseFloat(document.getElementById('arb-amount')?.value || 1000);
+  const minSpread = parseFloat(document.getElementById('arb-min-spread')?.value || 0.5);
+  
+  fetch(`${window.API_BASE}/api/arbitrage/scan`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({symbol, amount})
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    if(data.success && data.signal){
+      const sig = data.signal;
+      // 更新界面
+      document.getElementById('arb-current-spread').textContent = sig.spread_percent + '%';
+      document.getElementById('arb-spread-change').innerHTML = sig.spread_percent >= minSpread 
+        ? '<span class="up">✓ 满足条件</span>' 
+        : '<span class="down">- 不满足</span>';
+      
+      // 如果满足条件且自动执行开启，添加记录
+      if(sig.spread_percent >= minSpread){
+        addArbRecord(sig);
+      }
+    }
+  })
+  .catch(e=>console.error('扫描失败:',e));
+}
+
+function addArbRecord(signal){
+  const record = {
+    time: new Date().toLocaleString(),
+    symbol: signal.symbol,
+    buy: signal.buy_exchange,
+    sell: signal.sell_exchange,
+    spread: signal.spread_percent + '%',
+    profit: '$' + signal.estimated_profit,
+    status: signal.auto_execute ? '已执行' : '待确认'
+  };
+  _arbHistory.unshift(record);
+  if(_arbHistory.length > 50) _arbHistory.pop();
+  renderArbHistory();
+  // 累计收益
+  const total = parseFloat(document.getElementById('arb-total-profit').textContent.replace('$','') || 0) + signal.estimated_profit;
+  document.getElementById('arb-total-profit').textContent = '$' + total.toFixed(2);
+  document.getElementById('arb-trade-count').textContent = _arbHistory.length;
+}
+
+function renderArbHistory(){
+  const tbody = document.getElementById('arb-history-body');
+  if(!tbody) return;
+  if(_arbHistory.length === 0){
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted)" data-i18n="arb_no_trades">暂无套利记录</td></tr>';
+  } else {
+    tbody.innerHTML = _arbHistory.map(r=>`
+      <tr>
+        <td>${r.time}</td>
+        <td>${r.symbol}</td>
+        <td>${r.buy}</td>
+        <td>${r.sell}</td>
+        <td>${r.spread}</td>
+        <td class="up">${r.profit}</td>
+        <td><span class="tag tag-green">${r.status}</span></td>
+      </tr>
+    `).join('');
+  }
+}
+
 function selectAoMode(mode){
   _aoMode = mode;
   document.querySelectorAll('.ao-mode-card').forEach(c=>c.classList.remove('active'));
@@ -7729,7 +9553,7 @@ window.addEventListener('load',()=>{
 // ═══════════════════════════════════════════════════════════════
 
 /* ── 平台配置（运营方填写） ─────────────────────────────────── */
-const PLATFORM_GROQ_KEY = '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';   // 平台 Groq Key
+const PLATFORM_GROQ_KEY = 'YOUR_GROQ_API_KEY';   // 平台 Groq Key
 const PLATFORM_GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 /* ── 配额常量 ────────────────────────────────────────────────── */
@@ -8116,13 +9940,14 @@ window.addEventListener('DOMContentLoaded', function(){
 <style>
 /* 悬浮按钮 */
 #cs-fab{
-  position:fixed;bottom:28px;right:24px;z-index:9999;
+  position:fixed;bottom:90px;right:24px;z-index:9999;
   width:52px;height:52px;border-radius:50%;
   background:linear-gradient(135deg,var(--green),#0066FF);
   box-shadow:0 4px 20px rgba(0,200,150,.4);
   cursor:pointer;border:none;color:#fff;font-size:22px;
   display:flex;align-items:center;justify-content:center;
   transition:transform .2s,box-shadow .2s;
+  pointer-events:auto !important;
 }
 #cs-fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(0,200,150,.6)}
 #cs-fab .cs-badge{
@@ -8216,7 +10041,7 @@ window.addEventListener('DOMContentLoaded', function(){
 </style>
 
 <!-- 悬浮按钮 -->
-<button id="cs-fab" onclick="toggleCS()" title="客服支持">
+<button id="cs-fab" style="pointer-events:auto;cursor:pointer;" onclick="toggleCS();event.stopPropagation();">
   💬
   <span class="cs-badge" id="cs-badge">1</span>
 </button>
@@ -8255,7 +10080,7 @@ window.addEventListener('DOMContentLoaded', function(){
 
 // ---- 配置区（老板可修改） ----
 const CS_CONFIG = {
-  groqKey: 'USE_GATEWAY',  // 'USE_GATEWAY' = 走 AI Gateway 路由; 填具体Key = 直连
+  groqKey: 'YOUR_GROQ_API_KEY',  // Groq API Key
   groqModel: 'llama-3.3-70b-versatile',
   tgLink: 'https://t.me/QuantAI_Support',  // Telegram 人工客服链接
   handoffKeywords: ['人工','转人工','真人','complaint','human','staff','urgent','紧急','投诉'],
@@ -8283,6 +10108,7 @@ let _csSending = false;
 let _csGreeted = false;
 
 function toggleCS(){
+  console.log('[客服] 点击了客服按钮, 当前状态:', _csOpen);
   _csOpen = !_csOpen;
   const panel = document.getElementById('cs-panel');
   if(_csOpen){
@@ -8495,7 +10321,7 @@ window.addEventListener('load', ()=>{
 // ═══════════════════════════════════════════════════════════════
 
 /* ── 平台配置（运营方填写） ─────────────────────────────────── */
-window.PLATFORM_GROQ_KEY = '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';   // 平台 Groq Key
+window.PLATFORM_GROQ_KEY = 'YOUR_GROQ_API_KEY';   // 平台 Groq Key
 window.PLATFORM_GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 /* ── 配额常量 ────────────────────────────────────────────────── */

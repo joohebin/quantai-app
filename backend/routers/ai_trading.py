@@ -1,6 +1,6 @@
 """
-AI 交易路由 - OpenRouter 多模型 + 自动交易
-支持: Qwen3.6 + DeepSeek V3.2 自动切换
+AI 交易路由 - DeepSeek 直连 + 自动交易
+支持: DeepSeek V3
 """
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -26,18 +26,18 @@ GROQ_MODELS = {
     "vision": "llama-3.2-11b-vision-preview",   # 视觉理解（免费）
 }
 
-# ============ OpenRouter API 配置（自动交易）============
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY") or "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"
-OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
+# ============ DeepSeek API 配置（直接调用）============
+DEEPSEEK_API_KEY = "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"
+DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
-# OpenRouter 模型配置 - 按场景自动选择
-OPENROUTER_MODELS = {
-    "stable": "deepseek/deepseek-v3.2",      # 稳定分析模式
-    "fast": "qwen/qwen3.6-plus:free",         # 快速响应模式
+# DeepSeek 模型配置
+DEEPSEEK_MODELS = {
+    "stable": "deepseek-chat",      # DeepSeek V3（主力）
+    "coder": "deepseek-coder",     # 代码专用
 }
 
 # 当前活跃模型
-current_model = {"id": "deepseek/deepseek-v3.2", "name": "DeepSeek V3.2"}
+current_model = {"id": "deepseek-chat", "name": "DeepSeek V3"}
 
 # ============ 自动交易配置 ============
 AUTO_TRADE_ENABLED = os.getenv("AUTO_TRADE_ENABLED", "false").lower() == "true"
@@ -108,14 +108,12 @@ async def call_groq(model: str, messages: list, max_tokens: int = 1000) -> dict:
         return r.json()
 
 
-# ============ OpenRouter AI 调用（自动交易）============
-async def call_openrouter(model: str, messages: list, max_tokens: int = 1000) -> dict:
-    """调用OpenRouter API"""
+# ============ DeepSeek API 调用（自动交易）============
+async def call_deepseek(model: str, messages: list, max_tokens: int = 1000) -> dict:
+    """调用DeepSeek API"""
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://quantai.app",
-        "X-Title": "QuantAI Trading"
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json"
     }
     
     payload = {
@@ -126,10 +124,10 @@ async def call_openrouter(model: str, messages: list, max_tokens: int = 1000) ->
     }
     
     async with httpx.AsyncClient(timeout=90.0) as client:
-        r = await client.post(OPENROUTER_API_URL, headers=headers, json=payload)
+        r = await client.post(DEEPSEEK_API_URL, headers=headers, json=payload)
         
         if r.status_code != 200:
-            raise Exception(f"API Error: {r.status_code} - {r.text}")
+            raise Exception(f"DeepSeek API Error: {r.status_code} - {r.text}")
         
         return r.json()
 
@@ -180,7 +178,7 @@ async def health():
         "status": "ok",
         "providers": {
             "customer_service": {"provider": "Groq", "model": GROQ_MODELS["customer"], "cost": "免费"},
-            "auto_trading": {"provider": "OpenRouter", "model": OPENROUTER_MODELS["stable"], "cost": "付费"}
+            "auto_trading": {"provider": "DeepSeek", "model": DEEPSEEK_MODELS["stable"], "cost": "付费"}
         },
         "auto_trade": AUTO_TRADE_ENABLED
     }
@@ -198,10 +196,9 @@ async def list_models():
             ]
         },
         "auto_trading": {
-            "provider": "OpenRouter",
+            "provider": "DeepSeek",
             "models": [
-                {"id": OPENROUTER_MODELS["stable"], "name": "DeepSeek V3.2", "use_case": "稳定分析"},
-                {"id": OPENROUTER_MODELS["fast"], "name": "Qwen3.6 Plus", "use_case": "快速响应"}
+                {"id": DEEPSEEK_MODELS["stable"], "name": "DeepSeek V3", "use_case": "稳定分析"}
             ]
         }
     }
@@ -268,8 +265,8 @@ async def chat(request: ChatRequest):
 
 @router.post("/analyze")
 async def analyze(symbol: str, timeframe: str = "1h"):
-    """市场分析 + 生成交易信号（自动交易用OpenRouter）"""
-    model = OPENROUTER_MODELS["stable"]  # 使用OpenRouter进行市场分析
+    """市场分析 + 生成交易信号（自动交易用DeepSeek）"""
+    model = DEEPSEEK_MODELS["stable"]  # 使用DeepSeek进行市场分析
     current_model["id"] = model
     
     prompt = f"""分析 {symbol} 在 {timeframe} 时间框架的技术面和基本面：
@@ -285,7 +282,7 @@ async def analyze(symbol: str, timeframe: str = "1h"):
 如果信号为做多或做空，必须包含具体数字。"""
     
     try:
-        response = await call_openrouter(model, [
+        response = await call_deepseek(model, [
             {"role": "system", "content": "你是一名专业的量化交易分析师，擅长技术分析和风险管理。"},
             {"role": "user", "content": prompt}
         ])

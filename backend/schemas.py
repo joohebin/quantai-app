@@ -100,6 +100,7 @@ class BrokerAccountCreate(BaseModel):
     api_key: str
     api_secret: str
     api_passphrase: Optional[str] = ""
+    account_id: Optional[str] = ""  # MT5 账户ID
     display_name: Optional[str] = ""
     is_testnet: bool = False
 
@@ -113,6 +114,10 @@ class BrokerAccountOut(BaseModel):
     currency: str
     is_active: bool
     is_testnet: bool
+    # 海外期货券商额外字段
+    email: Optional[str] = ""
+    server: Optional[str] = ""
+    account_type: Optional[str] = "real"
     last_sync_at: Optional[datetime]
     created_at: datetime
 
@@ -203,6 +208,11 @@ class OrderOut(BaseModel):
     filled_quantity: float
     status: str
     exchange_order_id: str
+    # 返点信息
+    trade_amount: float = 0.0
+    rebate_percent: float = 1.0
+    rebate_amount: float = 0.0
+    is_rebated: bool = False
     created_at: datetime
 
     class Config:

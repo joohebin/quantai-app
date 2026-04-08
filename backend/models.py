@@ -68,6 +68,11 @@ class BrokerAccount(Base):
     api_secret = Column(String, default="")        # 加密存储
     api_passphrase = Column(String, default="")    # OKX专用
     account_id = Column(String, default="")
+    # 海外期货券商额外字段
+    email = Column(String, default="")             # 登录邮箱
+    password = Column(String, default="")         # 登录密码 (生产环境加密)
+    server = Column(String, default="")           # 服务器名称
+    account_type = Column(String, default="real") # real or demo
     display_name = Column(String, default="")
     balance = Column(Float, default=0.0)
     currency = Column(String, default="USDT")
@@ -146,6 +151,11 @@ class Order(Base):
     status = Column(String, default="pending")     # pending/filled/cancelled/failed
     exchange_order_id = Column(String, default="")
     error_message = Column(Text, default="")
+    # 返点相关字段
+    trade_amount = Column(Float, default=0.0)     # 交易金额（USDT）
+    rebate_percent = Column(Float, default=1.0)   # 返点比例默认1%
+    rebate_amount = Column(Float, default=0.0)    # 返点金额
+    is_rebated = Column(Boolean, default=False)   # 是否已计算返点
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     filled_at = Column(DateTime(timezone=True))
 
@@ -179,3 +189,30 @@ class AIConversation(Base):
     content = Column(Text, nullable=False)
     action_taken = Column(String, default="")       # 如"place_order","analyze"等
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class AISignal(Base):
+    """AI交易信号记录 - 用于模型训练数据收集"""
+    __tablename__ = "ai_signals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    # 信号内容
+    signal_type = Column(String, default="")        # "buy" | "sell" | "hold"
+    symbol = Column(String, default="")
+    amount = Column(Float, default=0)
+    reason = Column(Text, default="")
+    # 市场环境快照
+    market_snapshot = Column(Text, default="{}")   # JSON: 当时各交易所价格
+    # 执行结果（后续更新）
+    executed = Column(Boolean, default=False)      # 用户是否执行
+    execution_result = Column(String, default="")  # "success" | "cancelled" | "failed"
+    pnl_result = Column(Float, default=0.0)           # 实盘盈亏结果
+    # 元数据
+    source = Column(String, default="ai_advisor")      # "ai_advisor" | "copy_trading" | "arbitrage"
+    model_version = Column(String, default="v1")  # 使用的模型版本
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    # 结果更新时刻
+    result_updated_at = Column(DateTime(timezone=True))
+
+    user = relationship("User")

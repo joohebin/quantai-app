@@ -20,10 +20,14 @@ from routers.users import router as auth_router, user_router, admin_router
 from routers.market import router as market_router
 from routers.positions import router as positions_router
 from routers.strategies import router as strategies_router
-from routers.broker import router as broker_router
+from routers.broker import router as broker_router, admin_router as broker_admin_router
 from routers.orders import router as orders_router
 from routers.ai_trading import router as ai_router
 from routers.trading_executor import router as trading_router
+from routers.arbitrage import router as arbitrage_router
+from routers.trading_stats import router as trading_stats_router
+from routers.ai_signals import router as ai_signals_router
+from routers.ai_finetune import router as ai_finetune_router
 
 
 @asynccontextmanager
@@ -59,9 +63,14 @@ app.include_router(market_router)
 app.include_router(positions_router)
 app.include_router(strategies_router)
 app.include_router(broker_router)
+app.include_router(broker_admin_router)
 app.include_router(orders_router)
 app.include_router(ai_router)
 app.include_router(trading_router)
+app.include_router(arbitrage_router)
+app.include_router(trading_stats_router)
+app.include_router(ai_signals_router)
+app.include_router(ai_finetune_router)
 
 
 @app.get("/")
