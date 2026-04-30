@@ -9825,13 +9825,15 @@ function toggleCS(){
   const panel = document.getElementById('cs-panel');
   if(_csOpen){
     panel.classList.add('open');
-    document.getElementById('cs-fab').innerHTML = '✕<span class="cs-badge" id="cs-badge" style="display:none"></span>';
+    const fab = document.getElementById('cs-fab');
+    if(fab) fab.innerHTML = '✕<span class="cs-badge" id="cs-badge" style="display:none"></span>';
     document.getElementById('cs-badge') && (document.getElementById('cs-badge').style.display='none');
     if(!_csGreeted){ _csGreeted=true; setTimeout(csGreet, CS_CONFIG.greetDelay); }
-    setTimeout(()=>document.getElementById('cs-input').focus(), 300);
+    setTimeout(()=>{ const inp=document.getElementById('cs-input'); if(inp)inp.focus(); }, 300);
   } else {
     panel.classList.remove('open');
-    document.getElementById('cs-fab').innerHTML = '💬<span class="cs-badge" id="cs-badge" style="display:none"></span>';
+    const fab = document.getElementById('cs-fab');
+    if(fab) fab.innerHTML = '💬<span class="cs-badge" id="cs-badge" style="display:none"></span>';
   }
 }
 
