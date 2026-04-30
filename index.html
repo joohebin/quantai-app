@@ -1189,174 +1189,7 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
       </div>
 
       <!-- ===== 策略市场 ===== -->
-            <!-- ===== 跨交易所聚合引擎 ===== -->
-      <div class="page" id="page-arbitrage" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <div style="font-size:20px;font-weight:800">⚡ <span data-i18n="arb_title"></span></div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div id="arb-status-tag"></div>
-          </div>
-        </div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:12px" data-i18n="arb_subtitle"></div>
-
-        <!-- Elite lock banner -->
-        <div id="arb-lock-banner" class="card" style="display:none;padding:16px;margin-bottom:12px;background:rgba(245,158,11,0.1);border:1px solid #f59e0b">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="font-size:28px">🔒</div>
-            <div>
-              <div style="font-weight:700;margin-bottom:4px" data-i18n="arb_lock_title"></div>
-              <div style="font-size:13px;color:var(--muted)" data-i18n="arb_lock_desc"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 概览卡片 + 引擎控制 -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px">
-          <div class="card" style="padding:14px;display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div style="font-size:12px;color:var(--muted)" data-i18n="arb_monitor_pair"></div>
-              <div id="arb-pairs-count" style="font-size:22px;font-weight:800">0</div>
-            </div>
-            <div style="font-size:24px">📊</div>
-          </div>
-          <div class="card" style="padding:14px;display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div style="font-size:12px;color:var(--muted)" data-i18n="arb_engine_status"></div>
-              <div id="arb-engine-status" style="font-size:22px;font-weight:800;color:var(--muted)">⏸️ <span data-i18n="arb_engine_stopped"></span></div>
-            </div>
-            <div>
-              <button id="arb-start-btn" class="btn" style="padding:6px 14px;font-size:12px;background:var(--green);color:#fff;border:none" onclick="startArbitrageEngine()" data-i18n="arb_start"></button>
-              <button id="arb-stop-btn" class="btn" style="display:none;padding:6px 14px;font-size:12px;background:#ef4444;color:#fff;border:none" onclick="stopArbitrageEngine()" data-i18n="arb_stop"></button>
-            </div>
-          </div>
-          <div class="card" style="padding:14px;display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div style="font-size:12px;color:var(--muted)" data-i18n="arb_total_profit"></div>
-              <div id="arb-total-profit" style="font-size:22px;font-weight:800;color:var(--green)">$0.00</div>
-            </div>
-            <div style="font-size:24px">💰</div>
-          </div>
-          <div class="card" style="padding:14px;display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div style="font-size:12px;color:var(--muted)" data-i18n="arb_trades"></div>
-              <div id="arb-trade-count" style="font-size:22px;font-weight:800">0</div>
-            </div>
-            <div style="font-size:24px">🔄</div>
-          </div>
-        </div>
-
-        <!-- 交易所连接 + 设置 -->
-        <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px">
-          <!-- 交易所状态 -->
-          <div class="card" style="padding:14px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-              <div style="font-weight:700" data-i18n="arb_monitor_ex"></div>
-              <button class="btn" style="padding:4px 10px;font-size:11px" onclick="syncExchangesToArbitrage()">↻ <span data-i18n="arb_refresh"></span></button>
-            </div>
-            <div id="arb-exchange-status" style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-              <div class="exchange-item off" data-ex="binance"><div style="font-weight:600">Binance</div><div style="font-size:11px;color:var(--muted)" class="arb-balance">—</div></div>
-              <div class="exchange-item off" data-ex="okx"><div style="font-weight:600">OKX</div><div style="font-size:11px;color:var(--muted)" class="arb-balance">—</div></div>
-              <div class="exchange-item off" data-ex="bybit"><div style="font-weight:600">Bybit</div><div style="font-size:11px;color:var(--muted)" class="arb-balance">—</div></div>
-              <div class="exchange-item off" data-ex="kucoin"><div style="font-weight:600">KuCoin</div><div style="font-size:11px;color:var(--muted)" class="arb-balance">—</div></div>
-            </div>
-          </div>
-
-          <!-- 套利设置 -->
-          <div class="card" style="padding:14px">
-            <div style="font-weight:700;margin-bottom:10px" data-i18n="arb_settings"></div>
-            <div style="margin-bottom:8px">
-              <div style="font-size:12px;color:var(--muted);margin-bottom:4px" data-i18n="arb_min_spread"></div>
-              <input id="arb-min-spread" type="number" value="0.1" step="0.01" min="0" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:13px">
-            </div>
-            <div style="margin-bottom:8px">
-              <div style="font-size:12px;color:var(--muted);margin-bottom:4px" data-i18n="arb_amount"></div>
-              <input id="arb-amount" type="number" value="100" step="10" min="10" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:13px">
-            </div>
-            <div>
-              <div style="font-size:12px;color:var(--muted);margin-bottom:4px" data-i18n="arb_monitor_pair"></div>
-              <select id="arb-symbol-select" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:13px">
-                <option value="BTC/USDT">BTC/USDT</option>
-                <option value="ETH/USDT" selected>ETH/USDT</option>
-                <option value="BNB/USDT">BNB/USDT</option>
-                <option value="SOL/USDT">SOL/USDT</option>
-                <option value="XRP/USDT">XRP/USDT</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- 价差实时显示 -->
-        <div class="card" style="padding:14px;margin-bottom:12px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <div style="font-weight:700" data-i18n="arb_spread"></div>
-            <div style="display:flex;align-items:center;gap:12px">
-              <span id="arb-current-spread" style="font-size:18px;font-weight:800;color:var(--muted)">—</span>
-              <span id="arb-spread-change" style="font-size:12px;color:var(--muted)">—</span>
-            </div>
-          </div>
-          <div id="arb-prices-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px">
-            <!-- JS动态填充所有交易所价格 -->
-          </div>
-        </div>
-
-        <!-- 搬砖流向可视化 -->
-        <div class="card" style="padding:14px;margin-bottom:12px">
-          <div style="font-weight:700;margin-bottom:10px">📊 <span data-i18n="arb_flow"></span></div>
-          <div id="arb-flow-container" style="display:flex;flex-direction:column;gap:10px">
-            <div class="arb-flow-row" style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px">
-              <div style="flex:0 0 80px;text-align:center;font-weight:700;font-size:13px;color:var(--green)">Binance</div>
-              <div style="flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden">
-                <div style="width:100%;height:3px;background:linear-gradient(90deg,var(--green),var(--blue));animation:arb-flow-bar 1.5s infinite"></div>
-              </div>
-              <div style="flex:0 0 80px;text-align:center;font-weight:700;font-size:13px;color:var(--blue)">OKX</div>
-            </div>
-            <div class="arb-flow-row" style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px">
-              <div style="flex:0 0 80px;text-align:center;font-weight:700;font-size:13px;color:var(--green)">OKX</div>
-              <div style="flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden">
-                <div style="width:100%;height:3px;background:linear-gradient(90deg,var(--green),var(--blue));animation:arb-flow-bar 1.5s infinite"></div>
-              </div>
-              <div style="flex:0 0 80px;text-align:center;font-weight:700;font-size:13px;color:var(--blue)">Binance</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 套利交易记录 -->
-        <div class="card" style="padding:14px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <div style="font-weight:700">📝 <span data-i18n="arb_orders"></span></div>
-            <button class="btn" style="padding:4px 10px;font-size:11px" onclick="scanArbitrage()" data-i18n="arb_scan"></button>
-          </div>
-          <div style="overflow-x:auto;max-height:300px;overflow-y:auto">
-            <table style="width:100%;border-collapse:collapse;font-size:12px">
-              <thead>
-                <tr style="color:var(--muted);border-bottom:1px solid var(--border)">
-                  <th style="padding:6px 4px;text-align:left">Time</th>
-                  <th style="padding:6px 4px;text-align:left" data-i18n="arb_th_pair"></th>
-                  <th style="padding:6px 4px;text-align:left" data-i18n="arb_th_buy"></th>
-                  <th style="padding:6px 4px;text-align:right" data-i18n="arb_th_spread"></th>
-                  <th style="padding:6px 4px;text-align:right" data-i18n="arb_profit"></th>
-                  <th style="padding:6px 4px;text-align:center">Status</th>
-                </tr>
-              </thead>
-              <tbody id="arb-history-body">
-                <tr><td colspan="6" style="padding:16px;text-align:center;color:var(--muted)" data-i18n="arb_no_trades"></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <style>
-          @keyframes arb-flow-bar {
-            0% { transform: scaleX(0); opacity: 0; }
-            50% { transform: scaleX(1); opacity: 1; }
-            100% { transform: scaleX(0); opacity: 0; transform-origin: right; }
-          }
-          .exchange-item { padding:10px; border-radius:6px; border:1px solid var(--border); margin-bottom:0; }
-          .exchange-item.on { border-color:var(--green); background:rgba(34,197,94,0.08); }
-          .exchange-item.warn { border-color:#f59e0b; background:rgba(245,158,11,0.08); }
-          .exchange-item.off { border-color:#ef4444; background:rgba(239,68,68,0.08); }
-        </style>
-      </div><div class="page" id="page-stratmarket">
+            div class="page" id="page-stratmarket">
         <div style="font-size:20px;font-weight:800;margin-bottom:4px">🛒 <span data-i18n="sm_title">策略市场</span></div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:16px" data-i18n="sm_subtitle">发现、分享、一键复用顶级量化策略</div>
 
@@ -2164,6 +1997,39 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
           </table>
         </div>
       </div>
+
+        <!-- 搬砖流向可视化 -->
+        <div class="card" style="padding:14px;margin-bottom:12px">
+          <div style="font-weight:700;margin-bottom:10px">📊 <span data-i18n="arb_flow"></span></div>
+          <div id="arb-flow-container" style="display:flex;flex-direction:column;gap:10px">
+            <div class="arb-flow-row" style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px">
+              <div style="flex:0 0 80px;text-align:center;font-weight:700;font-size:13px;color:var(--green)">Binance</div>
+              <div style="flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden">
+                <div style="width:100%;height:3px;background:linear-gradient(90deg,var(--green),var(--blue));animation:arb-flow-bar 1.5s infinite"></div>
+              </div>
+              <div style="flex:0 0 80px;text-align:center;font-weight:700;font-size:13px;color:var(--blue)">OKX</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 交易日志 -->
+        <div class="card" style="padding:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-weight:700">📝 <span data-i18n="arb_log_title"></span></div>
+            <div style="font-size:11px;color:var(--muted)" data-i18n="arb_log_auto_refresh"></div>
+          </div>
+          <div id="arb-trade-log" style="max-height:250px;overflow-y:auto;font-size:12px;font-family:monospace">
+            <div style="padding:4px 0;color:var(--muted)" data-i18n="arb_history_empty"></div>
+          </div>
+        </div>
+
+        <style>
+          @keyframes arb-flow-bar {
+            0% { transform: scaleX(0); opacity: 0; }
+            50% { transform: scaleX(1); opacity: 1; }
+            100% { transform: scaleX(0); opacity: 0; transform-origin: right; }
+          }
+        </style>
 
       <!-- ===== 复制交易 / 排行榜 ===== -->
       <div class="page" id="page-copy">
