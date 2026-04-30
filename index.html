@@ -9761,8 +9761,13 @@ window.addEventListener('DOMContentLoaded', function(){
 .cs-handoff-btn.cancel{background:rgba(255,255,255,.08);color:var(--text)}
 </style>
 
-<!-- 悬浮按钮 -->
-<div class="cs-info">
+<!-- 悬浮按钮（已移至侧边栏，保留用于代码兼容） -->
+<!-- 悬浮按钮（隐藏，兼容旧代码） -->
+<div id="cs-fab" style="display:none" onclick="toggleCS()">💬<span class="cs-badge" id="cs-badge"></span></div>
+<div id="cs-panel">
+  <div id="cs-head">
+    <div class="cs-av">🤖</div>
+    <div class="cs-info">
       <div class="cs-name">QuantAI 客服助手</div>
       <div class="cs-status" id="cs-status-txt">在线 · AI 自动回复</div>
     </div>
