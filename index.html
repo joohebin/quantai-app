@@ -9482,13 +9482,33 @@ function saveChannelSettings(){
 function deleteChannel(){
   var ch=_sqCurrentChannel;
   if(!ch) return;
-  if(!confirm('确定要删除频道「#'+ch.name+'」？频道下的所有消息将被删除！')) return;
-  _sqChannels=_sqChannels.filter(function(c){return c.id!==ch.id;});
-  delete _sqMessages[ch.id];
+  // Don't allow deleting default channels
+  var defaultIds=['ch-general','ch-btc','ch-eth','ch-strategy','ch-livestream','ch-backtest'];
+  if(defaultIds.indexOf(ch.id)>=0){toast('不能删除默认频道','warn');return;}
+  // Show custom confirm modal
+  var existing=document.getElementById('del-ch-modal');
+  if(existing) existing.remove();
+  var m=document.createElement('div');
+  m.id='del-ch-modal';
+  m.style.cssText='position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center';
+  m.innerHTML='<div style="background:var(--card-bg,#1a1a2e);border:1px solid var(--border,#2a3a5e);border-radius:16px;padding:24px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.5)">'+
+    '<div style="font-size:18px;font-weight:700;margin-bottom:8px;color:var(--red,#e74c3c)">⚠️ 删除频道</div>'+
+    '<div style="font-size:14px;color:var(--text,#e0e0e0);margin-bottom:20px">确定要删除频道「#'+ch.name+'」？<br><span style="color:var(--muted,#888);font-size:12px">频道下的所有消息将被永久删除</span></div>'+
+    '<div style="display:flex;gap:10px">'+
+      '<button onclick="this.parentElement.parentElement.remove()" style="flex:1;padding:12px;border:1px solid var(--border,#2a3a5e);border-radius:10px;background:transparent;color:var(--text,#e0e0e0);font-size:14px;cursor:pointer">取消</button>'+
+      '<button onclick="confirmDeleteChannel()" style="flex:1;padding:12px;border:none;border-radius:10px;background:var(--red,#e74c3c);color:#fff;font-size:14px;font-weight:600;cursor:pointer">确认删除</button>'+
+    '</div>'+
+  '</div>';
+  document.body.appendChild(m);
+}
+function confirmDeleteChannel(){
+  _sqChannels=_sqChannels.filter(function(c){return c.id!==_sqCurrentChannel.id;});
+  delete _sqMessages[_sqCurrentChannel.id];
   saveSQ();
   var m=document.getElementById('ch-settings-modal');
   if(m) m.remove();
-  // Switch to first available channel
+  var dm=document.getElementById('del-ch-modal');
+  if(dm) dm.remove();
   if(_sqChannels.length>0) switchChannel(_sqChannels[0].id);
   else renderChannelList();
   toast('🗑️ 频道已删除','info');
