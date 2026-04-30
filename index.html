@@ -1844,7 +1844,7 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
             <div style="display:flex;gap:8px">
               <div style="flex:1;display:flex;gap:6px">
                 <input id="sq-input" type="text" placeholder="输入消息..." style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-size:13px" onkeydown="if(event.key==='Enter') sendMsg()">
-                <button onclick="shareChart()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer" title="分享图表">📷</button><button id="qt-voice-btn" onclick="startVoiceInput('sq-input')" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer" title="语音输入">🎤</button>
+                <button onclick="shareChart()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer" title="分享图表">📷</button><button id="qt-voice-btn" onclick="startVoiceInput('sq-input')" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer" title="语音输入">🎙️</button><button id="qt-voice-btn" onclick="startVoiceInput('sq-input')" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer" title="语音输入">🎤</button>
               </div>
               <button onclick="sendMsg()" style="padding:10px 20px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer">发送</button>
             </div>
@@ -9399,6 +9399,69 @@ function extractYtId(input){
   var m=id.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   if(m) return m[1];
   return '';
+}
+
+
+// ---- Voice Input (Web Speech API) ----
+var _voiceRecognition = null;
+var _voiceListening = false;
+function startVoiceInput(inputId){
+  var btn = inputId === 'sq-input' ? document.getElementById('qt-voice-btn') : document.getElementById('voice-btn');
+  if(!btn) btn = document.getElementById('voice-btn');
+  
+  if(_voiceListening){
+    if(_voiceRecognition) _voiceRecognition.stop();
+    if(btn) btn.textContent = '\U0001f399\ufe0f';
+    if(btn) btn.style.color = '';
+    _voiceListening = false;
+    return;
+  }
+  
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    alert('\u60a8\u7684\u6d4f\u89c8\u5668\u4e0d\u652f\u6301\u8bed\u97f3\u8bc6\u522b\uff0c\u8bf7\u4f7f\u7528Chrome');
+    return;
+  }
+  
+  var recognition = new SR();
+  recognition.lang = 'zh-CN';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  
+  recognition.onstart = function(){
+    _voiceListening = true;
+    if(btn) btn.textContent = '\U0001f3a4';
+    if(btn) btn.style.color = 'var(--green)';
+  };
+  
+  recognition.onresult = function(e){
+    var transcript = e.results[0][0].transcript;
+    var input = document.getElementById(inputId);
+    if(input){
+      input.value = transcript;
+      if(inputId === 'cs-input'){
+        setTimeout(function(){ csDoSend(); }, 200);
+      } else if(inputId === 'sq-input'){
+        setTimeout(function(){ sendMsg(); }, 200);
+      }
+    }
+  };
+  
+  recognition.onerror = function(e){
+    console.log('Voice error:', e.error);
+    if(btn) btn.textContent = '\U0001f399\ufe0f';
+    if(btn) btn.style.color = '';
+    _voiceListening = false;
+  };
+  
+  recognition.onend = function(){
+    _voiceListening = false;
+    if(btn) btn.textContent = '\U0001f399\ufe0f';
+    if(btn) btn.style.color = '';
+  };
+  
+  _voiceRecognition = recognition;
+  recognition.start();
 }
 
 // Friend System JS - read by _build_friend_v4.py
