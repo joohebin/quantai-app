@@ -1,0 +1,151 @@
+id="app">
+
+  <!-- 侧边栏 -->
+  <aside id="sidebar">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">Quant<span>AI</span></div>
+    </div>
+    <nav>
+      <div class="nav-item active" onclick="showPage('dashboard',this)" data-page="dashboard">
+        <span class="ni" data-nav-icon="🏠">🏠</span><span data-i18n="nav_dashboard">仪表盘</span>
+      </div>
+      <div class="nav-item" onclick="showPage('market',this)" data-page="market">
+        <span class="ni" data-nav-icon="📈">📈</span><span data-i18n="nav_market">行情</span>
+      </div>
+      <div class="nav-item" onclick="showPage('ai',this)" data-page="ai">
+        <span class="ni" data-nav-icon="🤖">🤖</span><span data-i18n="nav_ai">AI 顾问</span>
+        <span class="badge">New</span>
+      </div>
+      <div class="nav-item" onclick="showPage('positions',this)" data-page="positions">
+        <span class="ni" data-nav-icon="📊">📊</span><span data-i18n="nav_positions">持仓</span>
+      </div>
+      <div class="nav-item" onclick="showPage('strategies',this)" data-page="strategies">
+        <span class="ni" data-nav-icon="⚡">⚡</span><span data-i18n="nav_strategies">策略</span>
+      </div>
+      <div class="nav-item" onclick="showPage('backtest',this)" data-page="backtest">
+        <span class="ni" data-nav-icon="🔬">🔬</span><span data-i18n="nav_backtest">回测</span>
+      </div>
+      <div class="nav-item" onclick="showPage('copy',this)" data-page="copy">
+        <span class="ni" data-nav-icon="🔁">🔁</span><span data-i18n="nav_copy">复制交易</span>
+        <span class="badge" style="background:var(--green);color:var(--dark)">Hot</span>
+      </div>
+      <div class="nav-item" onclick="showPage('arbitrage',this)" data-page="arbitrage">
+        <span class="ni" data-nav-icon="⚖️">⚖️</span><span data-i18n="nav_arbitrage">跨交易所聚合引擎</span>
+        <span class="badge" style="background:var(--blue);color:#fff">AI</span>
+      </div>
+      <div class="nav-item" onclick="showPage('autoopen',this)" data-page="autoopen">
+        <span class="ni" data-nav-icon="⚙️">⚙️</span><span data-i18n="nav_autoopen">自动建仓</span>
+        <span class="badge" style="background:#f59e0b;color:#000">Elite</span>
+      </div>
+      <div class="nav-item" onclick="showPage('square',this)" data-page="square">
+        <span class="ni" data-nav-icon="💬">💬</span><span data-i18n="nav_square">QuantTalk</span>
+        <span class="badge" style="background:var(--purple);color:#fff">New</span>
+      </div>
+          <div class="nav-item" onclick="showPage('arbitrage',this)" data-page="arbitrage">
+            <span class="ni">🔗</span><span data-i18n="nav_arbitrage"></span>
+            <span class="badge">New</span>
+          </div>
+      <div class="nav-item" onclick="showPage('stratmarket',this)" data-page="stratmarket">
+        <span class="ni" data-nav-icon="🛒">🛒</span><span data-i18n="nav_stratmarket">策略市场</span>
+      </div>
+      <div class="nav-item" onclick="showPage('signals',this)" data-page="signals">
+        <span class="ni" data-nav-icon="📡">📡</span><span data-i18n="nav_signals">信号广播</span>
+        <span class="badge" style="background:var(--red);color:#fff">Live</span>
+      </div>
+      <div class="nav-item" onclick="showPage('account',this)" data-page="account">
+        <span class="ni" data-nav-icon="👤">👤</span><span data-i18n="nav_account">我的账户</span>
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <!-- 未登录状态：显示登录按钮 -->
+      <div id="sidebar-login-btn" class="user-card" onclick="showLoginModal()" style="display:none">
+        <div class="user-av">🔓</div>
+        <div class="user-info">
+          <div class="name">登录 / 注册</div>
+          <div class="plan" style="color:var(--muted)">点击登录账户</div>
+        </div>
+      </div>
+      <!-- 已登录状态：显示用户信息 -->
+      <div id="sidebar-user-card" class="user-card" onclick="showPage('account',null)">
+        <div class="user-av">👤</div>
+        <div class="user-info">
+          <div class="name" id="sidebar-username">Alex Wang</div>
+          <div class="plan">⭐ <span data-i18n="acc_member_pro">Pro 会员</span></div>
+        </div>
+      </div>
+    </div>
+  
+        <div id="cs-sidebar-btn" onclick="toggleCS()" style="display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;border-top:1px solid var(--border);margin-top:8px;transition:all 0.2s;border-radius:8px;background:var(--card2);font-size:13px;font-weight:600">
+          <span style="font-size:16px">💬</span>
+          <span style="font-size:13px" data-i18n="cs_sidebar">官方客服</span>
+        </div></aside>
+
+  <!-- 主内容 -->
+  <div id="main">
+    <!-- 顶部栏 -->
+    <div id="topbar">
+      <div id="hamburger" onclick="toggleSidebar()">☰</div>
+      <div class="tb-title" id="page-title" data-i18n="page_dashboard">仪表盘</div>
+      <div class="ticker-strip" id="ticker-strip">
+        <!-- 由JS填充 -->
+      </div>
+      <select class="lang-btn" id="lang-select" onchange="changeLang(this.value)" style="max-width:100px">
+        <option value="zh">🇨🇳 中文</option>
+        <option value="en">🇺🇸 English</option>
+        <option value="ja">🇯🇵 日本語</option>
+        <option value="ko">🇰🇷 한국어</option>
+        <option value="ru">🇷🇺 Русский</option>
+        <option value="ar">🇸🇦 العربية</option>
+        <option value="de">🇩🇪 Deutsch</option>
+        <option value="fr">🇫🇷 Français</option>
+        <option value="es">🇪🇸 Español</option>
+        <option value="pt">🇧🇷 Português</option>
+        <option value="tr">🇹🇷 Türkçe</option>
+        <option value="vi">🇻🇳 Tiếng Việt</option>
+        <option value="th">🇹🇭 ภาษาไทย</option>
+        <option value="id">🇮🇩 Indonesia</option>
+        <option value="pl">🇵🇱 Polski</option>
+        <option value="nl">🇳🇱 Nederlands</option>
+        <option value="it">🇮🇹 Italiano</option>
+      </select>
+      <button class="tb-btn primary" onclick="showOrderModal()" data-i18n="quick_order">+ 快速下单</button>
+    </div>
+
+    <!-- 数据状态指示条 -->
+    <div id="data-status-bar" style="
+      display:flex;align-items:center;gap:12px;padding:4px 18px;
+      background:rgba(0,0,0,0.45);border-bottom:1px solid rgba(255,255,255,0.06);
+      font-size:11.5px;color:#aaa;letter-spacing:0.3px;flex-wrap:wrap;
+    ">
+      <span style="color:#555;font-size:10px">DATA SOURCE</span>
+      <span id="ds-binance" style="display:flex;align-items:center;gap:4px">
+        <span id="ds-binance-dot" style="width:7px;height:7px;border-radius:50%;background:#444;display:inline-block;transition:background .4s"></span>
+        <span>Binance WS</span>
+        <span id="ds-binance-label" style="color:#555">connecting…</span>
+      </span>
+      <span style="color:#333">|</span>
+      <span id="ds-yahoo" style="display:flex;align-items:center;gap:4px">
+        <span id="ds-yahoo-dot" style="width:7px;height:7px;border-radius:50%;background:#444;display:inline-block;transition:background .4s"></span>
+        <span>Yahoo Finance</span>
+        <span id="ds-yahoo-label" style="color:#555">pending…</span>
+      </span>
+      <span style="color:#333">|</span>
+      <span id="ds-sim" style="display:flex;align-items:center;gap:4px">
+        <span id="ds-sim-dot" style="width:7px;height:7px;border-radius:50%;background:#666;display:inline-block"></span>
+        <span style="color:#555">Sim Fallback</span>
+        <span id="ds-sim-label" style="color:#555">active</span>
+      </span>
+      <span style="margin-left:auto;color:#444;font-size:10px" id="ds-lastupdate">—</span>
+    </div>
+
+    <!-- 内容区 -->
+    <div id="content">
+
+      <!-- ===== 仪表盘 ===== -->
+      <div class="page active" id="page-dashboard">
+        <div class="dashboard-grid">
+          <div class="stat-card s-green">
+            <div class="stat-label" data-i18n="total_asset">总资产（USD）</div>
+            <div class="stat-val" id="total-asset">$12,450</div>
+            <div class="stat-change up">▲ +2.34% <span class="muted"><span da

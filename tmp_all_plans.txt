@@ -1,0 +1,88 @@
+window.PLANS = {
+  free: {
+    id: 'free', name: '免费试用', nameEn: 'Free Trial', price: 0, period: '14天限时',
+    icon: '🔓', nodes: ['default'], nodeCount: '固定默认节点',
+    features: { strategies: 3, aiCalls: 20, metaApiCalls: 100, autoTrade: false, liveTrade: false,
+      advancedBacktest: false, factorAnalysis: false, copyTrade: false, hft: false, tvUltimate: false,
+      multiRegion: false, nodeSelectable: false },
+    badge: '🔓', badgeColor: 'rgba(150,150,150,.2)'
+  },
+  basic: {
+    id: 'basic', name: '基础套餐', nameEn: 'Basic', price: 39, period: '月',
+    icon: '🥉', nodes: ['default'], nodeCount: '固定通用节点',
+    features: { strategies: -1, aiCalls: 100, metaApiCalls: 500, autoTrade: false, liveTrade: false,
+      advancedBacktest: false, factorAnalysis: false, copyTrade: false, hft: false, tvUltimate: false,
+      multiRegion: false, nodeSelectable: false },
+    badge: '🥉', badgeColor: 'rgba(205,127,50,.2)'
+  },
+  pro: {
+    id: 'pro', name: '专业套餐', na79En: 'Pro', price: 99, period: '月',
+    icon: '🥈', nodes: ['tokyo','singapore'], nodeCount: '可选 2 区域',
+    features: { strategies: -1, aiCalls: -1, metaApiCalls: 5000, autoTrade: true, liveTrade: true,
+      advancedBacktest: true, factorAnalysis: true, copyTrade: true, hft: false, tvUltimate: false,
+      multiRegion: false, nodeSelectable: true, autoEngine: true },
+    badge: '🥈', badgeColor: 'rgba(192,192,192,.2)'
+  },
+  flagship: {
+    id: 'flagship', name: '旗舰套餐'199ameEn: 'Flagship', price: 149, period: '月',
+    icon: '👑', nodes: ['tokyo','singapore','london','newyork'], nodeCount: '4 大区全节点',
+    features: { strategies: -1, aiCalls: -1, metaApiCalls: -1, autoTrade: true, liveTrade: true,
+      advancedBacktest: true, factorAnalysis: true, copyTrade: true, hft: true, tvUltimate: true,
+      multiRegion: true, nodeSelectable: true },
+    badge: '👑', badgeColor: 'rgba(255,215,0,.2)'
+  }
+};
+
+/* ── 节点配置 ───────────────────────────────────────────────── */
+window.NODES = {
+  tokyo:    { id: 'tokyo',    name: '东京',     flag: '🇯🇵', region: 'ap-northeast-1', latency: 2,  color: '#E53935', desc: '日本东京 · 低延迟亚太' },
+  singapore:{ id: 'singapore',name: '新加坡',   flag: '🇸🇬', region: 'ap-southeast-1', latency: 5,  color: '#FF6F00', desc: '新加坡 · 东南亚枢纽' },
+  london:   { id: 'london',   name: '伦敦',     flag: '🇬🇧', region: 'eu-west-2',     latency: 85, color: '#1E88E5', desc: '英国伦敦 · 欧非覆盖' },
+  newyork:  { id: 'newyork',  name: '纽约',     flag: '🇺🇸', region: 'us-east-1',     latency: 65, color: '#7B1FA2', desc: '美国东岸 · 北美专线' },
+  default:  { id: 'default',  name: '通用节点', flag: '🌐', region: 'auto',          latency: 0,  color: '#666',   desc: '系统自动分配' }
+};
+
+/* ── 增值包配置 ─────────────────────────────────────────────── */
+window.ADDONS = {
+  tvUltimate:     { id: 'tvUltimate',     name: 'TradingView Ultimate 高级数据包',      icon: '📊', price: 29,  period: '月',
+                    desc: '机构级盘口、逐笔成交、深度指标，提升策略精准度' },
+  strategyCustom:{ id: 'strategyCustom',  name: '高级策略定制包',                       icon: '⚡', price: 49,  period: '月',
+                    desc: 'AI+人工定制专属策略、参数迭代、专属交易模型' },
+  backtestPro:    { id: 'backtestPro',    name: '专业回测增强包',                       icon: '🔬', price: 19,  period: '月',
+                    desc: '全量参数优化、风险归因、多周期深度回测报告' },
+  multiAccount:   { id: 'multiAccount',   name: '多账户扩容包',                         icon: '🏦', price: 39,  period: '月',
+                    desc: '提升绑定 MetaAPI 交易账户数量上限' },
+  nodeBoost:      { id: 'nodeBoost',      name: '单节点扩容增量包',                     icon: '🌍', price: 14,  period: '月',
+                    desc: '低档位用户额外解锁任意国际节点' },
+  vipSupport:     { id: 'vipSupport',     name: 'VIP 运维专属包',                       icon: '👨‍💻', price: 49,  period: '月',
+                    desc: '1v1 技术支持、节点故障优先排查' }
+};
+
+/* ── 全球阶梯收益分成 ───────────────────────────────────────── */
+window.REVENUE_SHARE = [
+  { min: 0,      max: 500,    rate: 0,   label: '≤$500' },
+  { min: 501,    max: 3000,   rate: 0.05,label: '$501~$3,000' },
+  { min: 3001,   max: 10000,  rate: 0.08,label: '$3,001~$10,000' },
+  { min: 10001,  max: Infinity,rate: 0.10,label: '>$10,000' }
+];
+window.calcRevenueShare = function(monthlyPnl){
+  // Return {tiers[], totalShare, effectiveRate}
+  if(!monthlyPnl || monthlyPnl <= 500) return {tiers:[{from:0, to:1000, rate:0, amount:0, share:0}], totalShare:0, effectiveRate:0};
+  var tiers = [];
+  var total = 0;
+  var remaining = Math.max(0, monthlyPnl - 1000); // first $500 free
+  var t;
+  for(var i=1; i<window.REVENUE_SHARE.length; i++){
+    t = window.REVENUE_SHARE[i];
+    var bandMin = Math.max(0, t.min - 1001);
+    var bandMax = Math.max(0, t.max - 1001);
+    if(t.max === Infinity) bandMax = remaining;
+    var bandAmount = Math.min(remaining, bandMax - bandMin);
+    if(bandAmount <= 0) { tiers.push({from:Math.max(501,t.min), to:t.max===Infinity?'∞':t.max, rate:t.rate, amount:0, share:0}); continue; }
+    var share = Math.round(bandAmount * t.rate * 100) / 100;
+    tiers.push({from:Math.max(1001,t.min), to:t.max===Infinity?'∞':t.max, rate:t.rate, amount:bandAmount, share:share});
+    total += share;
+    remaining -= bandAmount;
+    if(remaining <= 0) break;
+  }
+  return {tiers:tiers, totalShare:Math.round(total*100)/100, effectiveRate:Math.round(total/monthlyPnl*10000)/100};

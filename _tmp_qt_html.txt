@@ -1,0 +1,47 @@
+id="page-square" style="gap:0;min-height:500px;height:calc(100vh - 200px);overflow:hidden">
+        <!-- Left: Channel List -->
+        <div style="width:200px;min-width:200px;background:var(--card);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
+          <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+            <span style="font-weight:700;font-size:14px">💬 频道</span>
+            <button onclick="createChannel()" style="width:28px;height:28px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
+          </div>
+          <div id="channel-list" style="flex:1;overflow-y:auto;padding:6px"></div>
+        </div>
+        <!-- Middle: Chat Area -->
+        <div style="flex:1;display:flex;flex-direction:column;margin:0 12px">
+          <div id="channel-header" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px"><span id="channel-av-display" style="font-size:18px">🌐</span><div><span id="channel-name-display" style="font-weight:700;font-size:15px"># 全局</span><span id="channel-desc-display" style="font-size:11px;color:var(--muted);margin-left:8px">闲聊</span></div></div>
+            <div style="display:flex;gap:6px">
+              <button onclick="toggleWidget('tv')" id="tv-widget-btn" style="padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer">📈 图表</button>
+              <button onclick="toggleWidget('yt')" id="yt-widget-btn" style="padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer">🎥 直播</button>
+              <button onclick="showChannelSettings()" title="频道设置" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer">⚙️</button>
+            </div>
+          </div>
+          <div id="widget-tv" style="display:none;margin-bottom:8px;border-radius:12px;overflow:hidden;border:1px solid var(--border);height:380px"></div>
+          <div id="widget-yt" style="display:none;margin-bottom:8px;border-radius:12px;overflow:hidden;border:1px solid var(--border);height:380px"><div id="yt-player" style="width:100%;height:100%"></div></div>
+          <div id="sq-msgs" style="flex:1;overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px"></div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px">
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;display:flex;gap:6px">
+                <input id="sq-input" type="text" placeholder="输入消息..." style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-size:13px" onkeydown="if(event.key==='Enter') sendMsg()">
+                <button onclick="shareChart()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer" title="分享图表">📷</button><button id="qt-voice-btn" onclick="startVoiceInput('sq-input')" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer" title="语音输入">🎙️</button><button id="qt-voice-btn" onclick="startVoiceInput('sq-input')" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer" title="语音输入">🎤</button>
+              </div>
+              <button onclick="sendMsg()" style="padding:10px 20px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer">发送</button>
+            </div>
+          </div>
+        </div>
+        <!-- Right: Post Feed -->
+                <div style="width:280px;min-width:280px;background:var(--card);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
+          <div style="display:flex;border-bottom:1px solid var(--border)">
+            <div class="fr-tab active" data-tab="rank" onclick="window.switchFRTab('rank')" style="flex:1;padding:10px 0;text-align:center;font-size:12px;font-weight:600;cursor:pointer;border-bottom:2px solid var(--green);color:var(--green)">🏆 排行榜</div>
+            <div class="fr-tab" data-tab="friends" onclick="window.switchFRTab('friends')" style="flex:1;padding:10px 0;text-align:center;font-size:12px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted)">👥 好友</div>
+            <div class="fr-tab" data-tab="requests" onclick="window.switchFRTab('requests')" style="flex:1;padding:10px 0;text-align:center;font-size:12px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted)">📩 请求</div>
+          </div>
+          <div id="fr-rank-panel" style="flex:1;overflow-y:auto;padding:8px;display:block"></div>
+          <div id="fr-friends-panel" style="flex:1;overflow-y:auto;padding:8px;display:none"></div>
+          <div id="fr-requests-panel" style="flex:1;overflow-y:auto;padding:8px;display:none"></div>
+        </div>
+      </div><!-- ===== 策略市场 ===== -->
+            <div class="page" id="page-stratmarket">
+        <div style="font-size:20px;font-weight:800;margin-bottom:4px">🛒 <span data-i18n="sm_title">策略市场</span></div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px" data-i18n="sm_subtitle">发现、分享、一键复用顶级量化策略</

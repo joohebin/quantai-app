@@ -1,0 +1,72 @@
+page-account">
+        <!-- ===== 第1行：核心资产总览 ===== -->
+        <div class="asset-overview" style="background:linear-gradient(135deg,rgba(0,200,150,.15),rgba(0,100,200,.1));border:1px solid rgba(0,200,150,.3);border-radius:16px;padding:20px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div style="font-size:14px;color:var(--muted)">💰 总资产</div>
+            <div style="font-size:12px;padding:4px 10px;background:rgba(0,200,150,.2);color:var(--green);border-radius:20px">Pro 会员</div>
+          </div>
+          <div style="font-size:32px;font-weight:800;color:var(--text);margin-bottom:16px">$12,450.45</div>
+          <div style="display:flex;gap:24px">
+            <div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:4px">📈 今日盈亏</div>
+              <div style="font-size:16px;font-weight:600;color:var(--green)">+$328.50 <span style="font-size:12px;color:var(--green)">(2.70%)</span></div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:4px">📊 累计盈亏</div>
+              <div style="font-size:16px;font-weight:600;color:var(--green)">+$4,820.00 <span style="font-size:12px;color:var(--green)">(63.12%)</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 第2行：账户状态与快捷操作 ===== -->
+        <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="width:10px;height:10px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)"></span>
+              <span style="font-weight:600;color:var(--text)" data-i18n="acc_ai_running">🟢 AI 运行中</span>
+            </div>
+            <div style="font-size:12px;color:var(--muted)" data-i18n="acc_last_signal">最后信号：3分钟前</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline" style="font-size:12px;padding:6px 12px" onclick="toggleAI()" data-i18n="acc_pause_ai">⏸️ 暂停AI</button>
+            <button class="btn btn-primary" style="font-size:12px;padding:6px 12px" onclick="showPage('autoopen',null)" data-i18n="acc_fund_mgmt">💰 资金管理</button>
+          </div>
+        </div>
+
+        <!-- ===== 第3行：标签页导航 ===== -->
+        <div class="account-tabs" style="display:flex;gap:0;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden">
+          <div class="acc-tab active" onclick="switchAccountTab('positions',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--green);background:rgba(0,200,150,.1);border-bottom:2px solid var(--green);cursor:pointer" data-i18n="acc_tab_positions">📊 持仓</div>
+          <div class="acc-tab" onclick="switchAccountTab('trades',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_trades">📋 交易记录</div>
+          <div class="acc-tab" onclick="switchAccountTab('signals',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_signals">📡 信号</div>
+          <div class="acc-tab" onclick="switchAccountTab('manual',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_manual">✋ 手动交易</div>
+          <div class="acc-tab" onclick="switchAccountTab('market',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_market">📈 行情</div>
+          <div class="acc-tab" onclick="switchAccountTab('strategies',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_strategies">⚡ 策略</div>
+          <div class="acc-tab" onclick="switchAccountTab('exchanges',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_exchanges">🏦 交易所</div>
+          <div class="acc-tab" onclick="switchAccountTab('wallet',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_wallet">💳 钱包</div>
+        </div>
+
+        <!-- ===== 标签页内容区 ===== -->
+        <div id="account-tab-content">
+          <!-- 持仓标签页内容 -->
+          <div id="acc-tab-positions">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="broker-card">
+                <div class="broker-icon">🟡</div>
+                <div class="broker-info">
+                  <div class="broker-name">BTC/USDT</div>
+                  <div class="broker-bal">0.5 BTC</div>
+                  <div class="broker-status"><span style="color:var(--green)" data-i18n="card_long">多单</span> · <span data-i18n="acc_tab_positions">持仓中</span></div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-weight:600;color:var(--green)">+$1,250.00</div>
+                  <div style="font-size:12px;color:var(--muted)">收益率 25.00%</div>
+                </div>
+              </div>
+              <div class="broker-card">
+                <div class="broker-icon">🟠</div>
+                <div class="broker-info">
+                  <div class="broker-name">ETH/USDT</div>
+                  <div class="broker-bal">2.5 ETH</div>
+                  <div class="broker-status"><span style="color:var(--green)" data-i18n="card_long">多单</span> · <span data-i18n="acc_tab_positions">持仓中</span></div>
+                </div>
+      

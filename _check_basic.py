@@ -1,0 +1,6 @@
+f=open(r'C:\Users\Administrator\WorkBuddy\Claw\quantai-app\index.html','rb')
+c=f.read()
+f.close()
+t=c.decode('utf-8')
+i=t.find("id: 'basic'")
+print(repr(t[i:i+100]))

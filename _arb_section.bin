@@ -1,0 +1,97 @@
+page-arbitrage" style="display:none">
+        <div style="font-size:20px;font-weight:800;margin-bottom:4px">鈿?<span data-i18n="arb_title">璺ㄤ氦鏄撴墍鑱氬悎寮曟搸</span></div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px" data-i18n="arb_subtitle">瀹炴椂鐩戞帶鍔犲瘑璐у竵浜ゆ槗鎵€浠峰樊锛孉I 鑷姩鎵ц鎼爾濂楀埄</div>
+
+        <!-- 姒傝鍗＄墖 -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
+          <div class="card" style="padding:16px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px" data-i18n="arb_monitored">鐩戞帶浜ゆ槗瀵?/div>
+            <div style="font-size:24px;font-weight:800;color:var(--green)" id="arb-pairs-count">12</div>
+          </div>
+          <div class="card" style="padding:16px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px" data-i18n="arb_active">娲昏穬濂楀埄鏈轰細</div>
+            <div style="font-size:24px;font-weight:800;color:#f59e0b" id="arb-active-opportunities">3</div>
+          </div>
+          <div class="card" style="padding:16px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px" data-i18n="arb_profit_24h">24h 濂楀埄鏀剁泭</div>
+            <div style="font-size:24px;font-weight:800;color:var(--green)" id="arb-profit-24h">+$124.50</div>
+          </div>
+          <div class="card" style="padding:16px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px" data-i18n="arb_executed">宸叉墽琛屽鍒?/div>
+            <div style="font-size:24px;font-weight:800" id="arb-executed-count">47</div>
+          </div>
+        </div>
+
+        <!-- 浜ゆ槗鎵€鐘舵€?-->
+        <div class="card" style="padding:16px;margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="font-weight:700" data-i18n="arb_exchanges">浜ゆ槗鎵€杩炴帴鐘舵€?/div>
+            <button class="btn" style="padding:6px 14px;font-size:12px" onclick="refreshArbitrageStatus()" data-i18n="arb_refresh">馃攧 鍒锋柊</button>
+          </div>
+          <div id="arb-exchange-status" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:var(--card)">
+              <span class="status-dot" style="background:var(--green)"></span>
+              <span>Binance</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:var(--card)">
+              <span class="status-dot" style="background:var(--green)"></span>
+              <span>OKX</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:var(--card)">
+              <span class="status-dot" style="background:var(--yellow)"></span>
+              <span>Bybit</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:var(--card)">
+              <span class="status-dot" style="background:var(--red)"></span>
+              <span>KuCoin</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 濂楀埄鏈轰細鍒楄〃 -->
+        <div class="card" style="padding:16px;margin-bottom:16px">
+          <div style="font-weight:700;margin-bottom:12px" data-i18n="arb_opportunities">瀹炴椂濂楀埄鏈轰細</div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr style="color:var(--muted);border-bottom:1px solid var(--border)">
+                  <th style="padding:8px 6px;text-align:left" data-i18n="arb_th_pair">浜ゆ槗瀵?/th>
+                  <th style="padding:8px 6px;text-align:left" data-i18n="arb_th_buy">涔板叆鎵€</th>
+                  <th style="padding:8px 6px;text-align:left" data-i18n="arb_th_sell">鍗栧嚭鎵€</th>
+                  <th style="padding:8px 6px;text-align:right" data-i18n="arb_th_spread">浠峰樊</th>
+                  <th style="padding:8px 6px;text-align:right" data-i18n="arb_th_profit">棰勬湡鐩堝埄</th>
+                  <th style="padding:8px 6px;text-align:center" data-i18n="arb_th_action">鎿嶄綔</th>
+                </tr>
+              </thead>
+              <tbody id="arb-opportunities-body">
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:8px 6px;font-weight:600">BTC/USDT</td>
+                  <td style="padding:8px 6px;color:var(--green)">Binance</td>
+                  <td style="padding:8px 6px;color:var(--blue)">OKX</td>
+                  <td style="padding:8px 6px;text-align:right;color:var(--green)">+0.32%</td>
+                  <td style="padding:8px 6px;text-align:right;color:var(--green)">$18.40</td>
+                  <td style="padding:8px 6px;text-align:center">
+                    <button class="btn" style="padding:4px 10px;font-size:11px" onclick="executeArbitrage('BTC/USDT')" data-i18n="arb_exec_btn">鎵ц</button>
+                  </td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:8px 6px;font-weight:600">ETH/USDT</td>
+                  <td style="padding:8px 6px;color:var(--green)">OKX</td>
+                  <td style="padding:8px 6px;color:var(--blue)">Binance</td>
+                  <td style="padding:8px 6px;text-align:right;color:var(--green)">+0.18%</td>
+                  <td style="padding:8px 6px;text-align:right;color:var(--green)">$6.72</td>
+                  <td style="padding:8px 6px;text-align:center">
+                    <button class="btn" style="padding:4px 10px;font-size:11px" onclick="executeArbitrage('ETH/USDT')" data-i18n="arb_exec_btn">鎵ц</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 濂楀埄鍘嗗彶 -->
+        <div class="card" style="padding:16px">
+          <div style="font-weight:700;margin-bottom:12px" data-i18n="arb_history">濂楀埄鎵ц鍘嗗彶</div>
+          <div id="arb-history" style="font-size:13px;color:var(--muted)" data-i18n="arb_history_empty">鏆傛棤鍘嗗彶璁板綍</div>
+        </div>
+      </div>

@@ -1366,6 +1366,40 @@ padding:10px;border-top:1px solid var(--border);margin-top:auto}
 
 /* 语言选择 */
 .lang-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--text)}
+
+/* Bot Page */
+.bot-header h2 { font-size:24px;font-weight:700;margin:0 0 8px }
+.bot-subtitle { color:var(--muted);font-size:14px;margin:0 0 24px }
+.bot-card { background:var(--card);border-radius:14px;margin-bottom:16px;overflow:hidden }
+.bot-card-header { display:flex;align-items:center;gap:8px;padding:16px 20px;font-size:15px;font-weight:600;border-bottom:1px solid var(--border) }
+.bot-card-icon { font-size:18px }
+.bot-card-body { padding:16px 20px }
+.bot-form-row { display:flex;gap:12px }
+.bot-form-row input { flex:1;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px }
+.create-bot-card { border:1px solid var(--green);box-shadow:0 0 20px rgba(0,200,150,.1) }
+.bot-empty { text-align:center;color:var(--muted);padding:30px;font-size:14px }
+.bot-item { display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border) }
+.bot-item:last-child { border-bottom:none }
+.bot-item-info { display:flex;flex-direction:column;gap:4px }
+.bot-item-name { font-weight:600;font-size:14px }
+.bot-item-key { font-size:12px;color:var(--green);font-family:monospace;cursor:pointer;padding:2px 8px;background:rgba(0,200,150,.1);border-radius:6px;display:inline-block }
+.bot-item-date { font-size:11px;color:var(--muted) }
+.bot-item-actions { display:flex;gap:8px;align-items:center }
+.bot-guide-steps { display:flex;flex-direction:column;gap:16px }
+.bot-guide-step { display:flex;gap:12px;align-items:flex-start }
+.step-num { width:28px;height:28px;border-radius:50%;background:var(--green);color:var(--dark);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0 }
+.bot-guide-step strong { font-size:14px }
+.bot-guide-step p { font-size:13px;color:var(--muted);margin:2px 0 0 }
+.bot-cmd-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px }
+.bot-cmd-item { display:flex;flex-direction:column;gap:2px;padding:10px 14px;background:var(--bg);border-radius:10px }
+.bot-cmd-item code { font-size:13px;font-weight:600;color:var(--green) }
+.bot-cmd-item span { font-size:12px;color:var(--muted) }
+.bot-log-table { width:100%;border-collapse:collapse;font-size:13px }
+.bot-log-table th { text-align:left;padding:8px;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border) }
+.bot-log-table td { padding:8px;border-bottom:1px solid var(--border) }
+.bot-log-ok { color:var(--green) }
+.bot-log-err { color:#ef4444 }
+
 </style>
 </head>
 <body>
@@ -1471,7 +1505,12 @@ padding:10px;border-top:1px solid var(--border);margin-top:auto}
             <span class="ni">🔗</span><span data-i18n="nav_arbitrage"></span>
             <span class="badge">New</span>
           </div>
-      <div class="nav-item" onclick="showPage('stratmarket',this)" data-page="stratmarket">
+      
+      <div class="nav-item" onclick="showPage('bot',this)" data-page="bot">
+        <span class="ni" data-nav-icon="🤖">🤖</span><span data-i18n="nav_bot">Bot 远程控制</span>
+        <span class="badge" style="background:#6366f1;color:#fff">NEW</span>
+      </div>
+<div class="nav-item" onclick="showPage('stratmarket',this)" data-page="stratmarket">
         <span class="ni" data-nav-icon="🛒">🛒</span><span data-i18n="nav_stratmarket">策略市场</span>
       </div>
       <div class="nav-item" onclick="showPage('signals',this)" data-page="signals">
@@ -3411,6 +3450,59 @@ padding:10px;border-top:1px solid var(--border);margin-top:auto}
   </div>
 </div>
 
+      <!-- Bot Page -->
+      <div id="page-bot" class="page-content" style="display:none">
+        <div class="bot-header">
+          <h2 data-i18n="bot_title">🤖 Bot 远程控制</h2>
+          <p class="bot-subtitle" data-i18n="bot_subtitle">创建私人 Bot Key，通过国内平台远程控制量化交易，无需挂 VPN</p>
+        </div>
+        <div class="bot-card create-bot-card">
+          <div class="bot-card-header"><span class="bot-card-icon">🔑</span><span data-i18n="bot_create_title">创建 Bot</span></div>
+          <div class="bot-card-body">
+            <div class="bot-form-row">
+              <input type="text" id="bot-name-input" placeholder="Bot 名称" />
+              <button class="btn btn-primary" onclick="createBotKey()">生成 Bot Key</button>
+            </div>
+          </div>
+        </div>
+        <div class="bot-card">
+          <div class="bot-card-header"><span class="bot-card-icon">📋</span><span data-i18n="bot_my_bots">我的 Bot</span></div>
+          <div class="bot-card-body" id="bot-list"><div class="bot-empty">暂无 Bot，点击上方按钮创建</div></div>
+        </div>
+        <div class="bot-card">
+          <div class="bot-card-header"><span class="bot-card-icon">📖</span><span data-i18n="bot_guide_title">使用说明</span></div>
+          <div class="bot-card-body">
+            <div class="bot-guide-steps">
+              <div class="bot-guide-step"><span class="step-num">1</span><div><strong>创建 Bot</strong><p>为每个平台分别创建 Bot</p></div></div>
+              <div class="bot-guide-step"><span class="step-num">2</span><div><strong>配置平台适配器</strong><p>将 Bot Key 填入平台的 Webhook/机器人配置</p></div></div>
+              <div class="bot-guide-step"><span class="step-num">3</span><div><strong>发送指令</strong><p>在平台直接发消息即可远程控制，无需 VPN</p></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="bot-card">
+          <div class="bot-card-header"><span class="bot-card-icon">📝</span><span data-i18n="bot_cmds_title">支持指令</span></div>
+          <div class="bot-card-body">
+            <div class="bot-cmd-grid">
+              <div class="bot-cmd-item"><code>查看持仓</code><span>显示当前所有持仓</span></div>
+              <div class="bot-cmd-item"><code>买入 1 BTC</code><span>市价买入 1 BTC</span></div>
+              <div class="bot-cmd-item"><code>卖出 0.5 ETH</code><span>市价卖出 0.5 ETH</span></div>
+              <div class="bot-cmd-item"><code>开多 2 BTC 限价 50000</code><span>限价开多</span></div>
+              <div class="bot-cmd-item"><code>开启自动交易</code><span>启动 AI 自动交易引擎</span></div>
+              <div class="bot-cmd-item"><code>关闭自动交易</code><span>停止自动交易</span></div>
+              <div class="bot-cmd-item"><code>查看策略</code><span>列出当前策略</span></div>
+              <div class="bot-cmd-item"><code>创建策略 RSI</code><span>创建 RSI 策略</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="bot-card" id="bot-log-card" style="display:none">
+          <div class="bot-card-header"><span class="bot-card-icon">📊</span><span data-i18n="bot_logs">调用记录</span></div>
+          <div class="bot-card-body">
+            <table class="bot-log-table"><thead><tr><th>时间</th><th>Bot</th><th>指令</th><th>状态</th><th>来源</th></tr></thead><tbody id="bot-log-body"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+
 <script>
 // ===== 全局状态 =====
 let currentPage = 'dashboard';
@@ -11875,6 +11967,198 @@ window.showQuotaWarn=function(t){
   });
 };
 console.log('[OB+Q] OK');
+
+
+// Bot Remote Control JS Functions
+window._bots = [];
+window._botOrders = [];
+
+loadBots = function() {
+  try { var stored = localStorage.getItem('qbots'); window._bots = stored ? JSON.parse(stored) : []; }
+  catch(e) { window._bots = []; }
+  return window._bots;
+};
+
+saveBots = function() {
+  localStorage.setItem('qbots', JSON.stringify(window._bots));
+};
+
+genBotKey = function() {
+  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var key = 'qbot_';
+  for (var i = 0; i < 32; i++) key += chars.charAt(Math.floor(Math.random() * chars.length));
+  return key;
+};
+
+renderBots = function() {
+  var list = document.getElementById('bot-list');
+  if (!list) return;
+  loadBots();
+  if (window._bots.length === 0) {
+    list.innerHTML = '<div class="bot-empty">暂无 Bot，点击上方按钮创建</div>';
+    return;
+  }
+  var h = '';
+  for (var i = 0; i < window._bots.length; i++) {
+    var b = window._bots[i];
+    h += '<div class="bot-item">';
+    h += '<div class="bot-item-info">';
+    h += '<div class="bot-item-name">' + escHtml(b.name) + '</div>';
+    h += '<div class="bot-item-key" onclick="cpKey(\'' + b.key + '\')">' + b.key + '</div>';
+    h += '<div class="bot-item-date">' + (b.created || '');
+    if (b.lastUsed) h += ' | 最后: ' + b.lastUsed;
+    h += '</div></div>';
+    h += '<div class="bot-item-actions">';
+    h += '<button class="btn btn-sm btn-primary" onclick="cpKey(\'' + b.key + '\')">复制</button>';
+    h += '<button class="btn btn-sm btn-danger" onclick="delKey(\'' + b.key + '\')">删除</button>';
+    h += '</div></div>';
+  }
+  list.innerHTML = h;
+};
+
+createBotKey = function() {
+  var inp = document.getElementById('bot-name-input');
+  var name = inp ? inp.value.trim() : '';
+  if (!name) name = 'Bot #' + (window._bots.length + 1);
+  var bot = {
+    key: genBotKey(),
+    name: name,
+    created: new Date().toLocaleString('zh-CN'),
+    lastUsed: null,
+    callCount: 0
+  };
+  window._bots.push(bot);
+  saveBots();
+  renderBots();
+  if (inp) inp.value = '';
+  showTradeConfirm({
+    title: 'Bot Key 创建成功',
+    message: '<p style="font-size:16px;font-weight:600;text-align:center;padding:10px;word-break:break-all">' + bot.key + '</p><p style="color:var(--muted);text-align:center">点击确定复制 Key</p>',
+    confirmText: '复制',
+    cancelText: '关闭',
+    onConfirm: function() { cpKey(bot.key); }
+  });
+};
+
+cpKey = function(key) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(key);
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = key;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  showTradeConfirm({title: '已复制', message: 'Bot Key 已复制到剪贴板', confirmText: '确定', cancelText: ''});
+};
+
+delKey = function(key) {
+  showTradeConfirm({
+    title: '确认删除',
+    message: '删除后该 Key 立即失效。',
+    confirmText: '删除',
+    cancelText: '取消',
+    onConfirm: function() {
+      window._bots = window._bots.filter(function(b) { return b.key !== key; });
+      saveBots();
+      renderBots();
+    }
+  });
+};
+
+botExecute = function(key, cmd) {
+  loadBots();
+  var bot = null;
+  for (var i = 0; i < window._bots.length; i++) {
+    if (window._bots[i].key === key) { bot = window._bots[i]; break; }
+  }
+  if (!bot) return {error: 'Bot key not found'};
+  bot.lastUsed = new Date().toLocaleString('zh-CN');
+  bot.callCount = (bot.callCount || 0) + 1;
+  saveBots();
+  logBotCall(bot.name, cmd, 'ok', 'API');
+  return parseBotCommand(cmd);
+};
+
+parseBotCommand = function(text) {
+  var t = text.trim();
+  if (t.indexOf('持仓') >= 0 || /positions?/i.test(t)) {
+    return {action:'view_positions', message:'持仓信息已发送'};
+  }
+  if (t.indexOf('策略') >= 0 && t.indexOf('创建') < 0) {
+    return {action:'view_strategies', message:'策略列表已发送'};
+  }
+  if ((t.indexOf('开启') >= 0) && (t.indexOf('自动') >= 0 || t.indexOf('AI') >= 0)) {
+    return {action:'start_auto', message:'自动交易已开启'};
+  }
+  if ((t.indexOf('关闭') >= 0) && (t.indexOf('自动') >= 0 || t.indexOf('AI') >= 0)) {
+    return {action:'stop_auto', message:'自动交易已关闭'};
+  }
+  if (t.indexOf('创建') >= 0 && t.indexOf('策略') >= 0) {
+    var m = t.match(/[\u7b56\u7565][\s]*(\w+)/);
+    return {action:'create_strategy', params:{type:m?m[1]:'custom'}, message:'策略创建请求已接收'};
+  }
+  var order = parseVoiceOrder(t);
+  if (order && order.isOrder) {
+    window._botOrders.push(order);
+    if (typeof sendTradeSignal === 'function') sendTradeSignal(order);
+    return {action:'execute_order', params:{order:order},
+      message:'订单已接收: ' + (order.side||order.action) + ' ' + order.amount + ' ' + order.symbol};
+  }
+  return {action:'unknown',
+    message:'无法识别的指令。试试：查看持仓、买入1BTC、开启自动交易'};
+};
+
+logBotCall = function(botName, cmd, status, source) {
+  try { var logs = JSON.parse(localStorage.getItem('qbot_logs') || '[]'); }
+  catch(e) { var logs = []; }
+  logs.unshift({
+    time: new Date().toLocaleString('zh-CN'),
+    bot: botName,
+    cmd: cmd.substring(0, 50),
+    status: status,
+    source: source
+  });
+  if (logs.length > 100) logs = logs.slice(0, 100);
+  localStorage.setItem('qbot_logs', JSON.stringify(logs));
+  renderBotLogs();
+};
+
+renderBotLogs = function() {
+  var tbody = document.getElementById('bot-log-body');
+  var card = document.getElementById('bot-log-card');
+  if (!tbody) return;
+  try { var logs = JSON.parse(localStorage.getItem('qbot_logs') || '[]'); }
+  catch(e) { var logs = []; }
+  if (card) card.style.display = logs.length > 0 ? 'block' : 'none';
+  var h = '';
+  for (var i = 0; i < logs.length; i++) {
+    var l = logs[i];
+    h += '<tr>';
+    h += '<td>' + l.time + '</td>';
+    h += '<td>' + l.bot + '</td>';
+    h += '<td>' + l.cmd + '</td>';
+    h += '<td class="bot-log-' + (l.status==='ok'?'ok':'err') + '">';
+    h += (l.status==='ok' ? '成功' : '失败') + '</td>';
+    h += '<td>' + l.source + '</td></tr>';
+  }
+  tbody.innerHTML = h;
+};
+
+initBotPage = function() {
+  loadBots();
+  renderBots();
+  renderBotLogs();
+};
+
+escHtml = function(t) {
+  if (!t) return '';
+  var d = document.createElement('div');
+  d.textContent = t;
+  return d.innerHTML;
+};
 
 </script>
 

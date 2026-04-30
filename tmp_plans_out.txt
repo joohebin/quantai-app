@@ -1,0 +1,36 @@
+window.PLANS = {
+  free: {
+    id: 'free', name: '免费试用', nameEn: 'Free Trial', price: 0, period: '14天限时',
+    icon: '🔓', nodes: ['default'], nodeCount: '固定默认节点',
+    features: { strategies: 3, aiCalls: 20, metaApiCalls: 100, autoTrade: false, liveTrade: false,
+      advancedBacktest: false, factorAnalysis: false, copyTrade: false, hft: false, tvUltimate: false,
+      multiRegion: false, nodeSelectable: false },
+    badge: '🔓', badgeColor: 'rgba(150,150,150,.2)'
+  },
+  basic: {
+    id: 'basic', name: '基础套餐', nameEn: 'Basic', price: 29, period: '月',
+    icon: '🥉', nodes: ['default'], nodeCount: '固定通用节点',
+    features: { strategies: -1, aiCalls: 100, metaApiCalls: 500, autoTrade: false, liveTrade: false,
+      advancedBacktest: false, factorAnalysis: false, copyTrade: false, hft: false, tvUltimate: false,
+      multiRegion: false, nodeSelectable: false },
+    badge: '🥉', badgeColor: 'rgba(205,127,50,.2)'
+  },
+  pro: {
+    id: 'pro', name: '专业套餐', nameEn: 'Pro', price: 99, period: '月',
+    icon: '🥈', nodes: ['tokyo','singapore'], nodeCount: '可选 2 区域',
+    features: { strategies: -1, aiCalls: -1, metaApiCalls: 5000, autoTrade: true, liveTrade: true,
+      advancedBacktest: true, factorAnalysis: true, copyTrade: true, hft: false, tvUltimate: false,
+      multiRegion: false, nodeSelectable: true },
+    badge: '🥈', badgeColor: 'rgba(192,192,192,.2)'
+  },
+  flagship: {
+    id: 'flagship', name: '旗舰套餐', nameEn: 'Flagship', price: 149, period: '月',
+    icon: '👑', nodes: ['tokyo','singapore','london','newyork'], nodeCount: '4 大区全节点',
+    features: { strategies: -1, aiCalls: -1, metaApiCalls: -1, autoTrade: true, liveTrade: true,
+      advancedBacktest: true, factorAnalysis: true, copyTrade: true, hft: true, tvUltimate: true,
+      multiRegion: true, nodeSelectable: true },
+    badge: '👑', badgeColor: 'rgba(255,215,0,.2)'
+  }
+};
+
+/* ── 节点配置 ───────────────────────────────────────────────── */

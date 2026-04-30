@@ -1,0 +1,103 @@
+<div id="cs-fab" style="display:none" onclick="toggleCS()">💬<span class="cs-badge" id="cs-badge"></span></div>
+<div id="cs-panel">
+  <div id="cs-head">
+    <div class="cs-av">🤖</div>
+    <div class="cs-info">
+      <div class="cs-name">QuantAI 客服助手</div>
+      <div class="cs-status" id="cs-status-txt">在线 · AI 自动回复</div>
+    </div>
+    <button class="cs-close" onclick="toggleCS()" title="关闭">✕</button>
+  </div>
+
+  <div id="cs-msgs"></div>
+
+  <div id="cs-quickq">
+    <div class="cs-qq" onclick="csSendQuick(this)">如何升级套餐？</div>
+    <div class="cs-qq" onclick="csSendQuick(this)">K线不显示</div>
+    <div class="cs-qq" onclick="csSendQuick(this)">自动建仓怎么用</div>
+    <div class="cs-qq" onclick="csSendQuick(this)">转人工客服</div>
+  </div>
+
+  <div id="cs-foot">
+    <textarea id="cs-input" placeholder="有什么可以帮您？" rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();csDoSend()}"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"
+    ></textarea>
+    <button id="voice-btn" onclick="startVoiceInput('cs-input')" style="padding:8px 12px;border:none;border-radius:8px;background:transparent;color:var(--muted);font-size:16px;cursor:pointer" title="语音输入">🎙️</button>
+    <button id="cs-send" onclick="csDoSend()">➤</button>
+  </div>
+</div>
+
+
+</body>
+</html>
+
+</script>
+<script>
+// ============================================================
+// CS Widget - 完全独立实现（所有函数绑定到 window）
+// ============================================================
+(function(){
+  if(typeof window.__CS_LOADED !== 'undefined') return;
+  window.__CS_LOADED = true;
+  
+  // ---- 状态 ----
+  var _csOpen = false;
+  var _csSending = false;
+  var _CS_CONFIG = {};
+  
+  // Load saved config
+  try{ _CS_CONFIG = JSON.parse(localStorage.getItem('cs_config') || '{}'); }catch(e){}
+  if(!_CS_CONFIG.groqKey || _CS_CONFIG.groqKey === 'USE_OWN') _CS_CONFIG.groqKey = '';
+  if(!_CS_CONFIG.model) _CS_CONFIG.model = 'llama-3.3-70b-versatile';
+  if(!_CS_CONFIG.maxTokens) _CS_CONFIG.maxTokens = 1024;
+  if(!_CS_CONFIG.greetDelay) _CS_CONFIG.greetDelay = 500;
+  if(!_CS_CONFIG.apiUrl) _CS_CONFIG.apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
+  
+  // ---- 所有函数都绑定到 window ----
+  
+  window.toggleCS = function toggleCS(){
+    _csOpen = !_csOpen;
+    var panel = document.getElementById('cs-panel');
+    if(!panel) return;
+    if(_csOpen){
+      panel.classList.add('open');
+      var fab = document.getElementById('cs-fab');
+      if(fab) fab.innerHTML = '💬';
+      setTimeout(function(){ if(typeof window.csGreet === 'function') window.csGreet(); }, _CS_CONFIG.greetDelay);
+      setTimeout(function(){ var inp=document.getElementById('cs-input'); if(inp) inp.focus(); }, 300);
+    } else {
+      panel.classList.remove('open');
+      var fab = document.getElementById('cs-fab');
+      if(fab) fab.innerHTML = '💬<span class="cs-badge" id="cs-badge" style="display:none"></span>';
+    }
+  };
+  
+  window.csGreet = function(){
+    window.csAddMsg('bot', '👋 **你好！我是 QuantAI 客服助手。**\\n\\n我可以帮您解答平台功能、套餐升级、故障排查等问题。\\n\\n请问有什么可以帮您？');
+  };
+  
+  window.csAddMsg = function(role, text){
+    var msgs = document.getElementById('cs-msgs');
+    if(!msgs) return;
+    var div = document.createElement('div');
+    div.className = 'cs-msg cs-' + role;
+    div.innerHTML = '<div class="cs-bubble">' + text + '</div>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    var badge = document.getElementById('cs-badge');
+    if(badge) badge.style.display = 'none';
+  };
+  
+  window.csFormatText = function(t){
+    return t.replace(/\\n/g, '<br>').replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>');
+  };
+  
+  window.csShowTyping = function(){
+    var msgs = document.getElementById('cs-msgs');
+    if(!msgs) return;
+    var el = document.getElementById('cs-typing');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'cs-typing';
+   

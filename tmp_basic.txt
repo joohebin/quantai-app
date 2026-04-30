@@ -1,0 +1,2 @@
+id: 'basic', name: '基础套餐', 39meEn: 'Basic', price: 29, period: '月',
+    icon: '🥉', nodes: ['default'], nodeCount: '固定通用

@@ -1,0 +1,15 @@
+f = open(r'C:\Users\Administrator\WorkBuddy\Claw\quantai-app\index.html', 'rb')
+c = f.read()
+f.close()
+t = c.decode('utf-8')
+
+# Find sidebar-bottom section
+i = t.find('sidebar-bottom')
+print('sidebar-bottom at', i)
+start = max(0, i-50)
+end = min(len(t), i+2000)
+# make sure we find the end of the sidebar (the </aside>)
+close_i = t.find('</aside>', i, i+3000)
+print('closing aside at', close_i)
+open(r'C:\Users\Administrator\WorkBuddy\Claw\quantai-app\_tmp_user_card.txt', 'w', encoding='utf-8').write(t[start:close_i+20])
+print('Written')

@@ -1,0 +1,31 @@
+window.calcRevenueShare = function(monthlyPnl){
+  // Return {tiers[], totalShare, effectiveRate}
+  if(!monthlyPnl || monthlyPnl <= 1000) return {tiers:[{from:0, to:1000, rate:0, amount:0, share:0}], totalShare:0, effectiveRate:0};
+  var tiers = [];
+  var total = 0;
+  var remaining = Math.max(0, monthlyPnl - 1000); // first $1000 free
+  var t;
+  for(var i=1; i<window.REVENUE_SHARE.length; i++){
+    t = window.REVENUE_SHARE[i];
+    var bandMin = Math.max(0, t.min - 1001);
+    var bandMax = Math.max(0, t.max - 1001);
+    if(t.max === Infinity) bandMax = remaining;
+    var bandAmount = Math.min(remaining, bandMax - bandMin);
+    if(bandAmount <= 0) { tiers.push({from:Math.max(1001,t.min), to:t.max===Infinity?'∞':t.max, rate:t.rate, amount:0, share:0}); continue; }
+    var share = Math.round(bandAmount * t.rate * 100) / 100;
+    tiers.push({from:Math.max(1001,t.min), to:t.max===Infinity?'∞':t.max, rate:t.rate, amount:bandAmount, share:share});
+    total += share;
+    remaining -= bandAmount;
+    if(remaining <= 0) break;
+  }
+  return {tiers:tiers, totalShare:Math.round(total*100)/100, effectiveRate:Math.round(total/monthlyPnl*10000)/100};
+};
+
+/* ── 队列映射 ─────────────────────────────────────────── */
+window.PLAN_ORDER = ['free','basic','pro','flagship'];
+
+window.getPlanInfo = function(planId){
+  return window.PLANS[planId] || window.PLANS.free;
+};
+window.getPlanBadge = function(planId){
+  var p = window.getPlanInfo(planId)

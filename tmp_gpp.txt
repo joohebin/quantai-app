@@ -1,0 +1,15 @@
+window.getPlanPrice = function(planId){
+  var p = window.getPlanInfo(planId);
+  return p.price === 0 ? '免费' : '$' + p.price + '/' + p.period;
+};
+window.canUseNode = function(planId, nodeId){
+  var p = window.getPlanInfo(planId);
+  return p.nodes.indexOf(nodeId) >= 0;
+};
+window.getUserPlanNodes = function(planId){
+  var p = window.getPlanInfo(planId);
+  return p.nodes;
+};
+window.getUserPlanFeature = function(planId, feature){
+  var p = window.getPlanInfo(planId);
+  ret

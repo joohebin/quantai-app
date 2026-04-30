@@ -1,0 +1,190 @@
+// Bot Remote Control JS Functions
+window._bots = [];
+window._botOrders = [];
+
+loadBots = function() {
+  try { var stored = localStorage.getItem('qbots'); window._bots = stored ? JSON.parse(stored) : []; }
+  catch(e) { window._bots = []; }
+  return window._bots;
+};
+
+saveBots = function() {
+  localStorage.setItem('qbots', JSON.stringify(window._bots));
+};
+
+genBotKey = function() {
+  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var key = 'qbot_';
+  for (var i = 0; i < 32; i++) key += chars.charAt(Math.floor(Math.random() * chars.length));
+  return key;
+};
+
+renderBots = function() {
+  var list = document.getElementById('bot-list');
+  if (!list) return;
+  loadBots();
+  if (window._bots.length === 0) {
+    list.innerHTML = '<div class="bot-empty">暂无 Bot，点击上方按钮创建</div>';
+    return;
+  }
+  var h = '';
+  for (var i = 0; i < window._bots.length; i++) {
+    var b = window._bots[i];
+    h += '<div class="bot-item">';
+    h += '<div class="bot-item-info">';
+    h += '<div class="bot-item-name">' + escHtml(b.name) + '</div>';
+    h += '<div class="bot-item-key" onclick="cpKey(\'' + b.key + '\')">' + b.key + '</div>';
+    h += '<div class="bot-item-date">' + (b.created || '');
+    if (b.lastUsed) h += ' | 最后: ' + b.lastUsed;
+    h += '</div></div>';
+    h += '<div class="bot-item-actions">';
+    h += '<button class="btn btn-sm btn-primary" onclick="cpKey(\'' + b.key + '\')">复制</button>';
+    h += '<button class="btn btn-sm btn-danger" onclick="delKey(\'' + b.key + '\')">删除</button>';
+    h += '</div></div>';
+  }
+  list.innerHTML = h;
+};
+
+createBotKey = function() {
+  var inp = document.getElementById('bot-name-input');
+  var name = inp ? inp.value.trim() : '';
+  if (!name) name = 'Bot #' + (window._bots.length + 1);
+  var bot = {
+    key: genBotKey(),
+    name: name,
+    created: new Date().toLocaleString('zh-CN'),
+    lastUsed: null,
+    callCount: 0
+  };
+  window._bots.push(bot);
+  saveBots();
+  renderBots();
+  if (inp) inp.value = '';
+  showTradeConfirm({
+    title: 'Bot Key 创建成功',
+    message: '<p style="font-size:16px;font-weight:600;text-align:center;padding:10px;word-break:break-all">' + bot.key + '</p><p style="color:var(--muted);text-align:center">点击确定复制 Key</p>',
+    confirmText: '复制',
+    cancelText: '关闭',
+    onConfirm: function() { cpKey(bot.key); }
+  });
+};
+
+cpKey = function(key) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(key);
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = key;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  showTradeConfirm({title: '已复制', message: 'Bot Key 已复制到剪贴板', confirmText: '确定', cancelText: ''});
+};
+
+delKey = function(key) {
+  showTradeConfirm({
+    title: '确认删除',
+    message: '删除后该 Key 立即失效。',
+    confirmText: '删除',
+    cancelText: '取消',
+    onConfirm: function() {
+      window._bots = window._bots.filter(function(b) { return b.key !== key; });
+      saveBots();
+      renderBots();
+    }
+  });
+};
+
+botExecute = function(key, cmd) {
+  loadBots();
+  var bot = null;
+  for (var i = 0; i < window._bots.length; i++) {
+    if (window._bots[i].key === key) { bot = window._bots[i]; break; }
+  }
+  if (!bot) return {error: 'Bot key not found'};
+  bot.lastUsed = new Date().toLocaleString('zh-CN');
+  bot.callCount = (bot.callCount || 0) + 1;
+  saveBots();
+  logBotCall(bot.name, cmd, 'ok', 'API');
+  return parseBotCommand(cmd);
+};
+
+parseBotCommand = function(text) {
+  var t = text.trim();
+  if (t.indexOf('持仓') >= 0 || /positions?/i.test(t)) {
+    return {action:'view_positions', message:'持仓信息已发送'};
+  }
+  if (t.indexOf('策略') >= 0 && t.indexOf('创建') < 0) {
+    return {action:'view_strategies', message:'策略列表已发送'};
+  }
+  if ((t.indexOf('开启') >= 0) && (t.indexOf('自动') >= 0 || t.indexOf('AI') >= 0)) {
+    return {action:'start_auto', message:'自动交易已开启'};
+  }
+  if ((t.indexOf('关闭') >= 0) && (t.indexOf('自动') >= 0 || t.indexOf('AI') >= 0)) {
+    return {action:'stop_auto', message:'自动交易已关闭'};
+  }
+  if (t.indexOf('创建') >= 0 && t.indexOf('策略') >= 0) {
+    var m = t.match(/[\u7b56\u7565][\s]*(\w+)/);
+    return {action:'create_strategy', params:{type:m?m[1]:'custom'}, message:'策略创建请求已接收'};
+  }
+  var order = parseVoiceOrder(t);
+  if (order && order.isOrder) {
+    window._botOrders.push(order);
+    if (typeof sendTradeSignal === 'function') sendTradeSignal(order);
+    return {action:'execute_order', params:{order:order},
+      message:'订单已接收: ' + (order.side||order.action) + ' ' + order.amount + ' ' + order.symbol};
+  }
+  return {action:'unknown',
+    message:'无法识别的指令。试试：查看持仓、买入1BTC、开启自动交易'};
+};
+
+logBotCall = function(botName, cmd, status, source) {
+  try { var logs = JSON.parse(localStorage.getItem('qbot_logs') || '[]'); }
+  catch(e) { var logs = []; }
+  logs.unshift({
+    time: new Date().toLocaleString('zh-CN'),
+    bot: botName,
+    cmd: cmd.substring(0, 50),
+    status: status,
+    source: source
+  });
+  if (logs.length > 100) logs = logs.slice(0, 100);
+  localStorage.setItem('qbot_logs', JSON.stringify(logs));
+  renderBotLogs();
+};
+
+renderBotLogs = function() {
+  var tbody = document.getElementById('bot-log-body');
+  var card = document.getElementById('bot-log-card');
+  if (!tbody) return;
+  try { var logs = JSON.parse(localStorage.getItem('qbot_logs') || '[]'); }
+  catch(e) { var logs = []; }
+  if (card) card.style.display = logs.length > 0 ? 'block' : 'none';
+  var h = '';
+  for (var i = 0; i < logs.length; i++) {
+    var l = logs[i];
+    h += '<tr>';
+    h += '<td>' + l.time + '</td>';
+    h += '<td>' + l.bot + '</td>';
+    h += '<td>' + l.cmd + '</td>';
+    h += '<td class="bot-log-' + (l.status==='ok'?'ok':'err') + '">';
+    h += (l.status==='ok' ? '成功' : '失败') + '</td>';
+    h += '<td>' + l.source + '</td></tr>';
+  }
+  tbody.innerHTML = h;
+};
+
+initBotPage = function() {
+  loadBots();
+  renderBots();
+  renderBotLogs();
+};
+
+escHtml = function(t) {
+  if (!t) return '';
+  var d = document.createElement('div');
+  d.textContent = t;
+  return d.innerHTML;
+};
