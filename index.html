@@ -10488,23 +10488,27 @@ window.addEventListener('DOMContentLoaded', function(){
     var apiKey = localStorage.getItem('user_own_key') || '';
     
     try{
-      if(typeof window.csFetchGroqGateway === 'function'){
-        // Main app AI gateway
-        var result = await window.csFetchGroqGateway(text);
-        reply = (result !== null && result !== undefined) ? result : null;
+      // Try csFetchGroqGateway FIRST - it's the main app AI pipeline
+      // But it has broken closure refs (_csHistory missing). Wrap in try/catch.
+      try{
+        if(typeof window.csFetchGroqGateway === 'function'){
+          reply = await window.csFetchGroqGateway(text);
+        }
+      }catch(gwErr){
+        console.warn('[CS] csFetchGroqGateway failed:', gwErr);
+        reply = null;
       }
       
       if(!reply && provider === 'deepseek' && apiKey){
-        // DeepSeek V3
-        reply = await csCallAPI(
-          'https://api.deepseek.com/v1/chat/completions',
-          apiKey,
-          { model: 'deepseek-chat', messages: [{role:'user', content: text}], max_tokens: 1024, temperature: 0.7 }
-        );
+        reply = await fetch('https://api.deepseek.com/v1/chat/completions', {
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+          body:JSON.stringify({model:'deepseek-chat', messages:[{role:'user', content:text}], max_tokens:1024, temperature:0.7})
+        }).then(function(r){ if(!r.ok) throw Error('HTTP '+r.status); return r.json(); })
+        .then(function(d){ return d.choices[0].message.content; });
       }
       
-      if(!reply && apiKey){
-        // User's own Groq key
+      if(!reply && apiKey && provider === 'groq'){
         var history = [];
         var msgEls = document.querySelectorAll('#cs-msgs .cs-msg');
         for(var i=0;i<msgEls.length;i++){
@@ -10512,20 +10516,21 @@ window.addEventListener('DOMContentLoaded', function(){
           var bubble = msgEls[i].querySelector('.cs-bubble');
           if(bubble) history.push({role: role, content: bubble.textContent || bubble.innerText});
         }
-        reply = await csCallAPI(
-          'https://api.groq.com/openai/v1/chat/completions',
-          apiKey,
-          { model: _CS_CONFIG.model, messages: history, max_tokens: _CS_CONFIG.maxTokens, temperature: 0.7 }
-        );
+        reply = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+          body:JSON.stringify({model:'llama-3.3-70b-versatile', messages:history, max_tokens:1024, temperature:0.7})
+        }).then(function(r){ if(!r.ok) throw Error('HTTP '+r.status); return r.json(); })
+        .then(function(d){ return d.choices[0].message.content; });
       }
       
       if(!reply && _CS_CONFIG.groqKey){
-        // Fallback to CS Widget's own Groq key
-        reply = await csCallAPI(
-          _CS_CONFIG.apiUrl,
-          _CS_CONFIG.groqKey,
-          { model: _CS_CONFIG.model, messages: [{role:'user', content: text}], max_tokens: _CS_CONFIG.maxTokens, temperature: 0.7 }
-        );
+        reply = await fetch(_CS_CONFIG.apiUrl, {
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+_CS_CONFIG.groqKey},
+          body:JSON.stringify({model:_CS_CONFIG.model, messages:[{role:'user', content:text}], max_tokens:_CS_CONFIG.maxTokens, temperature:0.7})
+        }).then(function(r){ if(!r.ok) throw Error('HTTP '+r.status); return r.json(); })
+        .then(function(d){ return d.choices[0].message.content; });
       }
     }catch(e){
       console.warn('[CS] API error:', e);
