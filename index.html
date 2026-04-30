@@ -1193,7 +1193,7 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
       </div>
 
       <!-- ===== 策略市场 ===== -->
-            div class="page" id="page-stratmarket">
+            <div class="page" id="page-stratmarket">
         <div style="font-size:20px;font-weight:800;margin-bottom:4px">🛒 <span data-i18n="sm_title">策略市场</span></div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:16px" data-i18n="sm_subtitle">发现、分享、一键复用顶级量化策略</div>
 
@@ -4759,7 +4759,6 @@ const I18N = {
     ao_copy_filter:'只跟方向', ao_copy_all:'多空均跟', ao_copy_long_only:'只跟做多', ao_copy_short_only:'只跟做空',
     ao_copy_pairs:'限制品种', ao_copy_pairs_ph:'BTC,ETH（空=不限）', ao_not_following:'未跟随',
     ao_pos_size:'每笔仓位 (USD)', ao_sl:'止损 (%)', ao_tp:'止盈 (%)', ao_max_pos:'最大同时持仓',
-    arb_bind:'绑定交易所', arb_flow:'搬砖流向可视化', arb_log_title:'交易日志', arb_log_auto_refresh:'自动刷新中',
 
     // 排行榜升级
     lb_tab_roi:'月收益排行', lb_tab_wr:'胜率排行', lb_tab_stable:'最稳排行', lb_tab_new:'新秀榜',
@@ -4796,7 +4795,7 @@ const I18N = {
     arb_opportunities:'实时套利机会', arb_th_pair:'交易对', arb_th_buy:'买入所', arb_th_sell:'卖出所',
     arb_th_spread:'价差', arb_th_profit:'预期盈利', arb_th_action:'操作', arb_exec_btn:'执行',
     arb_history:'套利执行历史', arb_history_empty:'暂无历史记录',
-        arb_bind:'绑定交易所', arb_flow:'搬砖流向', arb_log_title:'交易日志', arb_log_auto_refresh:'自动刷新中',
+    arb_bind:'绑定交易所', arb_flow:'搬砖流向可视化', arb_log_title:'交易日志', arb_log_auto_refresh:'自动刷新中',
     sm_submitted:'策略已提交审核，通过后上架！', sm_bt_running:'正在执行回测', sm_bt_done:'回测完成',// 信号广播
     nav_signals:'信号广播', sig_title:'信号广播', sig_subtitle:'实时交易信号，一键订阅推送，接入自动建仓',
     sig_publish_title:'发布交易信号', sig_tab_live:'🔴 实时信号', sig_tab_bc:'信号源', sig_tab_hist:'历史记录',
@@ -5003,7 +5002,7 @@ const I18N = {
     arb_opportunities:'Opportunities', arb_th_pair:'Pair', arb_th_buy:'Buy', arb_th_sell:'Sell',
     arb_th_spread:'Spread', arb_th_profit:'Profit', arb_th_action:'Action', arb_exec_btn:'Execute',
     arb_history:'History', arb_history_empty:'No history',
-        arb_bind:'Connect Exchange', arb_flow:'Flow Visualization', arb_log_title:'Execution Log', arb_log_auto_refresh:'Auto-refreshing',
+    arb_bind:'Connect Exchange', arb_flow:'Arbitrage Flow', arb_log_title:'Execution Log', arb_log_auto_refresh:'Auto-refreshing',
     // Strategy Market
     nav_stratmarket:'Strategy Market', sm_title:'Strategy Market', sm_subtitle:'Discover, share, and copy top quant strategies',
     sm_upload_title:'Publish My Strategy', sm_upload_btn:'Upload Strategy', sm_collapse:'Collapse', sm_upload_name:'Strategy Name',
@@ -8969,355 +8968,118 @@ function initAutoOpen(){
 }
 
 // ===== 智能套利页面 =====
+let _arbRunning = false;
 
-// ===== 跨交易所聚合引擎 - 完整模拟引擎 =====
-// 不依赖后端，纯前端模拟价差扫描与AI搬砖
 
-// 支持的交易对
+// ===== 跨交易所聚合引擎 - 模拟引擎 =====
 const ARB_SYMBOLS = ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'SOL/USDT', 'XRP/USDT'];
-
-// 交易所名称与图标映射
 const EXCHANGE_ICONS = {'binance':'🟡','okx':'🔵','bybit':'🟣','kucoin':'🟠'};
 const EXCHANGE_NAMES = {'binance':'Binance','okx':'OKX','bybit':'Bybit','kucoin':'KuCoin'};
 
-// 模拟各交易所实时价格（在base价格上下波动）
 function getSimPrices(symbol) {
-  const basePrices = {
-    'BTC/USDT': 67500, 'ETH/USDT': 3450, 'BNB/USDT': 610,
-    'SOL/USDT': 145, 'XRP/USDT': 0.62
-  };
+  const basePrices = {'BTC/USDT': 67500, 'ETH/USDT': 3450, 'BNB/USDT': 610, 'SOL/USDT': 145, 'XRP/USDT': 0.62};
   const base = basePrices[symbol] || 50000;
-  const exchanges = ['binance','okx','bybit','kucoin'];
-  const prices = {};
-  const v = [ -0.001, 0.0005, 0.002, -0.0015, 0.001, -0.0008 ]; // price variance patterns
-  exchanges.forEach((ex,i) => {
-    const variance = 1 + v[i % v.length] + (Math.random() - 0.5) * 0.002;
-    prices[ex] = base * variance;
-  });
-  return prices;
+  const v = [ -0.001, 0.0005, 0.002, -0.0015, 0.001, -0.0008 ];
+  return {'binance': base*(1+v[0]+(Math.random()-0.5)*0.002), 'okx': base*(1+v[1]+(Math.random()-0.5)*0.002), 'bybit': base*(1+v[2]+(Math.random()-0.5)*0.002), 'kucoin': base*(1+v[3]+(Math.random()-0.5)*0.002)};
 }
-
-// 检查当前用户已连接了哪些交易所
-function getConnectedExchanges() {
-  const raw = localStorage.getItem('arb_exchanges');
-  if (!raw) return {};
-  try { return JSON.parse(raw); } catch(e) { return {}; }
-}
-
-// 更新交易所状态UI
+function getConnectedExchanges() { try{return JSON.parse(localStorage.getItem('arb_exchanges')||'{}')}catch(e){return {}} }
 function renderConnectedExchanges() {
-  const container = document.getElementById('arb-exchange-status');
-  if (!container) return;
+  const c = document.getElementById('arb-exchange-status'); if(!c) return;
   const exs = getConnectedExchanges();
-  const total = Object.keys(exs).length;
-  const count = document.getElementById('arb-exchange-count');
-  if (count) count.textContent = total + '/10';
-  
-  // 显示所有交易所（已连接绿色，未连接灰色）
-  const allExs = ['binance','okx','bybit','kucoin'];
-  container.innerHTML = allExs.map(ex => {
-    const status = exs[ex] ? 'on' : 'off';
-    return `<div class="exchange-item ${status}" data-ex="${ex}" style="cursor:pointer" onclick="addExchange('${ex}')">
-      <div style="font-weight:600">${EXCHANGE_ICONS[ex]||'🏦'} ${EXCHANGE_NAMES[ex]||ex}</div>
-      <div style="font-size:11px;color:var(--muted)">${status === 'on' ? '✅ 已连接' : '❌ 未连接'}</div>
-      <div style="font-size:12px;margin-top:2px" class="arb-balance">${status === 'on' ? '$' + (Math.random() * 50000 + 1000).toFixed(2) : '—'}</div>
-    </div>`;
+  c.innerHTML = ['binance','okx','bybit','kucoin'].map(ex => {
+    const s = exs[ex] ? 'on' : 'off';
+    return '<div class="exchange-item '+s+'" data-ex="'+ex+'" style="cursor:pointer" onclick="addExchange(\''+ex+'\')"><div style="font-weight:600">'+(EXCHANGE_ICONS[ex]||'')+' '+(EXCHANGE_NAMES[ex]||ex)+'</div><div style="font-size:11px;color:var(--muted)">'+(s==='on'?'✅ 已连接':'❌ 未连接')+'</div><div style="font-size:12px;margin-top:2px" class="arb-balance">'+(s==='on'?'$'+(Math.random()*50000+1000).toFixed(2):'—')+'</div></div>';
   }).join('');
-  
-  return Object.keys(exs); // return connected exchange keys
+  return Object.keys(exs);
 }
-
-// 同步用户账户中的交易所
-function syncExchangesToArbitrage() {
-  const stored = localStorage.getItem('connected_exchanges');
-  if (stored) {
-    try {
-      const exs = JSON.parse(stored);
-      localStorage.setItem('arb_exchanges', JSON.stringify(exs));
-    } catch(e) {}
-  }
+function syncExchangesToArbitrage() { 
+  const s = localStorage.getItem('connected_exchanges');
+  if(s) try{localStorage.setItem('arb_exchanges',s)}catch(e){}
   renderConnectedExchanges();
-  toast('交易所数据已同步', 'success');
+  try{toast('交易所已同步','success')}catch(e){}
 }
-
-// 添加交易所（从My Account绑定的快捷方式）
-function addExchange(name) {
-  showPage('account');
-  toast('请先在【我的账户】中绑定交易所API', 'info');
-}
-
-// 移除交易所
-function removeExchange(name) {
-  const exs = getConnectedExchanges();
-  delete exs[name];
-  localStorage.setItem('arb_exchanges', JSON.stringify(exs));
-  renderConnectedExchanges();
-  toast('已移除 ' + name, 'info');
-}
-
-// 加载并显示各交易所价格
+function addExchange(n) { showPage('account'); try{toast('请先在【我的账户】中绑定交易所API','info')}catch(e){} }
+function removeExchange(n) { const e=getConnectedExchanges(); delete e[n]; localStorage.setItem('arb_exchanges',JSON.stringify(e)); renderConnectedExchanges(); try{toast('已移除 '+n,'info')}catch(e){} }
 function loadArbitragePrices() {
-  const symbol = document.getElementById('arb-symbol-select')?.value || 'BTC/USDT';
-  const prices = getSimPrices(symbol);
-  renderArbPrices(prices);
-  
-  // 计算最大价差
-  const vals = Object.values(prices);
-  if (vals.length >= 2) {
-    const max = Math.max(...vals);
-    const min = Math.min(...vals);
-    const spread = ((max - min) / min * 100);
-    document.getElementById('arb-current-spread').textContent = spread.toFixed(3) + '%';
-    document.getElementById('arb-spread-change').innerHTML = spread > 0.1 
-      ? '<span style="color:var(--green)">✓ 有机会</span>' 
-      : '<span style="color:var(--muted)">- 无机会</span>';
-    
-    // 更新搬砖流向可视化
-    updateArbFlow(prices, symbol);
-  }
-  // 更新概览数字
-  document.getElementById('arb-pairs-count').textContent = ARB_SYMBOLS.length;
-}
-
-// 渲染各交易所价格
-function renderArbPrices(prices) {
+  const sym = document.getElementById('arb-symbol-select')?.value||'BTC/USDT';
+  const prices = getSimPrices(sym);
   const grid = document.getElementById('arb-prices-grid');
-  if (!grid) return;
-  const maxPrice = Math.max(...Object.values(prices));
-  const minPrice = Math.min(...Object.values(prices));
-  grid.innerHTML = Object.entries(prices).map(([ex, price]) => {
-    const isMax = price === maxPrice;
-    const isMin = price === minPrice;
-    const color = isMax ? 'var(--green)' : isMin ? 'var(--blue)' : 'var(--muted)';
-    const badge = isMax ? '↑' : isMin ? '↓' : '—';
-    return `<div style="padding:10px;border:1px solid var(--border);border-radius:8px">
-      <div style="font-weight:600;font-size:13px">${EXCHANGE_ICONS[ex]||'🏦'} ${EXCHANGE_NAMES[ex]||ex}</div>
-      <div style="font-size:16px;font-weight:800;color:${color};margin-top:4px">$${price.toFixed(2)}</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:2px">${badge}</div>
-    </div>`;
-  }).join('');
-}
-
-// 更新搬砖流向可视化
-function updateArbFlow(prices, symbol) {
-  const container = document.getElementById('arb-flow-container');
-  if (!container) return;
-  
-  // 找出价差最大的买卖对
-  const entries = Object.entries(prices);
-  let bestBuy = null, bestSell = null;
-  let maxSpread = 0;
-  
-  for (let i = 0; i < entries.length; i++) {
-    for (let j = 0; j < entries.length; j++) {
-      if (i === j) continue;
-      const spread = (entries[j][1] - entries[i][1]) / entries[i][1] * 100;
-      if (spread > maxSpread) {
-        maxSpread = spread;
-        bestBuy = entries[i];  // 买（低价交易所）
-        bestSell = entries[j]; // 卖（高价交易所）
-      }
+  if(grid) {
+    const vals = Object.values(prices); const max = Math.max(...vals); const min = Math.min(...vals);
+    grid.innerHTML = Object.entries(prices).map(([ex,pr]) => {
+      const isMax = pr===max; const isMin = pr===min;
+      return '<div style="padding:10px;border:1px solid var(--border);border-radius:8px"><div style="font-weight:600;font-size:13px">'+(EXCHANGE_ICONS[ex]||'')+' '+(EXCHANGE_NAMES[ex]||ex)+'</div><div style="font-size:16px;font-weight:800;color:'+(isMax?'var(--green)':isMin?'var(--blue)':'var(--muted)')+';margin-top:4px">$'+pr.toFixed(2)+'</div><div style="font-size:11px;color:var(--muted);margin-top:2px">'+(isMax?'↑':isMin?'↓':'—')+'</div></div>';
+    }).join('');
+    if(vals.length>=2) {
+      const spread = (max-min)/min*100;
+      document.getElementById('arb-current-spread').textContent = spread.toFixed(3)+'%';
+      document.getElementById('arb-spread-change').innerHTML = spread>0.1?'<span style="color:var(--green)">✓ 有机会</span>':'<span style="color:var(--muted)">- 无机会</span>';
+      updateArbFlow(prices, sym);
     }
   }
-  
-  if (maxSpread < 0.01) {
-    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">暂无可用的套利价差</div>';
-    return;
-  }
-  
-  const estProfit = (1000 * maxSpread / 100).toFixed(2);
-  
-  container.innerHTML = `
-    <div class="arb-flow-row" style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.2);border-radius:10px">
-      <div style="flex:0 0 100px;text-align:center">
-        <div style="font-weight:700;font-size:14px;color:var(--green)">${EXCHANGE_ICONS[bestBuy[0]]} ${EXCHANGE_NAMES[bestBuy[0]]}</div>
-        <div style="font-size:11px;color:var(--muted)">$${bestBuy[1].toFixed(2)}</div>
-        <div style="font-size:10px;color:var(--green);margin-top:2px">买入</div>
-      </div>
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-        <div style="font-size:12px;font-weight:600;color:var(--text)">${symbol}</div>
-        <div style="width:100%;height:3px;background:var(--border);border-radius:2px;overflow:hidden;position:relative">
-          <div style="position:absolute;left:0;top:0;width:100%;height:3px;background:linear-gradient(90deg,var(--green),var(--blue));animation:arb-flow-bar 1.5s ease-in-out infinite"></div>
-        </div>
-        <div style="font-size:11px;color:var(--muted)"><span style="color:var(--green)">+${maxSpread.toFixed(3)}%</span> · 预估盈利 <span style="color:var(--green);font-weight:700">$${estProfit}</span></div>
-      </div>
-      <div style="flex:0 0 100px;text-align:center">
-        <div style="font-weight:700;font-size:14px;color:var(--blue)">${EXCHANGE_ICONS[bestSell[0]]} ${EXCHANGE_NAMES[bestSell[0]]}</div>
-        <div style="font-size:11px;color:var(--muted)">$${bestSell[1].toFixed(2)}</div>
-        <div style="font-size:10px;color:var(--blue);margin-top:2px">卖出</div>
-      </div>
-    </div>`;
-  
-  // 如果价差超过最小阈值，自动添加到日志
-  const minSpread = parseFloat(document.getElementById('arb-min-spread')?.value || 0.1);
-  if (maxSpread >= minSpread && bestBuy && bestSell) {
-    addArbTradeLog({
-      symbol: symbol,
-      buy_exchange: bestBuy[0],
-      sell_exchange: bestSell[0],
-      buy_price: bestBuy[1],
-      sell_price: bestSell[1],
-      spread_percent: maxSpread,
-      estimated_profit: parseFloat(estProfit),
-      time: new Date().toLocaleString()
-    });
-  }
+  document.getElementById('arb-pairs-count').textContent = ARB_SYMBOLS.length;
 }
-
-// 添加交易日志（底部滚动区域）
-function addArbTradeLog(signal) {
-  const logArea = document.getElementById('arb-trade-log');
-  if (!logArea) return;
-  
-  // 移除空提示
-  const emptyMsg = logArea.querySelector('[data-i18n="arb_history_empty"]');
-  if (emptyMsg) emptyMsg.remove();
-  
-  const entry = document.createElement('div');
-  entry.style.cssText = 'padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;display:flex;gap:8px;align-items:center';
-  
-  const buy = EXCHANGE_NAMES[signal.buy_exchange] || signal.buy_exchange;
-  const sell = EXCHANGE_NAMES[signal.sell_exchange] || signal.sell_exchange;
-  
-  entry.innerHTML = `
-    <span style="color:var(--muted);flex:0 0 70px">${signal.time.split(' ')[1] || signal.time}</span>
-    <span style="color:var(--text);font-weight:600">${signal.symbol}</span>
-    <span style="color:var(--green)">${buy}</span>
-    <span style="color:var(--muted)">→</span>
-    <span style="color:var(--blue)">${sell}</span>
-    <span style="color:var(--green);font-weight:700;margin-left:auto">+${signal.spread_percent.toFixed(3)}%</span>
-    <span style="color:var(--green);font-weight:700;flex:0 0 80px;text-align:right">$${signal.estimated_profit.toFixed(2)}</span>
-  `;
-  
-  logArea.insertBefore(entry, logArea.firstChild);
-  
-  // 限制最多50条
-  while (logArea.children.length > 50) {
-    logArea.removeChild(logArea.lastChild);
+function updateArbFlow(prices, sym) {
+  const c = document.getElementById('arb-flow-container'); if(!c) return;
+  const entries = Object.entries(prices); let bestBuy=null, bestSell=null, maxSpread=0;
+  for(let i=0;i<entries.length;i++) for(let j=0;j<entries.length;j++) { if(i===j) continue;
+    const sp = (entries[j][1]-entries[i][1])/entries[i][1]*100;
+    if(sp>maxSpread){maxSpread=sp; bestBuy=entries[i]; bestSell=entries[j];}
   }
-  
-  // 更新总收益和次数
-  const totalEl = document.getElementById('arb-total-profit');
-  const countEl = document.getElementById('arb-trade-count');
-  if (totalEl) {
-    const curTotal = parseFloat(totalEl.textContent.replace('$','') || 0);
-    totalEl.textContent = '$' + (curTotal + signal.estimated_profit).toFixed(2);
-  }
-  if (countEl) {
-    countEl.textContent = parseInt(countEl.textContent) + 1;
-  }
-  
-  // 更新活跃机会数
-  const activeEl = document.getElementById('arb-active-opportunities');
-  if (activeEl) {
-    activeEl.textContent = parseInt(activeEl.textContent || 0) + 1;
-  }
-  
-  // 自动滚动到底部
-  logArea.scrollTop = 0;
+  if(maxSpread<0.01) { c.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">暂无可用的套利价差</div>'; return; }
+  const est = (1000*maxSpread/100).toFixed(2);
+  c.innerHTML = '<div class="arb-flow-row" style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.2);border-radius:10px">'+
+    '<div style="flex:0 0 100px;text-align:center"><div style="font-weight:700;font-size:14px;color:var(--green)">'+(EXCHANGE_ICONS[bestBuy[0]]||'')+' '+(EXCHANGE_NAMES[bestBuy[0]]||bestBuy[0])+'</div><div style="font-size:11px;color:var(--muted)">$'+bestBuy[1].toFixed(2)+'</div><div style="font-size:10px;color:var(--green);margin-top:2px">买入</div></div>'+
+    '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="font-size:12px;font-weight:600;color:var(--text)">'+sym+'</div><div style="width:100%;height:3px;background:var(--border);border-radius:2px;overflow:hidden;position:relative"><div style="position:absolute;left:0;top:0;width:100%;height:3px;background:linear-gradient(90deg,var(--green),var(--blue));animation:arb-flow-bar 1.5s ease-in-out infinite"></div></div><div style="font-size:11px;color:var(--muted)"><span style="color:var(--green)">+'+maxSpread.toFixed(3)+'%</span> · 预估盈利 <span style="color:var(--green);font-weight:700">$'+est+'</span></div></div>'+
+    '<div style="flex:0 0 100px;text-align:center"><div style="font-weight:700;font-size:14px;color:var(--blue)">'+(EXCHANGE_ICONS[bestSell[0]]||'')+' '+(EXCHANGE_NAMES[bestSell[0]]||bestSell[0])+'</div><div style="font-size:11px;color:var(--muted)">$'+bestSell[1].toFixed(2)+'</div><div style="font-size:10px;color:var(--blue);margin-top:2px">卖出</div></div></div>';
+  const ms = parseFloat(document.getElementById('arb-min-spread')?.value||0.1);
+  if(maxSpread>=ms) addArbTradeLog({symbol:sym,buy_exchange:bestBuy[0],sell_exchange:bestSell[0],buy_price:bestBuy[1],sell_price:bestSell[1],spread_percent:maxSpread,estimated_profit:parseFloat(est),time:new Date().toLocaleString()});
 }
-
-// 定时扫描套利（启动引擎）
+function addArbTradeLog(sig) {
+  const log = document.getElementById('arb-trade-log'); if(!log) return;
+  const em = log.querySelector('[data-i18n="arb_history_empty"]'); if(em) em.remove();
+  const buy = EXCHANGE_NAMES[sig.buy_exchange]||sig.buy_exchange, sell = EXCHANGE_NAMES[sig.sell_exchange]||sig.sell_exchange;
+  const e = document.createElement('div'); e.style.cssText = 'padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;display:flex;gap:8px;align-items:center';
+  e.innerHTML = '<span style="color:var(--muted);flex:0 0 70px">'+(sig.time.split(' ')[1]||sig.time)+'</span> <span style="color:var(--text);font-weight:600">'+sig.symbol+'</span> <span style="color:var(--green)">'+buy+'</span> <span style="color:var(--muted)">→</span> <span style="color:var(--blue)">'+sell+'</span> <span style="color:var(--green);font-weight:700;margin-left:auto">+'+sig.spread_percent.toFixed(3)+'%</span> <span style="color:var(--green);font-weight:700;flex:0 0 80px;text-align:right">$'+sig.estimated_profit.toFixed(2)+'</span>';
+  log.insertBefore(e, log.firstChild);
+  while(log.children.length>50) log.removeChild(log.lastChild);
+  document.getElementById('arb-total-profit').textContent = '$'+(parseFloat(document.getElementById('arb-total-profit').textContent.replace('$','')||0)+sig.estimated_profit).toFixed(2);
+  document.getElementById('arb-trade-count').textContent = parseInt(document.getElementById('arb-trade-count').textContent)+1;
+}
 function startArbitrageEngine() {
-  _arbRunning = true;
-  _arbAITrading = true;
-  document.getElementById('arb-start-btn').style.display = 'none';
-  document.getElementById('arb-stop-btn').style.display = '';
-  document.getElementById('arb-engine-status').innerHTML = '🟢 <span data-i18n="arb_engine_running">运行中</span>';
-  
-  // 立即执行一次
+  _arbRunning=true; _arbAITrading=true;
+  document.getElementById('arb-start-btn').style.display='none';
+  document.getElementById('arb-stop-btn').style.display='';
+  document.getElementById('arb-engine-status').innerHTML='🟢 <span data-i18n="arb_engine_running">运行中</span>';
   loadArbitragePrices();
-  
-  // 每5秒扫描一次
-  _arbInterval = setInterval(() => {
-    if (!_arbRunning) return;
-    loadArbitragePrices();
-  }, 5000);
-  
-  toast('AI 搬砖引擎已启动', 'success');
+  _arbInterval = setInterval(()=>{if(!_arbRunning)return;loadArbitragePrices()}, 5000);
+  try{toast('AI 搬砖引擎已启动','success')}catch(e){}
+  localStorage.setItem('arb_state',JSON.stringify({running:true}));
 }
-
-// 停止引擎
 function stopArbitrageEngine() {
-  _arbRunning = false;
-  _arbAITrading = false;
-  if (_arbInterval) {
-    clearInterval(_arbInterval);
-    _arbInterval = null;
-  }
-  document.getElementById('arb-start-btn').style.display = '';
-  document.getElementById('arb-stop-btn').style.display = 'none';
-  document.getElementById('arb-engine-status').innerHTML = '⏸️ <span data-i18n="arb_engine_stopped">已停止</span>';
-  toast('引擎已停止', 'info');
+  _arbRunning=false; _arbAITrading=false;
+  if(_arbInterval){clearInterval(_arbInterval);_arbInterval=null;}
+  document.getElementById('arb-start-btn').style.display='';document.getElementById('arb-stop-btn').style.display='none';
+  document.getElementById('arb-engine-status').innerHTML='⏸️ <span data-i18n="arb_engine_stopped">已停止</span>';
+  try{toast('引擎已停止','info')}catch(e){}
+  localStorage.setItem('arb_state',JSON.stringify({running:false}));
 }
-
-// 手动扫描套利
-function scanArbitrage() {
-  loadArbitragePrices();
-  toast('扫描完成', 'success');
-}
-
-// 初始化Arbitrage页面
+function scanArbitrage() { loadArbitragePrices(); try{toast('扫描完成','success')}catch(e){} }
 function initArbitragePage() {
   syncExchangesToArbitrage();
-  
-  // 非Elite用户控制
-  const isElite = _userPlan === 'elite';
+  const isElite = _userPlan==='elite';
   const banner = document.getElementById('arb-lock-banner');
-  if (banner) banner.style.display = isElite ? 'none' : 'flex';
-  
-  if (!isElite) {
-    document.querySelectorAll('#page-arbitrage .card').forEach((c, i) => {
-      if (i >= 1 && i <= 3) {
-        c.style.opacity = '0.5';
-        c.style.pointerEvents = 'none';
-      }
-    });
-  }
-  
-  // 加载价格
+  if(banner) banner.style.display = isElite ? 'none' : 'flex';
+  if(!isElite) { document.querySelectorAll('#page-arbitrage .card').forEach((c,i)=>{ if(i>=1&&i<=3){c.style.opacity='0.5';c.style.pointerEvents='none';}}); }
   loadArbitragePrices();
   renderConnectedExchanges();
-  
-  // 恢复状态
-  const saved = localStorage.getItem('arb_state');
-  if (saved) {
-    try {
-      const state = JSON.parse(saved);
-      if (state.running) {
-        startArbitrageEngine();
-      }
-    } catch(e) {}
-  }
+  const s=localStorage.getItem('arb_state');
+  if(s) try{const st=JSON.parse(s);if(st.running)startArbitrageEngine()}catch(e){}
 }
-
-// 保存引擎状态
-function saveArbitrageState() {
-  localStorage.setItem('arb_state', JSON.stringify({ running: _arbRunning }));
-}
-// 在引擎状态变化时保存
-const _origStart = startArbitrageEngine;
-startArbitrageEngine = function() { _origStart(); saveArbitrageState(); };
-
-// ===== 老函数兼容空壳（防止引用错误） =====
 function initExchangeUI() { renderConnectedExchanges(); }
-function renderArbHistory() {}  // 已用 addArbTradeLog 替代
-function syncArbToConsole(signal) {
-  const history = JSON.parse(localStorage.getItem('arb_history') || '[]');
-  history.unshift(signal);
-  if (history.length > 50) history.pop();
-  localStorage.setItem('arb_history', JSON.stringify(history));
-}
+function renderArbHistory() {}
+function syncArbToConsole(sig) { const h=JSON.parse(localStorage.getItem('arb_history')||'[]'); h.unshift(sig); if(h.length>50)h.pop(); localStorage.setItem('arb_history',JSON.stringify(h)); }
 
-// 覆盖老函数指针
-window.syncExchangesToArbitrage = syncExchangesToArbitrage;
-window.initArbitragePage = initArbitragePage;
-window.loadArbitragePrices = loadArbitragePrices;
-window.startArbitrageEngine = startArbitrageEngine;
-window.stopArbitrageEngine = stopArbitrageEngine;
-window.scanArbitrage = scanArbitrage;
-
-let _arbRunning = false;
 let _arbInterval = null;
 let _arbHistory = [];
 
@@ -10449,7 +10211,10 @@ window.addEventListener('DOMContentLoaded', function(){
 <!-- 悬浮按钮 -->
 <div class="cs-info">
       <div class="cs-name">QuantAI 客服助手</div>
-      
+      <div class="cs-status" id="cs-status-txt">在线 · AI 自动回复</div>
+    </div>
+    <button class="cs-close" onclick="toggleCS()" title="关闭">✕</button>
+  </div>
 
   <div id="cs-msgs"></div>
 
@@ -11131,7 +10896,3 @@ window.addEventListener('load', ()=>{ setTimeout(renderAIConfigCard, 500); });
 </script>
 </body>
 </html>
-          <div onclick="toggleCS()" style="display:flex;align-items:center;gap:8px;padding:8px 16px;cursor:pointer;border-top:1px solid var(--border);margin-top:4px;transition:background 0.2s;border-radius:8px" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background='transparent'">
-            <span style="font-size:16px">💬</span>
-            <span style="font-size:13px" data-i18n="cs_sidebar">官方客服</span>
-          </div>
