@@ -1834,6 +1834,7 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
             <div style="display:flex;gap:6px">
               <button onclick="toggleWidget('tv')" id="tv-widget-btn" style="padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer">📈 图表</button>
               <button onclick="toggleWidget('yt')" id="yt-widget-btn" style="padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer">🎥 直播</button>
+              <button onclick="showChannelSettings()" title="频道设置" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer">⚙️</button>
             </div>
           </div>
           <div id="widget-tv" style="display:none;margin-bottom:8px;border-radius:12px;overflow:hidden;border:1px solid var(--border);height:380px"></div>
@@ -9351,6 +9352,69 @@ function createChannelSubmit(){
 }
 
 // ---- TradingView Widget ----
+
+// ---- Channel Settings ----
+function showChannelSettings(){
+  var ch=_sqCurrentChannel;
+  if(!ch) return;
+  var existing=document.getElementById('ch-settings-modal');
+  if(existing) existing.remove();
+  var m=document.createElement('div');
+  m.id='ch-settings-modal';
+  m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center';
+  m.innerHTML='<div style="background:var(--card-bg,#1a1a2e);border:1px solid var(--border,#2a3a5e);border-radius:16px;padding:24px;width:380px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.5)">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">'+
+      '<span style="font-size:18px;font-weight:700;color:var(--text,#e0e0e0)">⚙️ 频道设置</span>'+
+      '<button onclick="this.parentElement.parentElement.parentElement.remove()" style="background:none;border:none;color:var(--muted,#888);font-size:20px;cursor:pointer">✕</button>'+
+    '</div>'+
+    '<div style="margin-bottom:14px">'+
+      '<label style="font-size:12px;color:var(--muted,#888);display:block;margin-bottom:6px">图标</label>'+
+      '<input id="ch-set-icon" type="text" maxlength="2" value="'+ch.icon+'" style="width:60px;padding:10px 14px;border:1px solid var(--border,#2a3a5e);border-radius:8px;background:var(--input-bg,#151528);color:var(--text,#e0e0e0);font-size:16px;text-align:center;outline:none">'+
+    '</div>'+
+    '<div style="margin-bottom:14px">'+
+      '<label style="font-size:12px;color:var(--muted,#888);display:block;margin-bottom:6px">频道名称</label>'+
+      '<input id="ch-set-name" type="text" maxlength="20" value="'+ch.name+'" style="width:100%;padding:10px 14px;border:1px solid var(--border,#2a3a5e);border-radius:8px;background:var(--input-bg,#151528);color:var(--text,#e0e0e0);font-size:14px;outline:none">'+
+    '</div>'+
+    '<div style="margin-bottom:20px">'+
+      '<label style="font-size:12px;color:var(--muted,#888);display:block;margin-bottom:6px">描述</label>'+
+      '<input id="ch-set-desc" type="text" maxlength="50" value="'+(ch.desc||'')+'" style="width:100%;padding:10px 14px;border:1px solid var(--border,#2a3a5e);border-radius:8px;background:var(--input-bg,#151528);color:var(--text,#e0e0e0);font-size:14px;outline:none">'+
+    '</div>'+
+    '<button onclick="saveChannelSettings()" style="width:100%;padding:12px;border:none;border-radius:10px;background:var(--accent,#00c896);color:#fff;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px">保存设置</button>'+
+    '<button onclick="deleteChannel()" style="width:100%;padding:12px;border:1px solid var(--red,#e74c3c);border-radius:10px;background:transparent;color:var(--red,#e74c3c);font-size:14px;cursor:pointer">🗑️ 删除频道</button>'+
+  '</div>';
+  document.body.appendChild(m);
+  setTimeout(function(){document.getElementById('ch-set-icon').focus();},100);
+}
+function saveChannelSettings(){
+  var icon=document.getElementById('ch-set-icon').value.trim()||'💬';
+  var name=document.getElementById('ch-set-name').value.trim();
+  if(!name){toast('频道名称不能为空','warn');return;}
+  var desc=document.getElementById('ch-set-desc').value.trim()||'';
+  var ch=_sqCurrentChannel;
+  if(!ch) return;
+  ch.icon=icon; ch.name=name; ch.desc=desc;
+  saveSQ(); renderChannelList();
+  document.getElementById('channel-name-display').textContent='# '+name;
+  document.getElementById('channel-desc-display').textContent=desc;
+  var m=document.getElementById('ch-settings-modal');
+  if(m) m.remove();
+  toast('✅ 设置已保存','success');
+}
+function deleteChannel(){
+  var ch=_sqCurrentChannel;
+  if(!ch) return;
+  if(!confirm('确定要删除频道「#'+ch.name+'」？频道下的所有消息将被删除！')) return;
+  _sqChannels=_sqChannels.filter(function(c){return c.id!==ch.id;});
+  delete _sqMessages[ch.id];
+  saveSQ();
+  var m=document.getElementById('ch-settings-modal');
+  if(m) m.remove();
+  // Switch to first available channel
+  if(_sqChannels.length>0) switchChannel(_sqChannels[0].id);
+  else renderChannelList();
+  toast('🗑️ 频道已删除','info');
+}
+
 function loadTV(symbol){
   var c = document.getElementById('widget-tv');
   if(!c) return;
