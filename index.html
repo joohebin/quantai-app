@@ -10462,6 +10462,26 @@ window.addEventListener('DOMContentLoaded', function(){
   };
   
   // csDoSend uses closure for _csSending, _CS_CONFIG, etc.
+  // csDoSend: uses closure for _csSending, reads user AI config from localStorage
+  // Add ability to call any OpenAI-compatible API
+  function csCallAPI(apiUrl, apiKey, body){
+    return new Promise(function(resolve, reject){
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', apiUrl);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.setRequestHeader('Authorization', 'Bearer ' + apiKey);
+      xhr.onload = function(){
+        if(xhr.status === 200){
+          try{ var data = JSON.parse(xhr.responseText); resolve(data.choices[0].message.content); }
+          catch(e){ reject('Parse error: ' + e.message); }
+        } else { reject('HTTP ' + xhr.status); }
+      };
+      xhr.onerror = function(){ reject('Network error'); };
+      xhr.send(JSON.stringify(body));
+    });
+  }
+
+  // csDoSend: reads user AI config from localStorage
   window.csDoSend = async function(){
     if(_csSending) return;
     var inp = document.getElementById('cs-input');
@@ -10475,11 +10495,27 @@ window.addEventListener('DOMContentLoaded', function(){
     window.csShowTyping();
     
     var reply;
-    if(typeof window.csFetchGroqGateway === 'function'){
-      var result = await window.csFetchGroqGateway(text);
-      reply = (result !== null && result !== undefined) ? result : window.csLocalReply(text);
-    } else if(_CS_CONFIG.groqKey){
-      try{
+    var provider = localStorage.getItem('user_own_provider') || 'groq';
+    var apiKey = localStorage.getItem('user_own_key') || '';
+    
+    try{
+      if(typeof window.csFetchGroqGateway === 'function'){
+        // Main app AI gateway
+        var result = await window.csFetchGroqGateway(text);
+        reply = (result !== null && result !== undefined) ? result : null;
+      }
+      
+      if(!reply && provider === 'deepseek' && apiKey){
+        // DeepSeek V3
+        reply = await csCallAPI(
+          'https://api.deepseek.com/v1/chat/completions',
+          apiKey,
+          { model: 'deepseek-chat', messages: [{role:'user', content: text}], max_tokens: 1024, temperature: 0.7 }
+        );
+      }
+      
+      if(!reply && apiKey){
+        // User's own Groq key
         var history = [];
         var msgEls = document.querySelectorAll('#cs-msgs .cs-msg');
         for(var i=0;i<msgEls.length;i++){
@@ -10487,22 +10523,35 @@ window.addEventListener('DOMContentLoaded', function(){
           var bubble = msgEls[i].querySelector('.cs-bubble');
           if(bubble) history.push({role: role, content: bubble.textContent || bubble.innerText});
         }
-        reply = await window.csFetchGroq(history);
-      }catch(e){
-        console.warn('[CS] Groq failed:', e);
-        reply = window.csLocalReply(text);
+        reply = await csCallAPI(
+          'https://api.groq.com/openai/v1/chat/completions',
+          apiKey,
+          { model: _CS_CONFIG.model, messages: history, max_tokens: _CS_CONFIG.maxTokens, temperature: 0.7 }
+        );
       }
-    } else {
-      reply = window.csLocalReply(text);
+      
+      if(!reply && _CS_CONFIG.groqKey){
+        // Fallback to CS Widget's own Groq key
+        reply = await csCallAPI(
+          _CS_CONFIG.apiUrl,
+          _CS_CONFIG.groqKey,
+          { model: _CS_CONFIG.model, messages: [{role:'user', content: text}], max_tokens: _CS_CONFIG.maxTokens, temperature: 0.7 }
+        );
+      }
+    }catch(e){
+      console.warn('[CS] API error:', e);
     }
     
     window.csHideTyping();
     if(reply && reply.trim()){
       reply = reply.replace(/\\n/g, '<br>').replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>');
       window.csAddMsg('bot', reply);
+    } else {
+      window.csAddMsg('bot', window.csLocalReply(text));
     }
     if(sendBtn) sendBtn.disabled = false;
   };
+  
   
   // Register keyboard handler on load
   window.addEventListener('load', function(){
