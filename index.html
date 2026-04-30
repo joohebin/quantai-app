@@ -10465,20 +10465,9 @@ window.addEventListener('DOMContentLoaded', function(){
   // csDoSend: uses closure for _csSending, reads user AI config from localStorage
   // Add ability to call any OpenAI-compatible API
   function csCallAPI(apiUrl, apiKey, body){
-    return new Promise(function(resolve, reject){
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', apiUrl);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.setRequestHeader('Authorization', 'Bearer ' + apiKey);
-      xhr.onload = function(){
-        if(xhr.status === 200){
-          try{ var data = JSON.parse(xhr.responseText); resolve(data.choices[0].message.content); }
-          catch(e){ reject('Parse error: ' + e.message); }
-        } else { reject('HTTP ' + xhr.status); }
-      };
-      xhr.onerror = function(){ reject('Network error'); };
-      xhr.send(JSON.stringify(body));
-    });
+    return fetch(apiUrl, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body:JSON.stringify(body) })
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(data){ return data.choices[0].message.content; });
   }
 
   // csDoSend: reads user AI config from localStorage
