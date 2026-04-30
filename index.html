@@ -724,7 +724,7 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
       </div>
     </div>
   
-        <div onclick="toggleCS()" style="display:flex;align-items:center;gap:8px;padding:10px 16px;cursor:pointer;border-top:1px solid var(--border);margin-top:8px;transition:background 0.2s;border-radius:8px" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background='transparent'">
+        <div onclick="toggleCS()" style="display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;border-top:1px solid var(--border);margin-top:8px;transition:all 0.2s;border-radius:8px;background:var(--card2);font-size:13px;font-weight:600" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background='transparent'">
           <span style="font-size:16px">💬</span>
           <span style="font-size:13px" data-i18n="cs_sidebar">官方客服</span>
         </div></aside>
@@ -1812,7 +1812,40 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
           <div>
             <div style="font-size:20px;font-weight:800">⚖️ <span data-i18n="arb_title">跨交易所聚合引擎</span>
               <span class="elite-badge">AI</span>
+            
+<!-- 搬砖流向可视化 -->
+        <div class="card" style="padding:14px;margin-bottom:12px">
+          <div style="font-weight:700;margin-bottom:10px">📊 <span data-i18n="arb_flow"></span></div>
+          <div id="arb-flow-container" style="display:flex;flex-direction:column;gap:10px">
+            <div class="arb-flow-row" style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px">
+              <div style="flex:0 0 80px;text-align:center;font-weight:700;font-size:13px;color:var(--green)">Binance</div>
+              <div style="flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden">
+                <div style="width:100%;height:3px;background:linear-gradient(90deg,var(--green),var(--blue));animation:arb-flow-bar 1.5s infinite"></div>
+              </div>
+              <div style="flex:0 0 80px;text-align:center;font-weight:700;font-size:13px;color:var(--blue)">OKX</div>
             </div>
+          </div>
+        </div>
+
+        <!-- 交易日志 -->
+        <div class="card" style="padding:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-weight:700">📝 <span data-i18n="arb_log_title"></span></div>
+            <div style="font-size:11px;color:var(--muted)" data-i18n="arb_log_auto_refresh"></div>
+          </div>
+          <div id="arb-trade-log" style="max-height:250px;overflow-y:auto;font-size:12px;font-family:monospace">
+            <div style="padding:4px 0;color:var(--muted)" data-i18n="arb_history_empty"></div>
+          </div>
+        </div>
+
+        <style>
+          @keyframes arb-flow-bar {
+            0% { transform: scaleX(0); opacity: 0; }
+            50% { transform: scaleX(1); opacity: 1; }
+            100% { transform: scaleX(0); opacity: 0; transform-origin: right; }
+          }
+        </style>
+</div>
             <div style="font-size:13px;color:var(--muted);margin-top:4px" data-i18n="arb_subtitle">多交易所实时价格聚合，AI智能监测套利机会</div>
           </div>
           <div id="arb-status-tag"></div>
@@ -2002,40 +2035,7 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
         </div>
       </div>
 
-        <!-- 搬砖流向可视化 -->
-        <div class="card" style="padding:14px;margin-bottom:12px">
-          <div style="font-weight:700;margin-bottom:10px">📊 <span data-i18n="arb_flow"></span></div>
-          <div id="arb-flow-container" style="display:flex;flex-direction:column;gap:10px">
-            <div class="arb-flow-row" style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px">
-              <div style="flex:0 0 80px;text-align:center;font-weight:700;font-size:13px;color:var(--green)">Binance</div>
-              <div style="flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden">
-                <div style="width:100%;height:3px;background:linear-gradient(90deg,var(--green),var(--blue));animation:arb-flow-bar 1.5s infinite"></div>
-              </div>
-              <div style="flex:0 0 80px;text-align:center;font-weight:700;font-size:13px;color:var(--blue)">OKX</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 交易日志 -->
-        <div class="card" style="padding:14px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <div style="font-weight:700">📝 <span data-i18n="arb_log_title"></span></div>
-            <div style="font-size:11px;color:var(--muted)" data-i18n="arb_log_auto_refresh"></div>
-          </div>
-          <div id="arb-trade-log" style="max-height:250px;overflow-y:auto;font-size:12px;font-family:monospace">
-            <div style="padding:4px 0;color:var(--muted)" data-i18n="arb_history_empty"></div>
-          </div>
-        </div>
-
-        <style>
-          @keyframes arb-flow-bar {
-            0% { transform: scaleX(0); opacity: 0; }
-            50% { transform: scaleX(1); opacity: 1; }
-            100% { transform: scaleX(0); opacity: 0; transform-origin: right; }
-          }
-        </style>
-
-      <!-- ===== 复制交易 / 排行榜 ===== -->
+<!-- ===== 复制交易 / 排行榜 ===== -->
       <div class="page" id="page-copy">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
           <div>
@@ -9440,7 +9440,12 @@ async function _callAI(apiKey, provider, messages, systemPrompt){
     url = 'https://api.openai.com/v1/chat/completions';
     headers = { 'Content-Type':'application/json', 'Authorization': `Bearer ${apiKey}` };
     body = JSON.stringify({ model: 'gpt-4o-mini', messages: allMsgs, max_tokens: 400, temperature: 0.6 });
-  } else {
+  
+  } else if(provider === 'deepseek'){
+    url = 'https://api.deepseek.com/v1/chat/completions';
+    headers = { 'Content-Type':'application/json', 'Authorization': `Bearer ${apiKey}` };
+    body = JSON.stringify({ model: 'deepseek-chat', messages: allMsgs, max_tokens: 400, temperature: 0.6 });
+} else {
     // 默认 Groq（也兼容 OpenAI 格式）
     url = 'https://api.groq.com/openai/v1/chat/completions';
     headers = { 'Content-Type':'application/json', 'Authorization': `Bearer ${apiKey}` };
@@ -9510,6 +9515,10 @@ async function openAIKeyModal(){
         <button class="btn ${prov==='openai'?'btn-primary':'btn-outline'}" style="flex:1;font-size:13px" onclick="selectAIProvider('openai')">
           🧠 OpenAI GPT
         </button>
+        <button class="btn ${prov==='deepseek'?'btn-primary':'btn-outline'}" style="flex:1;font-size:13px" onclick="selectAIProvider('deepseek')">
+          🎯 DeepSeek V3
+        </button>
+      </div>
       </div>
 
       <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text)">自带 API Key（存储在本地，不上传服务器）</div>
@@ -9555,6 +9564,7 @@ async function openAIKeyModal(){
 
 function selectAIProvider(prov){
   localStorage.setItem('user_own_provider', prov);
+  if(prov==='deepseek') localStorage.setItem('user_own_provider','deepseek');
   openAIKeyModal(); // 刷新弹窗
 }
 
