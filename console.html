@@ -1190,7 +1190,28 @@
                 <label class="form-label">服务器地址</label>
                 <input type="text" class="form-input" value="aggr.v2.1.metaapi.cloud" readonly>
               </div>
-              <button class="btn btn-primary" style="margin-top:16px;" onclick="showNotification('MetaApi 配置已保存', 'success')">保存 MetaApi 配置</button>
+              <button class="btn btn-primary" style="margin-top:16px;" onclick="saveMetaApiConfig()">保存 MetaApi 配置</button>
+            </div>
+            <div class="card" style="border:1px solid var(--success);">
+              <div class="card-title" style="margin-bottom:20px;">🌐 API2Trade MT4/MT5 配置</div>
+              <div class="form-group">
+                <label class="form-label">API Key <span class="required">*</span></label>
+                <input type="password" class="form-input" id="api2tradeApiKey" placeholder="API2Trade API Key">
+                <div class="form-hint">从 api2trade.com 获取 API Key</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">连接状态</label>
+                <div id="api2tradeStatus" style="display:flex;align-items:center;gap:10px;">
+                  <span class="tag" id="api2tradeStatusTag">未连接</span>
+                  <button class="btn btn-sm" id="api2tradeConnectBtn" onclick="toggleApi2Trade()">连接</button>
+                </div>
+              </div>
+              <div class="form-group" id="api2tradeAccountsSection" style="display:none;">
+                <label class="form-label">已连接的 MT4/MT5 账户</label>
+                <div id="api2tradeAccountsList" style="max-height:200px;overflow-y:auto;"></div>
+              </div>
+              <button class="btn btn-primary" style="margin-top:16px;" onclick="saveApi2TradeConfig()">💾 保存配置</button>
+              <button class="btn btn-outline" style="margin-top:16px;margin-left:8px;" onclick="loadApi2TradeAccounts()">🔄 刷新账户</button>
             </div>
             <div class="card">
               <div class="card-title" style="margin-bottom:20px;">🤖 AI模型配置</div>
@@ -1429,8 +1450,38 @@
     </div>
   </div>
 
+  <!-- API2Trade 添加账户模态框 -->
+  <div class="modal-overlay" id="api2tradeModal">
+    <div class="modal" style="min-width:400px;">
+      <div class="modal-header">
+        <div class="modal-title">添加 MT4/MT5 账户</div>
+        <button class="modal-close" onclick="closeApi2TradeModal()">&times;</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">账户别名</label>
+        <input type="text" class="form-input" id="a2tAccountName" placeholder="如: MetaQuotes Demo">
+      </div>
+      <div class="form-group">
+        <label class="form-label">服务器 <span class="required">*</span></label>
+        <input type="text" class="form-input" id="a2tServer" placeholder="如: MetaQuotes-Demo">
+      </div>
+      <div class="form-group">
+        <label class="form-label">登录名 <span class="required">*</span></label>
+        <input type="text" class="form-input" id="a2tLogin" placeholder="MT4/MT5 账号">
+      </div>
+      <div class="form-group">
+        <label class="form-label">密码 <span class="required">*</span></label>
+        <input type="password" class="form-input" id="a2tPassword" placeholder="MT4/MT5 密码">
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeApi2TradeModal()">取消</button>
+        <button class="btn btn-primary" onclick="addApi2TradeAccount()">添加账户</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const API_BASE = 'http://54.151.143.233:8001';
+    const API_BASE = 'http://35.179.161.45:8001';
     let authToken = localStorage.getItem('quantai_token');
     let currentUser = JSON.parse(localStorage.getItem('quantai_user') || '{}');
 
@@ -1530,6 +1581,7 @@
       // 加载数据
       loadBrokerAccounts();
       loadTradingLogs();
+      checkApi2TradeStatus();
     }
 
     // 退出登录
@@ -1909,6 +1961,148 @@
         }
       } catch (e) {
         showNotification('连接服务器失败', 'error');
+      }
+    }
+
+    // ========== API2Trade MT4/MT5 ==========
+    let api2tradeConnected = false;
+
+    async function saveApi2TradeConfig() {
+      const apiKey = document.getElementById('api2tradeApiKey').value;
+      if (!apiKey) {
+        showNotification('请输入 API2Trade API Key', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/api2trade/connect`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ api_key: apiKey })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          api2tradeConnected = true;
+          localStorage.setItem('api2trade_api_key', apiKey);
+          updateApi2TradeStatus(true);
+          showNotification('API2Trade 连接成功!', 'success');
+          loadApi2TradeAccounts();
+        } else {
+          showNotification(data.error || 'API2Trade 连接失败', 'error');
+        }
+      } catch (e) {
+        showNotification('连接服务器失败', 'error');
+      }
+    }
+
+    async function toggleApi2Trade() {
+      const btn = document.getElementById('api2tradeConnectBtn');
+      if (api2tradeConnected) {
+        // 断开连接
+        api2tradeConnected = false;
+        updateApi2TradeStatus(false);
+        showNotification('API2Trade 已断开连接', 'info');
+      } else {
+        // 连接
+        await saveApi2TradeConfig();
+      }
+    }
+
+    function updateApi2TradeStatus(connected) {
+      const tag = document.getElementById('api2tradeStatusTag');
+      const btn = document.getElementById('api2tradeConnectBtn');
+      if (connected) {
+        tag.textContent = '已连接';
+        tag.className = 'tag tag-success';
+        btn.textContent = '断开';
+        btn.className = 'btn btn-sm btn-danger';
+        document.getElementById('api2tradeAccountsSection').style.display = 'block';
+      } else {
+        tag.textContent = '未连接';
+        tag.className = 'tag tag-warning';
+        btn.textContent = '连接';
+        btn.className = 'btn btn-sm';
+        document.getElementById('api2tradeAccountsSection').style.display = 'none';
+      }
+    }
+
+    async function loadApi2TradeAccounts() {
+      try {
+        const res = await fetch(`${API_BASE}/api/api2trade/status`);
+        const data = await res.json();
+
+        const listEl = document.getElementById('api2tradeAccountsList');
+        if (data.accounts && Object.keys(data.accounts).length > 0) {
+          let html = '<table class="data-table" style="font-size:12px;"><thead><tr><th>账户</th><th>服务器</th><th>操作</th></tr></thead><tbody>';
+          for (const [id, info] of Object.entries(data.accounts)) {
+            html += `<tr>
+              <td>${info.name || info.login}</td>
+              <td>${info.server}</td>
+              <td><button class="btn btn-sm btn-danger" onclick="removeApi2TradeAccount('${id}')">删除</button></td>
+            </tr>`;
+          }
+          html += '</tbody></table>';
+          html += '<button class="btn btn-sm" style="margin-top:8px;" onclick="showAddApi2TradeModal()">+ 添加账户</button>';
+          listEl.innerHTML = html;
+        } else {
+          listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">暂无已连接的账户<br><button class="btn btn-sm" style="margin-top:8px;" onclick="showAddApi2TradeModal()">+ 添加账户</button></div>';
+        }
+      } catch (e) {
+        console.error('加载账户失败', e);
+      }
+    }
+
+    function showAddApi2TradeModal() {
+      document.getElementById('api2tradeModal').classList.add('active');
+    }
+
+    function closeApi2TradeModal() {
+      document.getElementById('api2tradeModal').classList.remove('active');
+    }
+
+    async function addApi2TradeAccount() {
+      const name = document.getElementById('a2tAccountName').value;
+      const server = document.getElementById('a2tServer').value;
+      const login = document.getElementById('a2tLogin').value;
+      const password = document.getElementById('a2tPassword').value;
+
+      if (!server || !login || !password) {
+        showNotification('请填写必填项', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/api2trade/accounts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ server, login, password, name })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          showNotification('账户添加成功', 'success');
+          closeApi2TradeModal();
+          loadApi2TradeAccounts();
+        } else {
+          showNotification(data.error || '添加失败', 'error');
+        }
+      } catch (e) {
+        showNotification('添加失败', 'error');
+      }
+    }
+
+    async function removeApi2TradeAccount(accountId) {
+      if (!confirm('确定要删除此账户吗?')) return;
+      showNotification('删除账户功能开发中', 'info');
+    }
+
+    // 页面加载时检查API2Trade状态
+    async function checkApi2TradeStatus() {
+      const savedKey = localStorage.getItem('api2trade_api_key');
+      if (savedKey) {
+        document.getElementById('api2tradeApiKey').value = savedKey;
+        await loadApi2TradeAccounts();
       }
     }
 

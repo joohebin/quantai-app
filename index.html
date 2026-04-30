@@ -428,7 +428,7 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
 .tdp-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:499}
 .tdp-overlay.open{display:block}
 
-/* ===== 交易广场 ===== */
+/* ===== QuantTalk ===== */
 .sq-composer{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:20px}
 .sq-composer textarea{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;resize:none;min-height:80px}
 .sq-composer-row{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
@@ -687,9 +687,13 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
         <span class="badge" style="background:#f59e0b;color:#000">Elite</span>
       </div>
       <div class="nav-item" onclick="showPage('square',this)" data-page="square">
-        <span class="ni" data-nav-icon="💬">💬</span><span data-i18n="nav_square">交易广场</span>
+        <span class="ni" data-nav-icon="💬">💬</span><span data-i18n="nav_square">QuantTalk</span>
         <span class="badge" style="background:var(--purple);color:#fff">New</span>
       </div>
+          <div class="nav-item" onclick="showPage('arbitrage',this)" data-page="arbitrage">
+            <span class="ni">🔗</span><span data-i18n="nav_arbitrage"></span>
+            <span class="badge">New</span>
+          </div>
       <div class="nav-item" onclick="showPage('stratmarket',this)" data-page="stratmarket">
         <span class="ni" data-nav-icon="🛒">🛒</span><span data-i18n="nav_stratmarket">策略市场</span>
       </div>
@@ -1138,9 +1142,9 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
         </div>
       </div>
 
-      <!-- ===== 交易广场 ===== -->
+      <!-- ===== QuantTalk ===== -->
       <div class="page" id="page-square">
-        <div style="font-size:20px;font-weight:800;margin-bottom:4px">💬 <span data-i18n="sq_title">交易广场</span></div>
+        <div style="font-size:20px;font-weight:800;margin-bottom:4px">💬 <span data-i18n="sq_title">QuantTalk</span></div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:16px" data-i18n="sq_subtitle">分享观点，发现市场情绪，与全球交易者同频</div>
 
         <!-- 发布框 -->
@@ -1185,7 +1189,89 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
       </div>
 
       <!-- ===== 策略市场 ===== -->
-      <div class="page" id="page-stratmarket">
+            <!-- ===== 跨交易所聚合引擎 ===== -->
+      <div class="page" id="page-arbitrage" style="display:none">
+        <div style="font-size:20px;font-weight:800;margin-bottom:4px">⚡ <span data-i18n="arb_title"></span></div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px" data-i18n="arb_subtitle"></div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
+          <div class="card" style="padding:16px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px"><span data-i18n="arb_monitored"></span> <span id="arb-pairs-count">12</span></div>
+            <div style="font-size:24px;font-weight:800;color:var(--green)">0</div>
+          </div>
+          <div class="card" style="padding:16px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px"><span data-i18n="arb_active"></span> <span id="arb-active-opportunities">3</span></div>
+            <div style="font-size:24px;font-weight:800;color:#f59e0b">0</div>
+          </div>
+          <div class="card" style="padding:16px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px"><span data-i18n="arb_profit_24h"></span> <span id="arb-profit-24h">+$124.50</span></div>
+            <div style="font-size:24px;font-weight:800;color:var(--green)">$0.00</div>
+          </div>
+          <div class="card" style="padding:16px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px"><span data-i18n="arb_executed"></span> <span id="arb-executed-count">47</span></div>
+            <div style="font-size:24px;font-weight:800">0</div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:16px;margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="font-weight:700" data-i18n="arb_exchanges"></div>
+            <button class="btn" style="padding:6px 14px;font-size:12px" onclick="refreshArbitrageStatus()" data-i18n="arb_refresh"></button>
+          </div>
+          <div id="arb-exchange-status" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px">
+            <div class="exchange-item on" data-ex="binance">Binance <span data-i18n="arb_online"></span></div>
+            <div class="exchange-item on" data-ex="okx">OKX <span data-i18n="arb_online"></span></div>
+            <div class="exchange-item warn" data-ex="bybit">Bybit <span data-i18n="arb_lag"></span></div>
+            <div class="exchange-item off" data-ex="kucoin">KuCoin <span data-i18n="arb_offline"></span></div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:16px;margin-bottom:16px">
+          <div style="font-weight:700;margin-bottom:12px" data-i18n="arb_opportunities"></div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr style="color:var(--muted);border-bottom:1px solid var(--border)">
+                  <th style="padding:8px 6px;text-align:left" data-i18n="arb_th_pair">BTC/USDT</th>
+                  <th style="padding:8px 6px;text-align:left" data-i18n="arb_th_buy"></th>
+                  <th style="padding:8px 6px;text-align:left" data-i18n="arb_th_sell"></th>
+                  <th style="padding:8px 6px;text-align:right" data-i18n="arb_th_spread"></th>
+                  <th style="padding:8px 6px;text-align:right" data-i18n="arb_th_profit"></th>
+                  <th style="padding:8px 6px;text-align:center" data-i18n="arb_th_action"></th>
+                </tr>
+              </thead>
+              <tbody id="arb-opportunities-body">
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:8px 6px;font-weight:600">BTC/USDT</td>
+                  <td style="padding:8px 6px;color:var(--green)">Binance</td>
+                  <td style="padding:8px 6px;color:var(--blue)">OKX</td>
+                  <td style="padding:8px 6px;text-align:right;color:var(--green)">+0.32%</td>
+                  <td style="padding:8px 6px;text-align:right;color:var(--green)">$18.40</td>
+                  <td style="padding:8px 6px;text-align:center">
+                    <button class="btn" style="padding:4px 10px;font-size:11px" onclick="executeArbitrage('BTC/USDT')" data-i18n="arb_exec_btn"></button>
+                  </td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:8px 6px;font-weight:600">ETH/USDT</td>
+                  <td style="padding:8px 6px;color:var(--green)">OKX</td>
+                  <td style="padding:8px 6px;color:var(--blue)">Binance</td>
+                  <td style="padding:8px 6px;text-align:right;color:var(--green)">+0.18%</td>
+                  <td style="padding:8px 6px;text-align:right;color:var(--green)">$6.72</td>
+                  <td style="padding:8px 6px;text-align:center">
+                    <button class="btn" style="padding:4px 10px;font-size:11px" onclick="executeArbitrage('ETH/USDT')" data-i18n="arb_exec_btn"></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="padding:16px">
+          <div style="font-weight:700;margin-bottom:12px" data-i18n="arb_history"></div>
+          <div id="arb-history" style="font-size:13px;color:var(--muted)" data-i18n="arb_history_empty"></div>
+        </div>
+      </div>
+<div class="page" id="page-stratmarket">
         <div style="font-size:20px;font-weight:800;margin-bottom:4px">🛒 <span data-i18n="sm_title">策略市场</span></div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:16px" data-i18n="sm_subtitle">发现、分享、一键复用顶级量化策略</div>
 
@@ -3524,7 +3610,7 @@ async function sendChat(){
   const _GROQ_KEY = 'YOUR_GROQ_API_KEY';
   const _GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
   const _SYSTEM   = `你是 QuantAI 量化交易平台的专业 AI 顾问助手。
-平台功能：实时行情/K线/AI顾问/量化策略/回测/复制交易/自动建仓/交易广场/策略市场/信号广播/FRED宏观数据。
+平台功能：实时行情/K线/AI顾问/量化策略/回测/复制交易/自动建仓/QuantTalk/策略市场/信号广播/FRED宏观数据。
 套餐：Basic $29/月（基础功能）、Pro $79/月（无限策略+AI交易）、Elite $199/月（自动建仓+VIP）。
 支持品种：加密货币(BTC/ETH/SOL...)、黄金、原油、外汇、纳指/标普/恒生指数、国债。
 回复规则：1.专业简洁，不超过300字 2.数据支撑观点 3.用**加粗**重点 4.语言跟随用户输入`;
@@ -3583,7 +3669,7 @@ function scrollChat(){
 }
 
 // ===== 页面切换 =====
-const pageTitles={dashboard:'仪表盘',market:'行情',ai:'AI 顾问',positions:'我的持仓',strategies:'策略管理',backtest:'策略回测',account:'我的账户',copy:'排行榜·跟单',autoopen:'自动建仓',square:'交易广场',stratmarket:'策略市场',signals:'信号广播'};
+const pageTitles={dashboard:'仪表盘',market:'行情',ai:'AI 顾问',positions:'我的持仓',strategies:'策略管理',backtest:'策略回测',account:'我的账户',copy:'排行榜·跟单',autoopen:'自动建仓',square:'QuantTalk',stratmarket:'策略市场',signals:'信号广播'};
 
 function showPage(name, navEl){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -4603,7 +4689,7 @@ const I18N = {
     page_dashboard: '仪表盘', page_market: '行情', page_ai: 'AI 顾问',
     page_positions: '我的持仓', page_strategies: '策略管理', page_backtest: '策略回测', page_account: '我的账户',
     page_copy: '跟单交易', page_autoopen: '自动建仓',
-    page_square: '交易广场', page_stratmarket: '策略市场', page_signals: '信号广播',
+    page_square: 'QuantTalk', page_stratmarket: '策略市场', page_signals: '信号广播',
     // 仪表盘卡片标题
     total_asset: '总资产', daily_pnl: '今日盈亏', win_rate: '胜率', active_strategies: '活跃策略', pos_count: '持仓数量',
     // 仪表盘卡片副文字
@@ -4721,8 +4807,8 @@ const I18N = {
 
     // 排行榜升级
     lb_tab_roi:'月收益排行', lb_tab_wr:'胜率排行', lb_tab_stable:'最稳排行', lb_tab_new:'新秀榜',
-    // 交易广场
-    nav_square:'交易广场', sq_title:'交易广场', sq_subtitle:'分享观点，发现市场情绪，与全球交易者同频',
+    // QuantTalk
+    nav_square:'QuantTalk', sq_title:'QuantTalk', sq_subtitle:'分享观点，发现市场情绪，与全球交易者同频',
     sq_post_ph:'分享你的市场观点、交易逻辑、仓位分析...', sq_post_btn:'发布观点',
     sq_input_ph:'分享你的交易观点...',
     sq_bull:'📈 看多', sq_bear:'📉 看空', sq_neutral:'➡️ 中性',
@@ -4746,9 +4832,15 @@ const I18N = {
     sm_stat_monthly:'月均收益', sm_stat_wr:'胜率', sm_stat_dd:'回撤', sm_stat_users:'使用者', sm_stat_trades:'总交易次数',
     sm_backtest_one:'一键回测', sm_copied:'已复制', sm_free_copy:'免费复制',
     sm_name_min:'请填写策略名称（至少4字）', sm_code_min:'请填写策略代码（至少20字符）',
-    sm_submitted:'策略已提交审核，通过后上架！', sm_bt_running:'正在执行回测', sm_bt_done:'回测完成',
-    sm_pay_redirect:'即将跳转支付', sm_copy_success:'策略已复制到我的策略库',
-    // 信号广播
+    // 跨交易所聚合引擎
+    nav_arbitrage:'跨交易所聚合引擎', arb_title:'跨交易所聚合引擎', arb_subtitle:'实时监控加密货币交易所价差，AI 自动执行搬砖套利',
+    arb_monitored:'监控交易对', arb_active:'活跃套利机会', arb_profit_24h:'24h 套利收益', arb_executed:'已执行套利',
+    arb_exchanges:'交易所连接状态', arb_refresh:'刷新',
+    arb_online:'在线', arb_lag:'延迟', arb_offline:'离线',
+    arb_opportunities:'实时套利机会', arb_th_pair:'交易对', arb_th_buy:'买入所', arb_th_sell:'卖出所',
+    arb_th_spread:'价差', arb_th_profit:'预期盈利', arb_th_action:'操作', arb_exec_btn:'执行',
+    arb_history:'套利执行历史', arb_history_empty:'暂无历史记录',
+    sm_submitted:'策略已提交审核，通过后上架！', sm_bt_running:'正在执行回测', sm_bt_done:'回测完成',// 信号广播
     nav_signals:'信号广播', sig_title:'信号广播', sig_subtitle:'实时交易信号，一键订阅推送，接入自动建仓',
     sig_publish_title:'发布交易信号', sig_tab_live:'🔴 实时信号', sig_tab_bc:'信号源', sig_tab_hist:'历史记录',
     sig_tab_sources:'信号源', sig_tab_history:'历史记录',
@@ -4946,6 +5038,14 @@ const I18N = {
     sq_me:'Me', sq_just_now:'Just now', sq_post_success:'View posted!',
     sq_liked:'Liked!', sq_unlike:'Unliked',
     sq_share:'Share',
+    // Arbitrage Engine
+    nav_arbitrage:'Cross-Exchange Arbitrage', arb_title:'Cross-Exchange Arbitrage', arb_subtitle:'Real-time crypto exchange spread monitoring with AI arbitrage execution',
+    arb_monitored:'Monitored Pairs', arb_active:'Active Opps', arb_profit_24h:'24h Profit', arb_executed:'Executed',
+    arb_exchanges:'Exchange Status', arb_refresh:'Refresh',
+    arb_online:'Online', arb_lag:'Slow', arb_offline:'Offline',
+    arb_opportunities:'Opportunities', arb_th_pair:'Pair', arb_th_buy:'Buy', arb_th_sell:'Sell',
+    arb_th_spread:'Spread', arb_th_profit:'Profit', arb_th_action:'Action', arb_exec_btn:'Execute',
+    arb_history:'History', arb_history_empty:'No history',
     // Strategy Market
     nav_stratmarket:'Strategy Market', sm_title:'Strategy Market', sm_subtitle:'Discover, share, and copy top quant strategies',
     sm_upload_title:'Publish My Strategy', sm_upload_btn:'Upload Strategy', sm_collapse:'Collapse', sm_upload_name:'Strategy Name',
@@ -8077,7 +8177,7 @@ function applyLang(lang){
   if(typeof renderCopyPage === 'function') renderCopyPage();
   if(typeof updateCopySourceSelect === 'function') updateCopySourceSelect();
   if(typeof initAutoOpen === 'function') initAutoOpen();
-  // 重渲染交易广场（sentMap依赖t()）
+  // 重渲染QuantTalk（sentMap依赖t()）
   if(typeof renderSquare === 'function'){
     const sqFilter = (typeof _sqFilter !== 'undefined') ? _sqFilter : 'all';
     renderSquare(sqFilter);
@@ -8404,7 +8504,7 @@ function initLbPage(){
 }
 
 // ===================================================
-// ===== 交易广场 =====
+// ===== QuantTalk =====
 // ===================================================
 
 // Mock 帖子数据
@@ -9876,7 +9976,7 @@ async function clearAIKey(){
 // 覆盖 csDoSend 的 AI 调用部分，走 Gateway 路由
 async function csFetchGroqGateway(userMsg){
   const SYSTEM_PROMPT = `你是 QuantAI 量化交易平台的专业客服助手。
-平台功能：行情/K线/AI顾问/量化策略/回测/复制交易/自动建仓/交易广场/策略市场/信号广播/FRED宏观数据。
+平台功能：行情/K线/AI顾问/量化策略/回测/复制交易/自动建仓/QuantTalk/策略市场/信号广播/FRED宏观数据。
 套餐：Basic $29/月、Pro $79/月、Elite $199/月。自动建仓为 Elite 专属。
 支持品种：加密货币(BTC/ETH/SOL等)、外汇、黄金、原油、纳指/标普/恒生等指数、国债。
 回复规则：1.简洁友好不超过200字 2.涉及支付/安全说"需要人工客服，请说【转人工】" 3.用**加粗**重点 4.语言跟随用户`;
@@ -10234,7 +10334,7 @@ async function csFetchGroq(userMsg){
     return await csLocalReply(userMsg); // 会被Gateway覆盖，这里只是兜底
   }
   const SYSTEM_PROMPT = `你是 QuantAI 量化交易平台的专业客服助手。
-平台功能：行情/K线/AI顾问/量化策略/回测/复制交易/自动建仓/交易广场/策略市场/信号广播/FRED宏观数据。
+平台功能：行情/K线/AI顾问/量化策略/回测/复制交易/自动建仓/QuantTalk/策略市场/信号广播/FRED宏观数据。
 套餐：Basic $29/月、Pro $79/月、Elite $199/月。自动建仓为 Elite 专属。
 支持品种：加密货币(BTC/ETH/SOL等)、外汇、黄金、原油、纳指/标普/恒生等指数、国债。
 支持语言：中文/英文/日语/韩语/俄语/阿拉伯语。
@@ -10644,7 +10744,7 @@ async function clearAIKey(){
 // 覆盖 csDoSend 的 AI 调用部分，走 Gateway 路由
 async function csFetchGroqGateway(userMsg){
   const SYSTEM_PROMPT = `你是 QuantAI 量化交易平台的专业客服助手。
-平台功能：行情/K线/AI顾问/量化策略/回测/复制交易/自动建仓/交易广场/策略市场/信号广播/FRED宏观数据。
+平台功能：行情/K线/AI顾问/量化策略/回测/复制交易/自动建仓/QuantTalk/策略市场/信号广播/FRED宏观数据。
 套餐：Basic $29/月、Pro $79/月、Elite $199/月。自动建仓为 Elite 专属。
 支持品种：加密货币(BTC/ETH/SOL等)、外汇、黄金、原油、纳指/标普/恒生等指数、国债。
 回复规则：1.简洁友好不超过200字 2.涉及支付/安全说"需要人工客服，请说【转人工】" 3.用**加粗**重点 4.语言跟随用户`;

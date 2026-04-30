@@ -28,6 +28,14 @@ from routers.arbitrage import router as arbitrage_router
 from routers.trading_stats import router as trading_stats_router
 from routers.ai_signals import router as ai_signals_router
 from routers.ai_finetune import router as ai_finetune_router
+from routers.meta_positions import router as meta_positions_router
+from routers.meta_market import router as meta_market_router
+from routers.cs_chat import router as cs_chat_router
+from routers.advisor import router as advisor_router
+from routers.auto_trade import router as auto_trade_router
+from routers.knowledge_base import router as kb_router
+from routers.trademux import router as trademux_router
+from api2trade import router as api2trade_router
 
 
 @asynccontextmanager
@@ -71,6 +79,14 @@ app.include_router(arbitrage_router)
 app.include_router(trading_stats_router)
 app.include_router(ai_signals_router)
 app.include_router(ai_finetune_router)
+app.include_router(meta_positions_router)
+app.include_router(meta_market_router)
+app.include_router(cs_chat_router)
+app.include_router(advisor_router)      # AI 顾问
+app.include_router(auto_trade_router)   # 自动交易
+app.include_router(kb_router)          # 知识库
+app.include_router(trademux_router)     # TradeMux MT5
+app.include_router(api2trade_router)    # API2Trade MT4/MT5 (无EA直连)
 
 
 @app.get("/")
