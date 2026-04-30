@@ -1221,6 +1221,17 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
   .strategy-grid{grid-template-columns:1fr 1fr}
 }
 /* 大屏桌面 */
+
+/* QuantTalk Widgets */
+.ch-item { padding:8px 10px; border-radius:8px; cursor:pointer; margin-bottom:2px; font-size:13px; display:flex; align-items:center; gap:6px; }
+.ch-item:hover { background:rgba(255,255,255,.08); }
+.ch-item.active { background:rgba(0,200,150,.15); color:var(--green); }
+#channel-list::-webkit-scrollbar { width:4px; }
+#channel-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+#sq-msgs::-webkit-scrollbar { width:4px; }
+#sq-msgs::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+.sq-post { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:10px; }
+
 @media(min-width:1400px){
   .dashboard-grid{grid-template-columns:repeat(4,1fr)}
   .strategy-grid{grid-template-columns:repeat(3,1fr)}
@@ -1805,52 +1816,44 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
       </div>
 
       <!-- ===== QuantTalk ===== -->
-      <div class="page" id="page-square">
-        <div style="font-size:20px;font-weight:800;margin-bottom:4px">💬 <span data-i18n="sq_title">QuantTalk</span></div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:16px" data-i18n="sq_subtitle">分享观点，发现市场情绪，与全球交易者同频</div>
-
-        <!-- 发布框 -->
-        <div class="sq-composer">
-          <div style="display:flex;gap:10px;align-items:flex-start">
-            <div class="sq-av" style="background:linear-gradient(135deg,var(--green),var(--blue));flex-shrink:0">👤</div>
-            <textarea id="sq-input" placeholder="" data-i18n-ph="sq_input_ph" style="flex:1"></textarea>
+      <!-- ===== QuantTalk ===== -->
+      <div class="page" id="page-square" style="display:flex;gap:0;height:calc(100vh - 140px);overflow:hidden">
+        <!-- Left: Channel List -->
+        <div style="width:200px;min-width:200px;background:var(--card);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
+          <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+            <span style="font-weight:700;font-size:14px">💬 频道</span>
+            <button onclick="createChannel()" style="width:28px;height:28px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
           </div>
-          <div class="sq-composer-row">
-            <div class="sq-tag-btns">
-              <span class="sq-tag bull active" onclick="selectSqSentiment('bull',this)" data-i18n="sq_bull">📈 看多</span>
-              <span class="sq-tag bear" onclick="selectSqSentiment('bear',this)" data-i18n="sq_bear">📉 看空</span>
-              <span class="sq-tag neutral" onclick="selectSqSentiment('neutral',this)" data-i18n="sq_neutral">➡️ 中性</span>
+          <div id="channel-list" style="flex:1;overflow-y:auto;padding:6px"></div>
+        </div>
+        <!-- Middle: Chat Area -->
+        <div style="flex:1;display:flex;flex-direction:column;margin:0 12px">
+          <div id="channel-header" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+            <div><span id="channel-name-display" style="font-weight:700;font-size:15px"># 全局</span><span id="channel-desc-display" style="font-size:11px;color:var(--muted);margin-left:8px">闲聊</span></div>
+            <div style="display:flex;gap:6px">
+              <button onclick="toggleWidget('tv')" id="tv-widget-btn" style="padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer">📈 图表</button>
+              <button onclick="toggleWidget('yt')" id="yt-widget-btn" style="padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer">🎥 直播</button>
             </div>
-            <select id="sq-ticker-sel" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text);font-size:12px">
-              <option value="BTC/USDT">BTC/USDT</option>
-              <option value="ETH/USDT">ETH/USDT</option>
-              <option value="XAU/USD">XAU/USD</option>
-              <option value="EUR/USD">EUR/USD</option>
-              <option value="USD/JPY">USD/JPY</option>
-              <option value="WTI/USD">WTI/USD</option>
-              <option value="BRENT">BRENT</option>
-              <option value="NAS100">NAS100</option>
-              <option value="SPX500">SPX500</option>
-              <option value="SX5E">SX5E</option>
-              <option value="US10Y">US10Y</option>
-              <option value="US02Y">US02Y</option>
-            </select>
-            <button class="btn btn-primary" onclick="postSquare()" style="font-size:13px" data-i18n="sq_post_btn">发布</button>
+          </div>
+          <div id="widget-tv" style="display:none;margin-bottom:8px;border-radius:12px;overflow:hidden;border:1px solid var(--border);height:380px"></div>
+          <div id="widget-yt" style="display:none;margin-bottom:8px;border-radius:12px;overflow:hidden;border:1px solid var(--border);height:380px"><div id="yt-player" style="width:100%;height:100%"></div></div>
+          <div id="sq-msgs" style="flex:1;overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px"></div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px">
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;display:flex;gap:6px">
+                <input id="sq-input" type="text" placeholder="输入消息..." style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-size:13px" onkeydown="if(event.key==='Enter') sendMsg()">
+                <button onclick="shareChart()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer" title="分享图表">📷</button>
+              </div>
+              <button onclick="sendMsg()" style="padding:10px 20px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer">发送</button>
+            </div>
           </div>
         </div>
-
-        <!-- 筛选 -->
-        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-          <button class="tlog-filter-btn active" onclick="filterSquare('all',this)" data-i18n="sq_filter_all">全部</button>
-          <button class="tlog-filter-btn" onclick="filterSquare('bull',this)" data-i18n="sq_filter_bull">看多</button>
-          <button class="tlog-filter-btn" onclick="filterSquare('bear',this)" data-i18n="sq_filter_bear">看空</button>
-          <button class="tlog-filter-btn" onclick="filterSquare('hot',this)" data-i18n="sq_filter_hot">🔥 热门</button>
+        <!-- Right: Post Feed -->
+        <div style="width:280px;min-width:280px;background:var(--card);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
+          <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:600;font-size:13px">观点广场</div>
+          <div id="sq-posts" style="flex:1;overflow-y:auto;padding:8px"></div>
         </div>
-
-        <div id="sq-feed" style="display:flex;flex-direction:column;gap:0"></div>
-      </div>
-
-      <!-- ===== 策略市场 ===== -->
+      </div><!-- ===== 策略市场 ===== -->
             <div class="page" id="page-stratmarket">
         <div style="font-size:20px;font-weight:800;margin-bottom:4px">🛒 <span data-i18n="sm_title">策略市场</span></div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:16px" data-i18n="sm_subtitle">发现、分享、一键复用顶级量化策略</div>
@@ -2001,6 +2004,7 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
           <div class="acc-tab" onclick="switchAccountTab('market',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_market">📈 行情</div>
           <div class="acc-tab" onclick="switchAccountTab('strategies',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_strategies">⚡ 策略</div>
           <div class="acc-tab" onclick="switchAccountTab('exchanges',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_exchanges">🏦 交易所</div>
+          <div class="acc-tab" onclick="switchAccountTab('wallet',this)" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" data-i18n="acc_tab_wallet">💳 钱包</div>
         </div>
 
         <!-- ===== 标签页内容区 ===== -->
@@ -2160,7 +2164,47 @@ html,body{height:100%;background:var(--dark);color:var(--text);font-family:-appl
             </div>
           </div>
           <!-- 交易所配置标签页内容 -->
-          <div id="acc-tab-exchanges" style="display:none">
+          
+            <div id="acc-tab-wallet" style="display:none">
+            <div class="card" style="padding:16px">
+              <div style="font-size:14px;font-weight:600;margin-bottom:12px">💳 绑定加密货币钱包</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:16px">绑定钱包用于购买套餐、策略等</div>
+              <div style="margin-bottom:16px">
+                <div style="font-size:12px;color:var(--muted);margin-bottom:8px">选择钱包</div>
+                <select id="wallet-select" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-size:14px">
+                  <option value="">-- 请选择钱包 --</option>
+                  <option value="metamask">🦊 MetaMask</option>
+                  <option value="walletconnect">🔗 WalletConnect</option>
+                  <option value="trustwallet">🛡️ Trust Wallet</option>
+                  <option value="okx">🔶 OKX Wallet</option>
+                  <option value="exchange">🏛️ 交易所钱包</option>
+                  <option value="cold">❄️ 冷钱包</option>
+                </select>
+              </div>
+              <div id="wallet-connect-area">
+                <button id="wallet-connect-btn" onclick="connectWallet()" style="width:100%;padding:12px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer">🔗 连接钱包</button>
+              </div>
+              <div id="wallet-connected-area" style="display:none;margin-top:12px;background:rgba(0,200,150,.1);border:1px solid rgba(0,200,150,.3);border-radius:8px;padding:12px">
+                <div style="font-size:12px;color:var(--muted);margin-bottom:6px">✅ 已连接地址</div>
+                <div id="wallet-display-address" style="font-size:13px;font-weight:600;color:var(--green);word-break:break-all;font-family:monospace"></div>
+                <div style="margin-top:8px;display:flex;gap:8px">
+                  <span style="font-size:12px;padding:4px 8px;background:rgba(0,200,150,.2);border-radius:4px;color:var(--green)" id="wallet-type-badge">MetaMask</span>
+                </div>
+                <button onclick="disconnectWallet()" style="margin-top:10px;padding:8px 16px;border:1px solid #ff4b6e;border-radius:6px;background:transparent;color:#ff4b6e;font-size:12px;cursor:pointer">断开连接</button>
+              </div>
+              <div id="wallet-manual-area" style="display:none;margin-top:12px">
+                <div style="font-size:12px;color:var(--muted);margin-bottom:6px">输入钱包地址</div>
+                <input id="wallet-manual-address" type="text" placeholder="0x... 或 bc1..." style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-size:13px">
+                <button onclick="saveManualWallet()" style="margin-top:8px;width:100%;padding:10px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer">💾 保存地址</button>
+              </div>
+              <div id="wallet-history" style="margin-top:16px;display:none">
+                <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--muted)">📋 绑定历史</div>
+                <div id="wallet-history-list"></div>
+              </div>
+            </div>
+            </div>
+            
+            <div id="acc-tab-exchanges" style="display:none">
             <div class="card" style="padding:16px">
               <div style="font-size:14px;font-weight:600;margin-bottom:12px">🏦 连接交易所</div>
               <div style="font-size:12px;color:var(--muted);margin-bottom:16px">输入您的交易所 API Key 以连接交易账户</div>
@@ -4320,8 +4364,7 @@ function showPage(name, navEl){
   if(name==='account') renderTlog('all');
   if(name==='copy') initLbPage();
   if(name==='autoopen') initAutoOpen();
-  if(name==='square') renderSquare('all');
-  if(name==='stratmarket') renderStratMarket('all');
+  if(name==='square'){ initQuantTalk(); renderSquare('all'); }market') renderStratMarket('all');
   if(name==='signals') renderSignalsPage();
   if(name==='arbitrage') initArbitragePage();
   if(name==='ai') fetchFredMacro(); // 每次进入AI顾问页时刷新宏观数据
@@ -4344,7 +4387,7 @@ function switchAccountTab(tabName, el){
   el.style.borderBottom = '2px solid var(--green)';
   
   // 隐藏所有标签内容
-  const tabIds = ['positions', 'trades', 'signals', 'manual', 'market', 'strategies', 'exchanges'];
+  const tabIds = ['positions', 'trades', 'signals', 'manual', 'market', 'strategies', 'exchanges', 'wallet'];
   tabIds.forEach(id => {
     const contentEl = document.getElementById('acc-tab-' + id);
     if(contentEl) contentEl.style.display = 'none';
@@ -9119,123 +9162,300 @@ function initLbPage(){
 }
 
 // ===================================================
-// ===== QuantTalk =====
+// ===================================================
+// ===== QuantTalk - Channel System + Wallet =====
 // ===================================================
 
-// Mock 帖子数据
-let _sqPosts = [
-  { id:'sq1', uid:'u1', av:'🐂', name:'Alpha Bull', sentiment:'bull', pair:'BTC/USDT', content:'BTC突破前高，$72K确认！量能强劲，建议持仓等待$80K。MACD金叉+RSI未超买，底部抬升结构完整。', likes:234, comments:47, time:'10分钟前', tags:['BTC','突破','做多'] },
-  { id:'sq2', uid:'u2', av:'🦊', name:'FoxQuant', sentiment:'bear', pair:'ETH/USDT', content:'ETH二次回踩$3200支撑失败，看空$2800。资金费率为负，多单在撤，小心拉高出货陷阱。', likes:178, comments:32, time:'28分钟前', tags:['ETH','做空','警惕'] },
-  { id:'sq3', uid:'u3', av:'🎯', name:'Precision Pro', sentiment:'neutral', pair:'SOL/USDT', content:'SOL目前处于三角形整理，等待方向选择。$145支撑/$165压力，突破方向做方向，不提前押注。', likes:89, comments:15, time:'1小时前', tags:['SOL','整理','等待信号'] },
-  { id:'sq4', uid:'u4', av:'🔥', name:'Degen King', sentiment:'bull', pair:'BNB/USDT', content:'BNB悄悄走强，关注$620突破。合约持仓量上升，机构在默默建仓。你们盯BTC，我盯BNB。', likes:156, comments:28, time:'2小时前', tags:['BNB','山寨行情','关注'] },
-  { id:'sq5', uid:'u5', av:'📊', name:'DataMind', sentiment:'neutral', pair:'全市场', content:'昨日全市场总清算$4.2亿，多空各半。整体Greed指数77（贪婪），但链上大额转入交易所增加，谨慎。', likes:312, comments:63, time:'3小时前', tags:['市场情绪','数据','风控'] },
-];
+// ---- Data ----
+var _sqChannels = [];
+var _sqMessages = {};
+var _sqCurrentChannel = null;
+var _tvVisible = false;
+var _ytVisible = false;
+var _tvInstance = null;
 
-let _sqFilter = 'all';
-let _sqMyLikes = new Set();
+// ---- Load/Save ----
+function loadSQData(){
+  var saved = localStorage.getItem('quantalk_data');
+  if(saved){
+    try{
+      var d = JSON.parse(saved);
+      _sqChannels = d.channels || [];
+      _sqMessages = d.messages || {};
+    }catch(e){}
+  }
+  if(!_sqChannels.length){
+    _sqChannels = [
+      {id:'ch-general', name:'全局', desc:'闲聊', icon:'🌐', widgetTV:'BTCUSDT', widgetYT:''},
+      {id:'ch-btc', name:'BTC讨论', desc:'比特币行情分析', icon:'₿', widgetTV:'BTCUSDT', widgetYT:''},
+      {id:'ch-eth', name:'ETH分析', desc:'以太坊技术讨论', icon:'⟠', widgetTV:'ETHUSDT', widgetYT:''},
+      {id:'ch-strategy', name:'策略分享', desc:'量化策略交流', icon:'⚡', widgetTV:'', widgetYT:''},
+      {id:'ch-livestream', name:'官方直播', desc:'操盘手实时交易', icon:'📺', widgetTV:'BTCUSDT', widgetYT:'jfKfPfyJRdk'},
+      {id:'ch-backtest', name:'回测心得', desc:'策略回测讨论', icon:'🔬', widgetTV:'', widgetYT:''}
+    ];
+    _sqMessages['ch-general'] = [
+      {id:'sys1', user:'System', av:'🤖', text:'欢迎来到 QuantTalk！在这里可以讨论行情、分享策略。', time:Date.now()-3600000, likes:0, liked:false, comments:[]}
+    ];
+    _sqChannels.slice(1).forEach(function(c){ _sqMessages[c.id] = []; });
+  }
+}
+function saveSQ(){
+  localStorage.setItem('quantalk_data', JSON.stringify({channels:_sqChannels, messages:_sqMessages}));
+}
 
-function renderSquare(filterOrPosts){
-  const container = document.getElementById('sq-posts');
-  if(!container) return;
-  // 支持传入 filter 字符串 或 posts 数组（兼容两种调用方式）
-  let posts;
-  if(Array.isArray(filterOrPosts)){
-    posts = filterOrPosts;
-  } else {
-    const filter = filterOrPosts || _sqFilter || 'all';
-    _sqFilter = filter;
-    if(filter === 'all') posts = _sqPosts;
-    else if(filter === 'hot') posts = [..._sqPosts].sort((a,b) => b.likes - a.likes);
-    else posts = _sqPosts.filter(p => p.sentiment === filter);
-  }
-  if(!posts || posts.length === 0){
-    container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">${t('sq_no_posts')||'No posts yet'}</div>`;
-    return;
-  }
-  container.innerHTML = posts.map(p => {
-    const liked = _sqMyLikes && _sqMyLikes.has(p.id);
-    const sentMap = {bull:`📈 ${t('sq_filter_bull')||'Bullish'}`, bear:`📉 ${t('sq_filter_bear')||'Bearish'}`, neutral:`➡️ ${t('sq_neutral')?.replace(/^[^\s]+\s/,'')||'Neutral'}`};
-    const sentCls = p.sentiment === 'bull' ? 'up' : p.sentiment === 'bear' ? 'down' : '';
-    return `<div class="sq-post">
-      <div class="sq-header">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="copy-av" style="width:34px;height:34px;font-size:15px">${p.av}</div>
-          <div>
-            <div style="font-weight:700;font-size:14px">${p.name||p.author||''}</div>
-            <div style="font-size:11px;color:var(--muted)">${p.time} &middot; ${p.pair||p.asset||''}</div>
-          </div>
-        </div>
-        <span class="${sentCls}" style="font-size:12px;font-weight:600">${sentMap[p.sentiment]||''}</span>
-      </div>
-      <div class="sq-content">${p.content}</div>
-      <div class="sq-tags">${(p.tags||[]).map(tag => `<span class="sq-tag">#${tag}</span>`).join('')}</div>
-      <div class="sq-actions">
-        <button class="sq-action ${liked ? 'liked' : ''}" onclick="sqLike('${p.id}')">
-          ${liked ? '&#x2764;' : '&#x1F90D;'} ${liked ? p.likes + 1 : p.likes}
-        </button>
-        <button class="sq-action" onclick="sqComment('${p.id}')">&#x1F4AC; ${p.comments}</button>
-        <button class="sq-action" onclick="sqShare('${p.id}')">&#x1F517; ${t('sq_share')||'Share'}</button>
-      </div>
-    </div>`;
+// ---- Init ----
+function initQuantTalk(){
+  loadSQData();
+  renderChannelList();
+  if(_sqChannels.length > 0) switchChannel(_sqChannels[0].id);
+  initWalletUI();
+}
+
+// ---- Channel List ----
+function renderChannelList(){
+  var el = document.getElementById('channel-list');
+  if(!el) return;
+  if(!_sqChannels) return;
+  el.innerHTML = _sqChannels.map(function(ch){
+    var active = _sqCurrentChannel && _sqCurrentChannel.id === ch.id;
+    return '<div class="ch-item'+(active?' active':'')+'" onclick="switchChannel(\''+ch.id+'\')">'+
+      '<span>'+ch.icon+'</span><span># '+ch.name+'</span>'+
+      '<span style="margin-left:auto;font-size:11px;color:var(--muted)">'+((_sqMessages[ch.id]||[]).length)+'</span>'+
+    '</div>';
   }).join('');
 }
 
-
-function filterSquare(filter, el){
-  _sqFilter = filter;
-  renderSquare(filter);
+// ---- Switch Channel ----
+function switchChannel(chId){
+  if(!_sqChannels) return;
+  _sqCurrentChannel = _sqChannels.find(function(c){ return c.id === chId; });
+  if(!_sqCurrentChannel) return;
+  document.getElementById('channel-name-display').textContent = '# '+_sqCurrentChannel.name;
+  document.getElementById('channel-desc-display').textContent = _sqCurrentChannel.desc;
+  if(_tvVisible && _sqCurrentChannel.widgetTV) loadTV(_sqCurrentChannel.widgetTV);
+  if(_ytVisible && _sqCurrentChannel.widgetYT) loadYT(_sqCurrentChannel.widgetYT);
+  renderChannelList();
+  renderMessages();
 }
 
-function selectSqSentiment(val, el){
-  document.querySelectorAll('.sq-sent-btn').forEach(b => b.classList.remove('active'));
-  if(el) el.classList.add('active');
-  document.getElementById('sq-sentiment-val').value = val;
-}
-
-function postSquare(){
-  const content = document.getElementById('sq-content')?.value?.trim();
-  const sentiment = document.getElementById('sq-sentiment-val')?.value || 'neutral';
-  const pair = document.getElementById('sq-pair-select')?.value || 'BTC/USDT';
-  if(!content || content.length < 5){
-    toast(t('sq_post_min')||'Please enter at least 5 characters', 'warn'); return;
+// ---- Messages ----
+function renderMessages(){
+  var el = document.getElementById('sq-msgs');
+  if(!el || !_sqCurrentChannel) return;
+  var msgs = _sqMessages[_sqCurrentChannel.id] || [];
+  if(!msgs.length){
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">暂无消息，开始聊天吧</div>';
+    return;
   }
-  const sentMap = { bull: t('sq_bull')||'📈 Bullish', bear: t('sq_bear')||'📉 Bearish', neutral: t('sq_neutral')||'➡️ Neutral' };
-  const newPost = {
-    id: 'sq' + Date.now(), uid: 'me', av: '🌟', name: t('sq_me')||'Me',
-    sentiment, pair, content,
-    likes: 0, comments: 0, time: t('sq_just_now')||'Just now',
-    tags: [pair.split('/')[0]]
-  };
-  _sqPosts.unshift(newPost);
-  document.getElementById('sq-content').value = '';
-  renderSquare(_sqFilter);
-  toast('&#x1F4AC; ' + (t('sq_post_success')||'Post published!'), 'success');
+  el.innerHTML = msgs.map(function(m){
+    var t = new Date(m.time).toLocaleTimeString();
+    var lh = m.liked ? '❤️' : '🤍';
+    var imgHtml = '';
+    if(m.img) imgHtml = '<div style="margin:6px 0 4px 14px"><img src="'+m.img+'" style="max-width:280px;border-radius:8px;max-height:200px"></div>';
+    return '<div class="sq-post" style="margin-bottom:8px">'+
+      '<div class="sq-header" style="display:flex;align-items:center;gap:8px">'+
+        '<div style="width:28px;height:28px;border-radius:50%;background:rgba(0,200,150,.2);display:flex;align-items:center;justify-content:center;font-size:13px">'+(m.av||'👤')+'</div>'+
+        '<div><span style="font-weight:600;font-size:13px">'+(m.user||'User')+'</span><span style="font-size:11px;color:var(--muted);margin-left:6px">'+t+'</span></div>'+
+      '</div>'+
+      '<div style="margin:4px 0 4px 36px;font-size:13px">'+(m.text||'')+'</div>'+imgHtml+
+      '<div style="margin-left:36px;display:flex;gap:12px">'+
+        '<button class="sq-action" onclick="likeMsg(\''+m.id+'\')" style="font-size:12px">'+lh+' <span>'+(m.likes||0)+'</span></button>'+
+        '<button class="sq-action" onclick="replyMsg(\''+m.id+'\')" style="font-size:12px">💬 '+((m.comments||[]).length)+'</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+function sendMsg(){
+  if(!_sqCurrentChannel){ toast('请先选择一个频道', 'warn'); return; }
+  var inp = document.getElementById('sq-input');
+  var txt = inp.value.trim();
+  if(!txt) return;
+  inp.value = '';
+  if(!_sqMessages[_sqCurrentChannel.id]) _sqMessages[_sqCurrentChannel.id] = [];
+  _sqMessages[_sqCurrentChannel.id].push({
+    id:'m'+Date.now(), user:localStorage.getItem('user_name')||'User', av:'👤',
+    text:txt, time:Date.now(), likes:0, liked:false, comments:[]
+  });
+  saveSQ(); renderMessages(); renderChannelList();
+}
+function likeMsg(id){
+  if(!_sqCurrentChannel) return;
+  var ms = _sqMessages[_sqCurrentChannel.id];
+  if(!ms) return;
+  var m = ms.find(function(x){ return x.id===id; });
+  if(!m) return;
+  if(m.liked){ m.liked=false; m.likes=Math.max(0,m.likes-1); }
+  else { m.liked=true; m.likes=(m.likes||0)+1; }
+  saveSQ(); renderMessages();
+}
+function replyMsg(id){
+  var r = prompt('输入回复:');
+  if(!r||!r.trim()) return;
+  if(!_sqCurrentChannel) return;
+  var ms = _sqMessages[_sqCurrentChannel.id]||[];
+  var m = ms.find(function(x){ return x.id===id; });
+  if(!m) return;
+  if(!m.comments) m.comments=[];
+  m.comments.push({text:r.trim(), time:Date.now(), user:localStorage.getItem('user_name')||'User'});
+  saveSQ(); renderMessages();
 }
 
-function sqLike(postId){
-  const post = _sqPosts.find(p => p.id === postId); if(!post) return;
-  if(_sqMyLikes.has(postId)){
-    _sqMyLikes.delete(postId);
-    toast(t('sq_unlike')||'Unliked', '');
-  } else {
-    _sqMyLikes.add(postId);
-    toast('&#x2764; ' + (t('sq_liked')||'Liked!'), 'success');
+// ---- Create Channel ----
+function createChannel(){
+  var name = prompt('输入频道名称:');
+  if(!name||!name.trim()) return;
+  var icon = prompt('输入图标 (如 🌐, 📊):') || '💬';
+  var desc = prompt('输入描述:') || '';
+  var id = 'ch-'+name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');
+  if(_sqChannels.find(function(c){ return c.id===id; })){ toast('频道已存在','warn'); return; }
+  _sqChannels.push({id:id, name:name.trim(), desc:desc, icon:icon, widgetTV:'BTCUSDT', widgetYT:''});
+  _sqMessages[id]=[];
+  saveSQ(); renderChannelList(); switchChannel(id);
+  toast('✅ #'+name.trim()+' 已创建', 'success');
+}
+
+// ---- TradingView Widget ----
+function loadTV(symbol){
+  var c = document.getElementById('widget-tv');
+  if(!c) return;
+  if(typeof TradingView==='undefined'){
+    var s=document.createElement('script');
+    s.src='https://s3.tradingview.com/tv.js';
+    s.onload=function(){ _initTV(symbol||'BINANCE:BTCUSDT'); };
+    document.head.appendChild(s);
+  } else { _initTV(symbol||'BINANCE:BTCUSDT'); }
+}
+function _initTV(sym){
+  var c=document.getElementById('widget-tv');
+  if(!c) return; c.innerHTML='';
+  try{
+    new TradingView.widget({
+      container_id:'widget-tv', symbol:sym.indexOf(':')>0?sym:'BINANCE:'+sym,
+      interval:'60', theme:'dark', style:'1', locale:'zh_CN',
+      toolbar_bg:'#1a1a2e', enable_publishing:true, allow_symbol_change:true,
+      hide_top_toolbar:false, save_image:true,
+      width:'100%', height:'100%',
+      studies:['RSI@tv-basicstudies','MASimple@tv-basicstudies'],
+      disabled_features:['use_localstorage_for_settings','go_to_date'],
+      enabled_features:['study_templates']
+    });
+  }catch(e){ console.warn('TV:',e); }
+}
+function toggleWidget(type){
+  if(type==='tv'){
+    _tvVisible=!_tvVisible;
+    document.getElementById('widget-tv').style.display=_tvVisible?'block':'none';
+    var btn=document.getElementById('tv-widget-btn');
+    btn.style.background=_tvVisible?'rgba(0,200,150,.2)':'transparent';
+    btn.style.color=_tvVisible?'var(--green)':'var(--muted)';
+    if(_tvVisible&&_sqCurrentChannel&&_sqCurrentChannel.widgetTV) loadTV(_sqCurrentChannel.widgetTV);
+  } else if(type==='yt'){
+    _ytVisible=!_ytVisible;
+    document.getElementById('widget-yt').style.display=_ytVisible?'block':'none';
+    var btn=document.getElementById('yt-widget-btn');
+    btn.style.background=_ytVisible?'rgba(0,200,150,.2)':'transparent';
+    btn.style.color=_ytVisible?'var(--green)':'var(--muted)';
+    if(_ytVisible&&_sqCurrentChannel&&_sqCurrentChannel.widgetYT) loadYT(_sqCurrentChannel.widgetYT);
   }
-  renderSquare(_sqFilter);
 }
 
-function sqComment(postId){
-  toast('&#x1F4AC; ' + (t('toast_coming_soon')||'Coming soon'), '');
+// ---- YouTube Widget ----
+function loadYT(vid){
+  var c=document.getElementById('yt-player');
+  if(!c) return;
+  var id=vid||'jfKfPfyJRdk';
+  var m=id.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if(m) id=m[1];
+  c.innerHTML='<iframe width="100%" height="100%" src="https://www.youtube.com/embed/'+id+'?autoplay=0&rel=0&modestbranding=1&showinfo=0&iv_load_policy=3" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen style="border-radius:12px"></iframe>';
 }
 
-function sqShare(postId){
-  if(navigator.clipboard){
-    navigator.clipboard.writeText('https://quantai.app/square/' + postId);
-    toast('&#x1F517; ' + (t('toast_copied')||'Link copied!'), 'success');
+// ---- Share Chart Snapshot ----
+function shareChart(){
+  if(!_tvVisible||!_sqCurrentChannel){ toast('请先打开图表', 'warn'); return; }
+  var sym=_sqCurrentChannel.widgetTV||'BTCUSDT';
+  if(!_sqMessages[_sqCurrentChannel.id]) _sqMessages[_sqCurrentChannel.id]=[];
+  _sqMessages[_sqCurrentChannel.id].push({
+    id:'m'+Date.now(), user:localStorage.getItem('user_name')||'User', av:'👤',
+    text:'📈 分享了图表 ['+sym+']', time:Date.now(), likes:0, liked:false, comments:[], chart:true
+  });
+  saveSQ(); renderMessages(); renderChannelList();
+  toast('✅ 图表已分享', 'success');
+}
+
+// ---- Wallet Functions ----
+function initWalletUI(){
+  var addr=localStorage.getItem('wallet_address');
+  if(addr){
+    document.getElementById('wallet-connected-area').style.display='block';
+    document.getElementById('wallet-display-address').textContent=addr;
+    document.getElementById('wallet-type-badge').textContent=localStorage.getItem('wallet_type')||'MetaMask';
+    document.getElementById('wallet-connect-area').style.display='none';
   }
 }
-
-// ===================================================
+function connectWallet(){
+  var sel=document.getElementById('wallet-select').value;
+  if(!sel){ toast('请选择钱包类型','warn'); return; }
+  var isExt=['metamask','okx','trustwallet','walletconnect'].indexOf(sel)>=0;
+  if(isExt){
+    var win=sel==='metamask'?window.ethereum:sel==='okx'?window.okxwallet:sel==='trustwallet'?window.trustwallet:null;
+    if(win&&win.request){
+      win.request({method:'eth_requestAccounts'}).then(function(a){
+        if(a&&a[0]) _walletConnected(sel,a[0]);
+      }).catch(function(e){ toast('连接失败: '+e.message,'warn'); _showManual(sel); });
+    } else {
+      toast('未检测到扩展，请使用手动输入','warn');
+      _showManual(sel);
+    }
+  } else { _showManual(sel); }
+}
+function _showManual(type){
+  document.getElementById('wallet-connect-area').style.display='none';
+  document.getElementById('wallet-manual-area').style.display='block';
+  document.getElementById('wallet-manual-area').dataset.type=type;
+}
+function saveManualWallet(){
+  var a=document.getElementById('wallet-manual-address').value.trim();
+  if(!a){ toast('请输入地址','warn'); return; }
+  var t=document.getElementById('wallet-manual-area').dataset.type||'manual';
+  _walletConnected(t,a);
+}
+function _walletConnected(type,addr){
+  var n={metamask:'🦊 MetaMask',walletconnect:'🔗 WalletConnect',trustwallet:'🛡️ Trust Wallet',okx:'🔶 OKX Wallet',exchange:'🏛️ 交易所钱包',cold:'❄️ 冷钱包'};
+  document.getElementById('wallet-connect-area').style.display='none';
+  document.getElementById('wallet-manual-area').style.display='none';
+  var ca=document.getElementById('wallet-connected-area');
+  ca.style.display='block';
+  document.getElementById('wallet-display-address').textContent=addr;
+  document.getElementById('wallet-type-badge').textContent=n[type]||type;
+  localStorage.setItem('wallet_type',n[type]||type);
+  localStorage.setItem('wallet_address',addr);
+  var hist=JSON.parse(localStorage.getItem('wallet_history')||'[]');
+  hist.unshift({type:n[type]||type,addr:addr,time:new Date().toLocaleString()});
+  localStorage.setItem('wallet_history',JSON.stringify(hist));
+  renderWalletHist();
+  toast('✅ 钱包已绑定: '+addr.substring(0,10)+'...','success');
+}
+function disconnectWallet(){
+  if(!confirm('确认断开?')) return;
+  document.getElementById('wallet-connected-area').style.display='none';
+  document.getElementById('wallet-connect-area').style.display='block';
+  localStorage.removeItem('wallet_type');
+  localStorage.removeItem('wallet_address');
+  toast('钱包已断开','');
+}
+function renderWalletHist(){
+  var h=document.getElementById('wallet-history');
+  var l=document.getElementById('wallet-history-list');
+  if(!h||!l) return;
+  var hist=JSON.parse(localStorage.getItem('wallet_history')||'[]');
+  if(!hist.length){ h.style.display='none'; return; }
+  h.style.display='block';
+  l.innerHTML=hist.slice(0,5).map(function(e){
+    return '<div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--muted)">'+
+      e.time+' '+e.type+' <span style="color:var(--green)">'+e.addr.substring(0,8)+'...</span></div>';
+  }).join('');
+}
 // ===== 策略市场 =====
 // ===================================================
 
