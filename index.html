@@ -10341,53 +10341,6 @@ window.addEventListener('DOMContentLoaded', function(){
   setTimeout(()=>div.remove(), 8000);
 });
 </script>
-<script>
-// ===== CS Global Bindings (guaranteed execution) =====
-(function(){
-  var fns = ['toggleCS','csGreet','csAddMsg','csFormatText','csShowTyping','csHideTyping','csSendQuick','csDoSend','csLocalReply','csFetchGroq','csShowHandoff','csGoHuman','csSendMessage'];
-  var code = document.documentElement.outerHTML;
-  for(var i=0;i<fns.length;i++){
-    var name = fns[i];
-    if(typeof window[name] === 'undefined'){
-      try{
-        // Parse the function from the script text
-        var scripts = document.getElementsByTagName('script');
-        for(var j=0;j<scripts.length;j++){
-          var s = scripts[j].textContent || '';
-          var idx = s.indexOf('function ' + name);
-          if(idx < 0) idx = s.indexOf('async function ' + name);
-          if(idx >= 0){
-            // Find matching closing brace
-            var fnText = s.substring(idx);
-            var depth = 0;
-            var endPos = 0;
-            for(var k=0;k<fnText.length;k++){
-              if(fnText[k] === '{') depth++;
-              if(fnText[k] === '}') depth--;
-              if(depth === 0 && k > 5){
-                endPos = k + 1;
-                break;
-              }
-            }
-            fnText = fnText.substring(0, endPos);
-            try{
-              eval('window["' + name + '"] = ' + fnText);
-              console.log('[CS Bind] Bound ' + name);
-            }catch(e){
-              console.warn('[CS Bind] Failed ' + name + ': ' + e.message);
-            }
-            break;
-          }
-        }
-      }catch(e){
-        console.warn('[CS Bind] Error ' + name + ': ' + e.message);
-      }
-    }
-  }
-  console.log('[CS Bind] Complete. toggleCS=' + typeof window.toggleCS + ' csGreet=' + typeof window.csGreet);
-})();
-</script>
-
 
 <!-- ===== 客服 Widget ===== -->
 <style>
