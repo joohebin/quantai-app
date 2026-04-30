@@ -17,24 +17,20 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <script>
-  // SW 仅在生产部署时启用，本地开发关闭以避免缓存干扰
-  if('serviceWorker' in navigator && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1'){
-    window.addEventListener('load', ()=>{
+// SW 仅在生产部署时启用，本地开发关闭以避免缓存干扰
+      window.addEventListener('load', ()=>{
       navigator.serviceWorker.register('/sw.js')
         .then(()=>console.log('[PWA] Service Worker 注册成功'))
         .catch(e=>console.warn('[PWA] SW 注册失败:', e));
     });
-  }
   // 本地开发：主动注销旧的 SW 和清除缓存
-  if(location.hostname === 'localhost' || location.hostname === '127.0.0.1'){
-    if('serviceWorker' in navigator){
+      if('serviceWorker' in navigator){
       navigator.serviceWorker.getRegistrations().then(regs=>{
         regs.forEach(r=>r.unregister());
       });
-    }
     if('caches' in window){
       caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)));
-   
+
 // ===== CS Widget (merged into S0 for execution) =====
 
 // ===== 客服 Widget 逻辑 =====
@@ -696,12 +692,7 @@ window.showPage = function(page, el){
 
 // 初始化时渲染一次
 window.addEventListener('load', ()=>{ setTimeout(renderAIConfigCard, 500); });
-
-
-
- }
-  }
-</script>
+</script></script>
 <script>
   // 后端API地址
   window.API_BASE = 'http://54.151.143.233:8001';
