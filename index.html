@@ -9631,6 +9631,29 @@ window.csDoSend = async function(){
 </script>
 <script>
 // 快速诊断：检查函数可用性
+
+  // ---- 客服按钮逻辑（必放在此script以确保可用） ----
+  var _csOpen = false;
+  window.toggleCS = function toggleCS(){
+    console.log('[客服] 点击了客服按钮, 当前状态:', _csOpen);
+    try{
+      _csOpen = !_csOpen;
+      var panel = document.getElementById('cs-panel');
+      if(!panel){console.log('[客服] cs-panel not found'); return;}
+      if(_csOpen){
+        panel.classList.add('open');
+        var fab = document.getElementById('cs-fab');
+        if(fab) fab.innerHTML = '\u2715<span class="cs-badge" id="cs-badge" style="display:none"></span>';
+        var badge = document.getElementById('cs-badge');
+        if(badge) badge.style.display = 'none';
+        setTimeout(function(){var inp=document.getElementById("cs-input"); if(inp)inp.focus();}, 300);
+      } else {
+        panel.classList.remove('open');
+        var fab = document.getElementById('cs-fab');
+        if(fab) fab.innerHTML = '\uD83D\uDCAC<span class="cs-badge" id="cs-badge" style="display:none"></span>';
+      }
+    }catch(e){console.log("[客服] toggleCS error:", e);}
+  };
 window.addEventListener('DOMContentLoaded', function(){
   // 检查 URL hash，直接跳转到对应页面
   var hash = location.hash.replace('#', '');
