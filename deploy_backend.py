@@ -2,8 +2,8 @@
 import boto3, time, base64, math, os, glob
 
 session = boto3.Session(
-    aws_access_key_id='AKIASMPR6CTXWCNXOEUP',
-    aws_secret_access_key='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',
+    aws_access_key_id='AKIASMPR6CTXYKST5J6K',
+    aws_secret_access_key='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',
     region_name='ap-northeast-1'
 )
 ssm = session.client('ssm')

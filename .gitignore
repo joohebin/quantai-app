@@ -94,3 +94,8 @@ pre_fix_analysis.py
 raw_bytes_check.py
 sw.js
 manifest.json
+
+# Deploy scripts with secrets — never commit
+deploy*.py
+_deploy*.py
+ssm_deploy*.py
